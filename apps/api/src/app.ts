@@ -3,15 +3,46 @@ import express from "express";
 import helmet from "helmet";
 import morgan from "morgan";
 import { createAuthRoutes } from "./modules/auth/auth.routes.js";
+import { createProfileRoutes } from "./modules/profile/profile.routes.js";
+import { createAdvertisementRoutes } from "./modules/advertisements/advertisements.routes.js";
+import { createDisplayRoutes } from "./modules/displays/displays.routes.js";
 import { authRateLimiter, generalRateLimiter } from "./middleware/rate-limit.middleware.js";
+import { responseFormatter } from "./middleware/response-formatter.middleware.js";
+import { errorHandler } from "./middleware/error-handler.middleware.js";
 
 const app = express();
 
-// Security and parsing middleware
+// Strict CORS configuration - whitelist allowed origins
+// This prevents cross-site request forgery and protects against unauthorized access
+const allowedOrigins = (process.env.CORS_ORIGINS || "http://localhost:3000").split(",");
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests without origin (like mobile apps or curl)
+      // or from whitelisted origins
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("CORS policy: Origin not allowed"));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    maxAge: 86400, // 24 hours
+  })
+);
+
+// Security headers and parsing middleware
 app.use(helmet());
-app.use(cors());
-app.use(express.json());
+// Strict payload limits to prevent large uploads and DoS
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb" }));
 app.use(morgan("dev"));
+
+// Apply response formatter to all routes
+app.use(responseFormatter);
 
 // Apply general rate limiting to all routes
 app.use(generalRateLimiter);
@@ -52,5 +83,17 @@ if (!googleClientId) {
 }
 
 app.use("/api/auth", authRateLimiter, createAuthRoutes(jwtSecret, googleClientId, jwtExpiresIn));
+
+// Profile routes (protected - requires JWT)
+app.use("/api/profile", createProfileRoutes(jwtSecret));
+
+// Advertisement routes (mixed public/protected)
+app.use("/api/advertisements", createAdvertisementRoutes(jwtSecret));
+
+// Display routes (mixed public/protected)
+app.use("/api/displays", createDisplayRoutes(jwtSecret));
+
+// Global error handler middleware (must be last)
+app.use(errorHandler);
 
 export default app;

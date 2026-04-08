@@ -16,6 +16,10 @@ export interface IUser {
   isActive: boolean;
   profilePicture?: string | undefined;
   lastLogin?: Date | undefined;
+  // Account lockout fields for security
+  failedLoginAttempts?: number | undefined;
+  isLocked?: boolean | undefined;
+  lockedUntil?: Date | undefined;
   createdAt: Date;
   updatedAt: Date;
 }

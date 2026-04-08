@@ -17,6 +17,10 @@ export class User implements IUser {
   isActive: boolean;
   profilePicture?: string | undefined;
   lastLogin?: Date | undefined;
+  // Account lockout fields for security
+  failedLoginAttempts?: number | undefined;
+  isLocked?: boolean | undefined;
+  lockedUntil?: Date | undefined;
   createdAt: Date;
   updatedAt: Date;
 
@@ -32,6 +36,9 @@ export class User implements IUser {
     this.isActive = data.isActive;
     this.profilePicture = data.profilePicture ?? undefined;
     this.lastLogin = data.lastLogin ?? undefined;
+    this.failedLoginAttempts = data.failedLoginAttempts ?? 0;
+    this.isLocked = data.isLocked ?? false;
+    this.lockedUntil = data.lockedUntil ?? undefined;
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
   }

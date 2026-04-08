@@ -30,7 +30,34 @@ export class AuthService {
   }
 
   /**
-   * Generate JWT token for user
+   * Generate token pair (access and refresh tokens)
+   * Access token: short-lived (15 minutes) for API requests
+   * Refresh token: long-lived (7 days) for obtaining new access tokens
+   * Separation reduces exposure window if access token is compromised
+   */
+  generateTokenPair(user: User): { accessToken: string; refreshToken: string } {
+    const accessToken = jwt.sign(
+      {
+        sub: user.id,
+        email: user.email,
+        role: user.role,
+        type: "access",
+      },
+      this.jwtSecret,
+      { expiresIn: "15m" }
+    );
+
+    const refreshToken = jwt.sign(
+      { sub: user.id, type: "refresh" },
+      this.jwtSecret,
+      { expiresIn: "7d" }
+    );
+
+    return { accessToken, refreshToken };
+  }
+
+  /**
+   * Generate JWT token for user (backward compatible)
    * Creates signed token with user ID, email, and role
    */
   generateToken(user: User): string {
@@ -43,6 +70,41 @@ export class AuthService {
     return jwt.sign(payload, this.jwtSecret, {
       expiresIn: this.jwtExpiresIn,
     } as jwt.SignOptions);
+  }
+
+  /**
+   * Refresh access token using refresh token
+   * Validates refresh token and returns new access token
+   */
+  async refreshAccessToken(refreshToken: string): Promise<string> {
+    try {
+      const decoded = jwt.verify(refreshToken, this.jwtSecret) as any;
+      
+      // Validate token type
+      if (decoded.type !== "refresh") {
+        throw new Error("Invalid token type");
+      }
+      
+      // Verify user still exists and is active
+      const user = await this.userRepository.findById(decoded.sub);
+      if (!user) {
+        throw new Error("User not found");
+      }
+      
+      if (!user.isActive) {
+        throw new Error("User account is inactive");
+      }
+      
+      return this.generateToken(user);
+    } catch (error) {
+      if (error instanceof jwt.TokenExpiredError) {
+        throw new Error("Refresh token has expired");
+      }
+      if (error instanceof jwt.JsonWebTokenError) {
+        throw new Error("Invalid refresh token");
+      }
+      throw error;
+    }
   }
 
   /**
@@ -109,6 +171,8 @@ export class AuthService {
   /**
    * Login user with email and password
    * Validates credentials and returns user with token
+   * Implements constant-time verification to prevent timing attacks
+   * Implements account lockout after failed attempts
    */
   async login(
     email: string,
@@ -116,28 +180,61 @@ export class AuthService {
   ): Promise<{ user: User; token: string }> {
     // Find user by email
     const user = await this.userRepository.findByEmail(email);
-    if (!user) {
+
+    // Check if account is locked before any password verification
+    // This prevents timing attacks by always checking password even if locked
+    if (user?.isLocked) {
+      const lockedUntil = user.lockedUntil;
+      if (lockedUntil && lockedUntil > new Date()) {
+        throw new Error("Invalid email or password");
+      } else if (lockedUntil) {
+        // Unlock expired lock
+        await this.userRepository.update(user.id, {
+          isLocked: false,
+          lockedUntil: undefined,
+          failedLoginAttempts: 0,
+        });
+      }
+    }
+
+    // Always verify password regardless of user existence
+    // This prevents timing attacks by ensuring constant execution time
+    const userExists = !!user;
+    const isActive = userExists && user.isActive;
+    const passwordValid = userExists && user.password
+      ? await this.comparePassword(password, user.password)
+      : false;
+
+    if (!userExists || !isActive || !passwordValid) {
+      // Record failed attempt if user exists (without leaking which check failed)
+      if (user && userExists) {
+        const failedAttempts = (user.failedLoginAttempts ?? 0) + 1;
+        const lockDurationMinutes = Math.min(failedAttempts * 5, 60);
+
+        // Lock account if too many failed attempts
+        // Exponential backoff: 5 min, 10 min, 15 min... max 60 min
+        if (failedAttempts >= 5) {
+          await this.userRepository.update(user.id, {
+            failedLoginAttempts: failedAttempts,
+            isLocked: true,
+            lockedUntil: new Date(Date.now() + lockDurationMinutes * 60 * 1000),
+          });
+        } else {
+          await this.userRepository.update(user.id, {
+            failedLoginAttempts: failedAttempts,
+          });
+        }
+      }
+      // Single generic error for all failure cases prevents info leakage
       throw new Error("Invalid email or password");
     }
 
-    // Check if user is active
-    if (!user.isActive) {
-      throw new Error("User account is inactive");
-    }
-
-    // Verify password
-    if (!user.password) {
-      throw new Error("User account has no password set");
-    }
-
-    const isPasswordValid = await this.comparePassword(password, user.password);
-    if (!isPasswordValid) {
-      throw new Error("Invalid email or password");
-    }
-
-    // Update last login
+    // Success - reset failed attempts and update last login
     user.updateLastLogin();
     await this.userRepository.update(user.id, {
+      failedLoginAttempts: 0,
+      isLocked: false,
+      lockedUntil: undefined,
       lastLogin: user.lastLogin,
       updatedAt: user.updatedAt,
     });

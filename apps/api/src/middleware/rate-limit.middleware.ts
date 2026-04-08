@@ -33,3 +33,17 @@ export const generalRateLimiter = rateLimit({
   legacyHeaders: false,
   skip: (req) => process.env.NODE_ENV === "test",
 });
+
+/**
+ * Rate limiter for public data endpoints (advertisements listing).
+ * Stricter limits (20 requests per minute) to prevent data scraping and abuse.
+ * Public endpoints are more vulnerable to automated abuse patterns.
+ */
+export const publicDataRateLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 20, // 20 requests per minute
+  message: { error: "Too many requests. Please try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => process.env.NODE_ENV === "test",
+});

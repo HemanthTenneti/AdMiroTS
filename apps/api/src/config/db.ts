@@ -99,6 +99,10 @@ const userSchema = new Schema<IUserDocument>(
     isActive: { type: Boolean, required: true, default: true },
     profilePicture: String,
     lastLogin: Date,
+    // Account lockout fields for security
+    failedLoginAttempts: { type: Number, required: true, default: 0 },
+    isLocked: { type: Boolean, required: true, default: false },
+    lockedUntil: Date,
     createdAt: { type: Date, required: true, default: () => new Date() },
     updatedAt: { type: Date, required: true, default: () => new Date() },
   },
