@@ -1,1 +1,2 @@
-export { JWTAuthMiddleware, GoogleAuthMiddleware } from "./auth.middleware";
+export { JWTAuthMiddleware } from "./auth.middleware";
+export { authRateLimiter, generalRateLimiter } from "./rate-limit.middleware";
