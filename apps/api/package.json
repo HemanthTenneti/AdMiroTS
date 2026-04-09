@@ -2,10 +2,10 @@
   "name": "@admiro/api",
   "private": true,
   "version": "0.1.0",
-  "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && npm run build:move-dist",
+    "build:move-dist": "mv dist/apps/api/src/* dist/ && rm -rf dist/apps dist/packages",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
     "test": "jest",
