@@ -1,7 +1,7 @@
-export { IUser } from "./IUser";
-export { IAdvertisement } from "./IAdvertisement";
-export { IDisplay } from "./IDisplay";
-export { IDisplayLoop } from "./IDisplayLoop";
-export { ISystemLog } from "./ISystemLog";
-export { IAnalytics } from "./IAnalytics";
-export { IDisplayConnectionRequest } from "./IDisplayConnectionRequest";
+export type { IUser } from "./IUser";
+export type { IAdvertisement } from "./IAdvertisement";
+export type { IDisplay } from "./IDisplay";
+export type { IDisplayLoop } from "./IDisplayLoop";
+export type { ISystemLog } from "./ISystemLog";
+export type { IAnalytics } from "./IAnalytics";
+export type { IDisplayConnectionRequest } from "./IDisplayConnectionRequest";
