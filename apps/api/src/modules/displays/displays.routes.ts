@@ -88,7 +88,7 @@ export function createDisplayRoutes(jwtSecret: string): Router {
   // POST /api/displays/pair - Pair/activate a display
   router.post(
     "/pair",
-    validateRequest(DisplayValidationSchemas.create),
+    validateRequest(DisplayValidationSchemas.pair),
     (req: Request, res: Response, next: NextFunction) => {
       displayController.pairDisplay(req, res).catch(next);
     }

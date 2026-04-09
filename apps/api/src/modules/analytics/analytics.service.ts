@@ -17,30 +17,47 @@ export class AnalyticsService {
     this.analyticsRepository = new AnalyticsRepository();
   }
 
-  /**
-   * Record a new analytics event
-   */
-  async recordEvent(data: RecordAnalyticsInput): Promise<Analytics> {
-    const analytics = Analytics.create({
-      displayId: data.displayId,
-      adId: data.adId,
-      loopId: data.loopId,
-      impressions: data.impressions,
-      viewDuration: data.viewDuration,
-      completedViews: data.completedViews,
-      partialViews: data.partialViews,
-      engagementMetrics: data.metrics ? new EngagementMetrics({
-        clicks: data.metrics.clicks ?? 0,
-        interactions: data.metrics.interactions ?? 0,
-        dwellTime: data.metrics.dwellTime ?? 0,
-      }) : undefined,
-      metadata: data.metadata,
-    });
+   /**
+    * Record a new analytics event
+    * Only includes optional fields if they are defined to respect exactOptionalPropertyTypes
+    */
+   async recordEvent(data: RecordAnalyticsInput): Promise<Analytics> {
+     // Build analytics create object with only defined values
+     const createData: {
+       displayId: string;
+       adId: string;
+       loopId: string;
+       impressions?: number;
+       viewDuration?: number;
+       completedViews?: number;
+       partialViews?: number;
+       engagementMetrics?: EngagementMetrics;
+       metadata?: Record<string, any>;
+     } = {
+       displayId: data.displayId,
+       adId: data.adId,
+       loopId: data.loopId,
+     };
 
-    const created = await this.analyticsRepository.create(analytics as any);
-    Logger.info(`Analytics event recorded for display ${data.displayId}, ad ${data.adId}`);
-    return created;
-  }
+     if (data.impressions !== undefined) createData.impressions = data.impressions;
+     if (data.viewDuration !== undefined) createData.viewDuration = data.viewDuration;
+     if (data.completedViews !== undefined) createData.completedViews = data.completedViews;
+     if (data.partialViews !== undefined) createData.partialViews = data.partialViews;
+     if (data.metadata !== undefined) createData.metadata = data.metadata;
+
+     if (data.metrics) {
+       createData.engagementMetrics = new EngagementMetrics(
+         data.metrics.clicks ?? 0,
+         data.metrics.interactions ?? 0,
+         data.metrics.dwellTime ?? 0
+       );
+     }
+
+     const analytics = Analytics.create(createData);
+     const created = await this.analyticsRepository.create(analytics as any);
+     Logger.info(`Analytics event recorded for display ${data.displayId}, ad ${data.adId}`);
+     return created;
+   }
 
   /**
    * Get analytics by ID

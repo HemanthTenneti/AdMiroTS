@@ -7,6 +7,7 @@ import { Advertisement, AdStatus, MediaType } from "@admiro/domain";
 import { AdvertisementRepository } from "../../services/repositories/AdvertisementRepository";
 import { NotFoundError } from "../../utils/errors/NotFoundError";
 import { ValidationError } from "../../utils/errors/ValidationError";
+import { ForbiddenError } from "../../utils/errors/ForbiddenError";
 import { Logger } from "../../utils/logger";
 import { IdGenerator } from "../../utils/id-generator";
 
@@ -182,16 +183,28 @@ export class AdvertisementService {
 
   /**
    * Update an advertisement's mutable fields
+   * Verifies user ownership before allowing updates
    * Prevents updates to system fields like status (use dedicated methods instead)
    *
    * @param id - Advertisement ID
+   * @param advertiserId - ID of the user making the update (for ownership validation)
    * @param data - Partial update data
    * @returns Updated Advertisement entity
    * @throws NotFoundError if advertisement doesn't exist
+   * @throws ForbiddenError if user is not the owner
    */
-  async updateAdvertisement(id: string, data: UpdateAdvertisementInput): Promise<Advertisement> {
+  async updateAdvertisement(
+    id: string,
+    advertiserId: string,
+    data: UpdateAdvertisementInput
+  ): Promise<Advertisement> {
     // Verify advertisement exists before attempting update
-    await this.getAdvertisement(id);
+    const ad = await this.getAdvertisement(id);
+
+    // Verify user ownership
+    if (ad.advertiserId !== advertiserId) {
+      throw new ForbiddenError("You do not have permission to update this advertisement");
+    }
 
     // Build update object with only changed fields
     const updateData: Record<string, any> = {
@@ -212,21 +225,29 @@ export class AdvertisementService {
       throw new NotFoundError(`Advertisement with ID ${id} not found`);
     }
 
-    Logger.info(`Advertisement updated: ${id}`);
+    Logger.info(`Advertisement updated: ${id}`, { updatedBy: advertiserId });
     return updated;
   }
 
   /**
    * Soft delete an advertisement
+   * Verifies user ownership before allowing deletion
    * Sets status to EXPIRED instead of removing record
    * Preserves historical data while removing from active lists
    *
    * @param id - Advertisement ID
+   * @param advertiserId - ID of the user making the deletion (for ownership validation)
    * @throws NotFoundError if advertisement doesn't exist
+   * @throws ForbiddenError if user is not the owner
    */
-  async deleteAdvertisement(id: string): Promise<void> {
+  async deleteAdvertisement(id: string, advertiserId: string): Promise<void> {
     // Verify exists before attempting delete
-    await this.getAdvertisement(id);
+    const ad = await this.getAdvertisement(id);
+
+    // Verify user ownership
+    if (ad.advertiserId !== advertiserId) {
+      throw new ForbiddenError("You do not have permission to delete this advertisement");
+    }
 
     // Soft delete - preserve data by marking as expired
     await this.adRepository.updateById(id, {
@@ -234,20 +255,28 @@ export class AdvertisementService {
       updatedAt: new Date(),
     });
 
-    Logger.info(`Advertisement soft-deleted: ${id}`);
+    Logger.info(`Advertisement soft-deleted: ${id}`, { deletedBy: advertiserId });
   }
 
   /**
    * Activate an advertisement
+   * Verifies user ownership before allowing status change
    * Changes status to ACTIVE, making it available for display
    *
    * @param id - Advertisement ID
+   * @param advertiserId - ID of the user making the change (for ownership validation)
    * @returns Updated Advertisement entity
    * @throws NotFoundError if advertisement doesn't exist
+   * @throws ForbiddenError if user is not the owner
    */
-  async activateAdvertisement(id: string): Promise<Advertisement> {
+  async activateAdvertisement(id: string, advertiserId: string): Promise<Advertisement> {
     // Verify exists before attempting status change
-    await this.getAdvertisement(id);
+    const ad = await this.getAdvertisement(id);
+
+    // Verify user ownership
+    if (ad.advertiserId !== advertiserId) {
+      throw new ForbiddenError("You do not have permission to activate this advertisement");
+    }
 
     const updated = await this.adRepository.updateById(id, {
       status: AdStatus.ACTIVE,
@@ -264,15 +293,23 @@ export class AdvertisementService {
 
   /**
    * Deactivate an advertisement
+   * Verifies user ownership before allowing status change
    * Changes status to PAUSED, preventing display without deletion
    *
    * @param id - Advertisement ID
+   * @param advertiserId - ID of the user making the change (for ownership validation)
    * @returns Updated Advertisement entity
    * @throws NotFoundError if advertisement doesn't exist
+   * @throws ForbiddenError if user is not the owner
    */
-  async deactivateAdvertisement(id: string): Promise<Advertisement> {
+  async deactivateAdvertisement(id: string, advertiserId: string): Promise<Advertisement> {
     // Verify exists before attempting status change
-    await this.getAdvertisement(id);
+    const ad = await this.getAdvertisement(id);
+
+    // Verify user ownership
+    if (ad.advertiserId !== advertiserId) {
+      throw new ForbiddenError("You do not have permission to deactivate this advertisement");
+    }
 
     const updated = await this.adRepository.updateById(id, {
       status: AdStatus.PAUSED,
@@ -283,7 +320,7 @@ export class AdvertisementService {
       throw new NotFoundError(`Advertisement with ID ${id} not found`);
     }
 
-    Logger.info(`Advertisement deactivated: ${id}`);
+    Logger.info(`Advertisement deactivated: ${id}`, { deactivatedBy: advertiserId });
     return updated;
   }
 

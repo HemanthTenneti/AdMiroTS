@@ -41,83 +41,103 @@ export class AnalyticsController {
     }
   }
 
-  /**
-   * List analytics records with pagination and filtering
-   */
-  async listAnalytics(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      this.getUser(req);
-      const page = req.query.page as string | undefined;
-      const limit = req.query.limit as string | undefined;
-      const displayId = req.query.displayId as string | undefined;
-      const adId = req.query.adId as string | undefined;
-      const loopId = req.query.loopId as string | undefined;
-      const startDate = req.query.startDate as string | undefined;
-      const endDate = req.query.endDate as string | undefined;
-      const sortBy = req.query.sortBy as string | undefined;
-      const sortOrder = req.query.sortOrder as "asc" | "desc" | undefined;
+   /**
+    * List analytics records with pagination and filtering
+    */
+   async listAnalytics(req: Request, res: Response, next: NextFunction): Promise<void> {
+     try {
+       this.getUser(req);
+       const page = req.query.page as string | undefined;
+       const limit = req.query.limit as string | undefined;
+       const displayId = req.query.displayId as string | undefined;
+       const adId = req.query.adId as string | undefined;
+       const loopId = req.query.loopId as string | undefined;
+       const startDate = req.query.startDate as string | undefined;
+       const endDate = req.query.endDate as string | undefined;
+       const sortBy = req.query.sortBy as string | undefined;
+       const sortOrder = req.query.sortOrder as "asc" | "desc" | undefined;
 
-      const result = await this.analyticsService.listAnalytics(
-        Number(page) || 1,
-        Number(limit) || 10,
-        {
-          displayId,
-          adId,
-          loopId,
-          startDate,
-          endDate,
-          sortBy,
-          sortOrder,
-        }
-      );
+       // Build filter object with only defined values
+       const filters: {
+         displayId?: string;
+         adId?: string;
+         loopId?: string;
+         startDate?: string;
+         endDate?: string;
+         sortBy?: string;
+         sortOrder?: "asc" | "desc";
+       } = {};
 
-      const response: SuccessResponse<any> = {
-        success: true,
-        data: {
-          data: result.data,
-          pagination: {
-            page: Number(page) || 1,
-            limit: Number(limit) || 10,
-            total: result.total,
-            hasMore: (Number(page) || 1) * (Number(limit) || 10) < result.total,
-          },
-        },
-      };
-      res.status(200).json(response);
-    } catch (error) {
-      next(error);
-    }
-  }
+       if (displayId !== undefined) filters.displayId = displayId;
+       if (adId !== undefined) filters.adId = adId;
+       if (loopId !== undefined) filters.loopId = loopId;
+       if (startDate !== undefined) filters.startDate = startDate;
+       if (endDate !== undefined) filters.endDate = endDate;
+       if (sortBy !== undefined) filters.sortBy = sortBy;
+       if (sortOrder !== undefined) filters.sortOrder = sortOrder;
 
-  /**
-   * Get aggregated statistics
-   */
-  async getAggregatedStats(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      this.getUser(req);
-      const displayId = req.query.displayId as string | undefined;
-      const adId = req.query.adId as string | undefined;
-      const loopId = req.query.loopId as string | undefined;
-      const startDate = req.query.startDate as string | undefined;
-      const endDate = req.query.endDate as string | undefined;
+       const result = await this.analyticsService.listAnalytics(
+         Number(page) || 1,
+         Number(limit) || 10,
+         filters
+       );
 
-      const stats = await this.analyticsService.getAggregatedAnalytics({
-        displayId,
-        adId,
-        loopId,
-        startDate,
-        endDate,
-      });
+       const response: SuccessResponse<any> = {
+         success: true,
+         data: {
+           data: result.data,
+           pagination: {
+             page: Number(page) || 1,
+             limit: Number(limit) || 10,
+             total: result.total,
+             hasMore: (Number(page) || 1) * (Number(limit) || 10) < result.total,
+           },
+         },
+       };
+       res.status(200).json(response);
+     } catch (error) {
+       next(error);
+     }
+   }
 
-      const response: SuccessResponse<any> = {
-        success: true,
-        data: stats,
-      };
-      res.status(200).json(response);
-    } catch (error) {
-      next(error);
-    }
-  }
+   /**
+    * Get aggregated statistics
+    */
+   async getAggregatedStats(req: Request, res: Response, next: NextFunction): Promise<void> {
+     try {
+       this.getUser(req);
+       const displayId = req.query.displayId as string | undefined;
+       const adId = req.query.adId as string | undefined;
+       const loopId = req.query.loopId as string | undefined;
+       const startDate = req.query.startDate as string | undefined;
+       const endDate = req.query.endDate as string | undefined;
+
+       // Build filter object with only defined values
+       const filters: {
+         displayId?: string;
+         adId?: string;
+         loopId?: string;
+         startDate?: string;
+         endDate?: string;
+       } = {};
+
+       if (displayId !== undefined) filters.displayId = displayId;
+       if (adId !== undefined) filters.adId = adId;
+       if (loopId !== undefined) filters.loopId = loopId;
+       if (startDate !== undefined) filters.startDate = startDate;
+       if (endDate !== undefined) filters.endDate = endDate;
+
+       const stats = await this.analyticsService.getAggregatedAnalytics(filters);
+
+       const response: SuccessResponse<any> = {
+         success: true,
+         data: stats,
+       };
+       res.status(200).json(response);
+     } catch (error) {
+       next(error);
+     }
+   }
 
   /**
    * Get single analytics record

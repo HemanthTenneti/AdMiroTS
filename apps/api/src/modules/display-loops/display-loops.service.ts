@@ -124,12 +124,12 @@ export class DisplayLoopService {
     
     // In a real app, we'd verify the advertisement exists here
     
-    const entry = new LoopAdvertisementEntry({
-      advertisementId: data.advertisementId,
-      duration: data.duration,
-      order: data.order,
-      weight: data.weight ?? 1,
-    });
+    const entry = new LoopAdvertisementEntry(
+      data.advertisementId,
+      data.order,
+      data.duration,
+      data.weight ?? 1
+    );
 
     loop.addAdvertisement(entry);
 

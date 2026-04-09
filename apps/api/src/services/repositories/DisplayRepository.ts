@@ -31,8 +31,13 @@ export class DisplayRepository extends BaseRepository<Display> {
     await this.model.findByIdAndUpdate(id, { lastSeen: new Date() });
   }
 
-  async findBySerialNumber(serialNumber: string): Promise<Display | null> {
-    const doc = await this.model.findOne({ displayId: serialNumber });
+  /**
+   * Find display by its displayId (used during pairing flow)
+   * Note: The pairing flow passes the displayId as the lookup key.
+   * This is intentionally querying displayId, not a separate serialNumber field.
+   */
+  async findByDisplayId(displayId: string): Promise<Display | null> {
+    const doc = await this.model.findOne({ displayId });
     if (!doc) return null;
     return new Display(doc.toObject() as IDisplay);
   }

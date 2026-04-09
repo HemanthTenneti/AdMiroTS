@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction as ExpressNextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { JWTPayload, AuthenticatedRequest } from "../types/auth.types";
-import UserRepository from "../config/user.repository";
+import { UserRepository } from "../services/repositories/UserRepository";
 
 /**
  * JWT Authentication middleware

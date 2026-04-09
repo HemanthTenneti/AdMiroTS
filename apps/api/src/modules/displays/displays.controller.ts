@@ -121,11 +121,12 @@ export class DisplayController {
    */
   async updateDisplay(req: Request, res: Response): Promise<void> {
     try {
+      const user = this.getUser(req);
       const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
       if (!id) {
         throw new ValidationError("Display ID is required");
       }
-      const display = await this.displayService.updateDisplay(id, req.body);
+      const display = await this.displayService.updateDisplay(id, user.id, req.body);
 
       const response: SuccessResponse<any> = {
         success: true,
@@ -143,11 +144,12 @@ export class DisplayController {
    */
   async deleteDisplay(req: Request, res: Response): Promise<void> {
     try {
+      const user = this.getUser(req);
       const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
       if (!id) {
         throw new ValidationError("Display ID is required");
       }
-      await this.displayService.deleteDisplay(id);
+      await this.displayService.deleteDisplay(id, user.id);
 
       const response: SuccessResponse<any> = {
         success: true,

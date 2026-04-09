@@ -153,8 +153,9 @@ export class AdvertisementController {
    */
   async updateAdvertisement(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      const user = this.getUser(req);
       const id = req.params.id as string;
-      const ad = await this.adService.updateAdvertisement(id, req.body);
+      const ad = await this.adService.updateAdvertisement(id, user.id, req.body);
 
       const response: SuccessResponse<any> = {
         success: true,
@@ -177,8 +178,9 @@ export class AdvertisementController {
    */
   async deleteAdvertisement(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      const user = this.getUser(req);
       const id = req.params.id as string;
-      await this.adService.deleteAdvertisement(id);
+      await this.adService.deleteAdvertisement(id, user.id);
 
       const response: SuccessResponse<{ message: string }> = {
         success: true,
@@ -201,8 +203,9 @@ export class AdvertisementController {
    */
   async activateAdvertisement(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      const user = this.getUser(req);
       const id = req.params.id as string;
-      const ad = await this.adService.activateAdvertisement(id);
+      const ad = await this.adService.activateAdvertisement(id, user.id);
 
       const response: SuccessResponse<any> = {
         success: true,
@@ -225,8 +228,9 @@ export class AdvertisementController {
    */
   async deactivateAdvertisement(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      const user = this.getUser(req);
       const id = req.params.id as string;
-      const ad = await this.adService.deactivateAdvertisement(id);
+      const ad = await this.adService.deactivateAdvertisement(id, user.id);
 
       const response: SuccessResponse<any> = {
         success: true,

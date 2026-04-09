@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { User, UserRole } from "@admiro/domain";
 import type { IUser } from "@admiro/domain";
-import UserRepository from "../../config/user.repository";
+import { UserRepository } from "../../services/repositories/UserRepository";
 import { JWTPayload } from "../../types/auth.types";
 
 /**

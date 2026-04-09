@@ -53,10 +53,15 @@ export const DisplayConfigSchema = z.object({
   orientation: z.enum(["LANDSCAPE", "PORTRAIT"]),
 });
 
+export const PairDisplaySchema = z.object({
+  serialNumber: z.string().min(1, "Serial number is required").max(100, "Serial number cannot exceed 100 characters"),
+});
+
 export const DisplayValidationSchemas = {
   create: CreateDisplaySchema,
   update: UpdateDisplaySchema,
   filterQuery: DisplayFilterQuerySchema,
   assignLoops: DisplayLoopSchema,
   config: DisplayConfigSchema,
+  pair: PairDisplaySchema,
 };

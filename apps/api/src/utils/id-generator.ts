@@ -18,8 +18,9 @@ export class IdGenerator {
     return this.prefixed("user");
   }
 
+  // MongoDB schema validates adId as "AD-{UUID}" format
   static adId(): string {
-    return this.prefixed("ad");
+    return `AD-${randomUUID()}`;
   }
 
   static displayId(): string {

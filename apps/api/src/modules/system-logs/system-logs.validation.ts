@@ -18,6 +18,18 @@ export const ListSystemLogQuerySchema = z.object({
   sortOrder: z.enum(["asc", "desc"]).default("desc"),
 });
 
+export const RecordSystemLogSchema = z.object({
+  action: z.nativeEnum(LogAction),
+  entityType: z.nativeEnum(EntityType),
+  entityId: z.string().min(1, "Entity ID is required"),
+  description: z.string().min(1, "Description is required").max(500, "Description cannot exceed 500 characters"),
+  changes: z.record(z.string(), z.any()).optional(),
+  metadata: z.record(z.string(), z.any()).optional(),
+  ipAddress: z.string().optional(),
+  userAgent: z.string().optional(),
+});
+
 export const SystemLogValidationSchemas = {
   list: ListSystemLogQuerySchema,
+  record: RecordSystemLogSchema,
 };

@@ -5,7 +5,7 @@
  */
 import { Display, DisplayStatus } from "@admiro/domain";
 import { DisplayRepository } from "../../services/repositories/DisplayRepository";
-import { NotFoundError, ValidationError } from "../../utils/errors/index";
+import { NotFoundError, ValidationError, ForbiddenError } from "../../utils/errors/index";
 import { Logger } from "../../utils/logger";
 import { IdGenerator } from "../../utils/id-generator";
 
@@ -81,7 +81,7 @@ export class DisplayService {
 
     // Check if serial number already exists (prevent duplicates)
     if (data.serialNumber) {
-      const existingDisplay = await this.displayRepository.findBySerialNumber(data.serialNumber);
+      const existingDisplay = await this.displayRepository.findByDisplayId(data.displayId);
       if (existingDisplay) {
         throw new ValidationError("Display with this serial number already exists");
       }
@@ -187,19 +187,27 @@ export class DisplayService {
 
   /**
    * Update a display's mutable fields
+   * Verifies user ownership before allowing updates
    * Prevents updates to system fields like status (use dedicated methods instead)
    *
    * @param id - Display ID
+   * @param adminId - ID of the user making the update (for ownership validation)
    * @param data - Partial update data
    * @returns Updated Display entity
    * @throws NotFoundError if display doesn't exist
+   * @throws ForbiddenError if user is not the owner
    */
-  async updateDisplay(id: string, data: UpdateDisplayInput): Promise<Display> {
+  async updateDisplay(id: string, adminId: string, data: UpdateDisplayInput): Promise<Display> {
     if (!id) {
       throw new NotFoundError("Display ID is required");
     }
     // Verify display exists before attempting update
-    await this.getDisplay(id);
+    const display = await this.getDisplay(id);
+
+    // Verify user ownership
+    if (display.assignedAdminId && display.assignedAdminId !== adminId) {
+      throw new ForbiddenError("You do not have permission to update this display");
+    }
 
     // Build update object with only changed fields
     const updateData: Record<string, any> = {
@@ -215,24 +223,32 @@ export class DisplayService {
       throw new NotFoundError(`Display with ID ${id} not found`);
     }
 
-    Logger.info(`Display updated: ${id}`);
+    Logger.info(`Display updated: ${id}`, { updatedBy: adminId });
     return updated;
   }
 
   /**
    * Soft delete a display
+   * Verifies user ownership before allowing deletion
    * Sets status to OFFLINE instead of removing record
    * Preserves historical data while removing from active lists
    *
    * @param id - Display ID
+   * @param adminId - ID of the user making the deletion (for ownership validation)
    * @throws NotFoundError if display doesn't exist
+   * @throws ForbiddenError if user is not the owner
    */
-  async deleteDisplay(id: string): Promise<void> {
+  async deleteDisplay(id: string, adminId: string): Promise<void> {
     if (!id) {
       throw new NotFoundError("Display ID is required");
     }
     // Verify exists before attempting delete
-    await this.getDisplay(id);
+    const display = await this.getDisplay(id);
+
+    // Verify user ownership
+    if (display.assignedAdminId && display.assignedAdminId !== adminId) {
+      throw new ForbiddenError("You do not have permission to delete this display");
+    }
 
     // Soft delete - preserve data by marking as offline
     await this.displayRepository.updateById(id, {
@@ -240,7 +256,7 @@ export class DisplayService {
       updatedAt: new Date(),
     });
 
-    Logger.info(`Display deleted: ${id}`);
+    Logger.info(`Display deleted: ${id}`, { deletedBy: adminId });
   }
 
   /**
@@ -352,7 +368,7 @@ export class DisplayService {
    */
   async pairDisplay(serialNumber: string): Promise<Display> {
     // Find display by serial number
-    const existing = await this.displayRepository.findBySerialNumber(serialNumber);
+    const existing = await this.displayRepository.findByDisplayId(serialNumber);
     if (!existing) {
       throw new NotFoundError("Display not found");
     }

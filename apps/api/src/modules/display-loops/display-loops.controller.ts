@@ -51,43 +51,51 @@ export class DisplayLoopController {
     }
   }
 
-  async listLoops(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const page = req.query.page as string | undefined;
-      const limit = req.query.limit as string | undefined;
-      const displayId = req.query.displayId as string | undefined;
-      const isActive = req.query.isActive as string | undefined;
-      const sortBy = req.query.sortBy as string | undefined;
-      const sortOrder = req.query.sortOrder as "asc" | "desc" | undefined;
+   async listLoops(req: Request, res: Response, next: NextFunction): Promise<void> {
+     try {
+       const page = req.query.page as string | undefined;
+       const limit = req.query.limit as string | undefined;
+       const displayId = req.query.displayId as string | undefined;
+       const isActive = req.query.isActive as string | undefined;
+       const sortBy = req.query.sortBy as string | undefined;
+       const sortOrder = req.query.sortOrder as "asc" | "desc" | undefined;
 
-      const result = await this.loopService.listLoops(
-        Number(page) || 1,
-        Number(limit) || 10,
-        {
-          displayId,
-          isActive: isActive !== undefined ? isActive === "true" : undefined,
-          sortBy,
-          sortOrder,
-        }
-      );
+       // Build filter object with only defined values
+       const filters: {
+         displayId?: string;
+         isActive?: boolean;
+         sortBy?: string;
+         sortOrder?: "asc" | "desc";
+       } = {};
 
-      const response: SuccessResponse<any> = {
-        success: true,
-        data: {
-          data: result.data,
-          pagination: {
-            page: Number(page) || 1,
-            limit: Number(limit) || 10,
-            total: result.total,
-            hasMore: (Number(page) || 1) * (Number(limit) || 10) < result.total,
-          },
-        },
-      };
-      res.status(200).json(response);
-    } catch (error) {
-      next(error);
-    }
-  }
+       if (displayId !== undefined) filters.displayId = displayId;
+       if (isActive !== undefined) filters.isActive = isActive === "true";
+       if (sortBy !== undefined) filters.sortBy = sortBy;
+       if (sortOrder !== undefined) filters.sortOrder = sortOrder;
+
+       const result = await this.loopService.listLoops(
+         Number(page) || 1,
+         Number(limit) || 10,
+         filters
+       );
+
+       const response: SuccessResponse<any> = {
+         success: true,
+         data: {
+           data: result.data,
+           pagination: {
+             page: Number(page) || 1,
+             limit: Number(limit) || 10,
+             total: result.total,
+             hasMore: (Number(page) || 1) * (Number(limit) || 10) < result.total,
+           },
+         },
+       };
+       res.status(200).json(response);
+     } catch (error) {
+       next(error);
+     }
+   }
 
   async updateLoop(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
