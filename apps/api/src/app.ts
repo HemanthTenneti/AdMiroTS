@@ -6,6 +6,9 @@ import { createAuthRoutes } from "./modules/auth/auth.routes.js";
 import { createProfileRoutes } from "./modules/profile/profile.routes.js";
 import { createAdvertisementRoutes } from "./modules/advertisements/advertisements.routes.js";
 import { createDisplayRoutes } from "./modules/displays/displays.routes.js";
+import { createDisplayLoopRoutes } from "./modules/display-loops/display-loops.routes.js";
+import { createAnalyticsRoutes } from "./modules/analytics/analytics.routes.js";
+import { createSystemLogRoutes } from "./modules/system-logs/system-logs.routes.js";
 import { authRateLimiter, generalRateLimiter } from "./middleware/rate-limit.middleware.js";
 import { responseFormatter } from "./middleware/response-formatter.middleware.js";
 import { errorHandler } from "./middleware/error-handler.middleware.js";
@@ -92,6 +95,15 @@ app.use("/api/advertisements", createAdvertisementRoutes(jwtSecret));
 
 // Display routes (mixed public/protected)
 app.use("/api/displays", createDisplayRoutes(jwtSecret));
+
+// Display loop routes (mixed public/protected)
+app.use("/api/display-loops", createDisplayLoopRoutes(jwtSecret));
+
+// Analytics routes (mixed public/protected)
+app.use("/api/analytics", createAnalyticsRoutes(jwtSecret));
+
+// System log routes (protected)
+app.use("/api/system-logs", createSystemLogRoutes(jwtSecret));
 
 // Global error handler middleware (must be last)
 app.use(errorHandler);

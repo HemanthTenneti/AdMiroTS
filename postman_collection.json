@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "admirots-complete-collection",
     "name": "AdMiroTS - Complete API Collection",
-    "description": "Comprehensive API collection for AdMiroTS Digital Signage & Advertisement Management Platform. Includes all 33 implemented endpoints across 4 modules, with sample requests, responses, and authentication setup.",
+    "description": "Comprehensive API collection for AdMiroTS Digital Signage & Advertisement Management Platform. Includes all implemented endpoints across 7 modules.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "version": "1.0.0"
   },
@@ -31,11 +31,16 @@
       "key": "displayId",
       "value": "disp_123abc",
       "type": "string"
+    },
+    {
+      "key": "loopId",
+      "value": "loop_123abc",
+      "type": "string"
     }
   ],
   "item": [
     {
-      "name": "🔐 Authentication (7 endpoints)",
+      "name": "🔐 Authentication",
       "item": [
         {
           "name": "Register User",
@@ -53,42 +58,10 @@
             },
             "url": {
               "raw": "{{baseUrl}}/auth/register",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "auth",
-                "register"
-              ]
-            },
-            "description": "Register a new user account"
-          },
-          "response": [
-            {
-              "name": "Register Success",
-              "originalRequest": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{}"
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/auth/register",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "auth",
-                    "register"
-                  ]
-                }
-              },
-              "status": "Created",
-              "code": 201,
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": \"user_123\",\n      \"email\": \"user@example.com\",\n      \"role\": \"ADVERTISER\",\n      \"status\": \"ACTIVE\"\n    },\n    \"token\": \"eyJhbGc...\"\n  }\n}"
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
             }
-          ]
+          }
         },
         {
           "name": "Login User",
@@ -106,148 +79,15 @@
             },
             "url": {
               "raw": "{{baseUrl}}/auth/login",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "auth",
-                "login"
-              ]
-            },
-            "description": "Authenticate user and receive JWT token"
-          }
-        },
-        {
-          "name": "Google OAuth Login",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"googleToken\": \"eyJhbGciOiJSUzI1NiIsImtpZCI6IjEifQ...\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/auth/google",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "auth",
-                "google"
-              ]
-            },
-            "description": "Authenticate using Google OAuth2"
-          }
-        },
-        {
-          "name": "Get Current User Profile",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/auth/me",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "auth",
-                "me"
-              ]
-            },
-            "description": "Get authenticated user's profile information"
-          }
-        },
-        {
-          "name": "Refresh Token",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/auth/refresh",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "auth",
-                "refresh"
-              ]
-            },
-            "description": "Refresh JWT token for continued session"
-          }
-        },
-        {
-          "name": "Change Password",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"oldPassword\": \"SecurePassword123!\",\n  \"newPassword\": \"NewSecurePassword456!\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/auth/change-password",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "auth",
-                "change-password"
-              ]
-            },
-            "description": "Change user's password"
-          }
-        },
-        {
-          "name": "Logout User",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/auth/logout",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "auth",
-                "logout"
-              ]
-            },
-            "description": "Logout user and invalidate token"
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
           }
         }
       ]
     },
     {
-      "name": "📢 Advertisements (10 endpoints)",
+      "name": "📢 Advertisements",
       "item": [
         {
           "name": "Create Advertisement",
@@ -265,256 +105,34 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"adName\": \"Summer Sale 2026\",\n  \"mediaUrl\": \"https://example.com/summer-sale.jpg\",\n  \"mediaType\": \"IMAGE\",\n  \"duration\": 30,\n  \"description\": \"Summer collection at 50% off - Limited time offer\",\n  \"targetAudience\": \"18-45 years old, fashion enthusiasts\",\n  \"fileSize\": 2048000\n}"
+              "raw": "{\n  \"adName\": \"Summer Sale 2026\",\n  \"mediaUrl\": \"https://example.com/summer-sale.jpg\",\n  \"mediaType\": \"IMAGE\",\n  \"duration\": 30,\n  \"description\": \"Summer collection at 50% off\",\n  \"targetAudience\": \"18-45\",\n  \"fileSize\": 2048000\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/advertisements",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "advertisements"
-              ]
-            },
-            "description": "Create a new advertisement (requires authentication)"
+              "host": ["{{baseUrl}}"],
+              "path": ["advertisements"]
+            }
           }
         },
         {
           "name": "List Advertisements",
           "request": {
             "method": "GET",
-            "header": [],
             "url": {
-              "raw": "{{baseUrl}}/advertisements?page=1&limit=10&status=ACTIVE&mediaType=IMAGE&sortBy=createdAt&sortOrder=desc",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "advertisements"
-              ],
+              "raw": "{{baseUrl}}/advertisements?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["advertisements"],
               "query": [
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
-                },
-                {
-                  "key": "status",
-                  "value": "ACTIVE"
-                },
-                {
-                  "key": "mediaType",
-                  "value": "IMAGE"
-                },
-                {
-                  "key": "sortBy",
-                  "value": "createdAt"
-                },
-                {
-                  "key": "sortOrder",
-                  "value": "desc"
-                }
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
               ]
-            },
-            "description": "List all advertisements with pagination and filtering"
-          }
-        },
-        {
-          "name": "Get Advertisement by ID",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/advertisements/{{advertisementId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "advertisements",
-                "{{advertisementId}}"
-              ]
-            },
-            "description": "Get a single advertisement by ID"
-          }
-        },
-        {
-          "name": "Get Advertisement Statistics",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/advertisements/{{advertisementId}}/stats",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "advertisements",
-                "{{advertisementId}}",
-                "stats"
-              ]
-            },
-            "description": "Get engagement statistics (views, clicks, CTR) for an advertisement"
-          }
-        },
-        {
-          "name": "Get Advertisements by User",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/advertisements/user/{{userId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "advertisements",
-                "user",
-                "{{userId}}"
-              ]
-            },
-            "description": "Get all advertisements created by a specific user/advertiser"
-          }
-        },
-        {
-          "name": "Update Advertisement",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"adName\": \"Summer Sale 2026 - Updated\",\n  \"duration\": 45,\n  \"description\": \"Updated description for summer sale\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/advertisements/{{advertisementId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "advertisements",
-                "{{advertisementId}}"
-              ]
-            },
-            "description": "Update an advertisement's properties"
-          }
-        },
-        {
-          "name": "Activate Advertisement",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/advertisements/{{advertisementId}}/activate",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "advertisements",
-                "{{advertisementId}}",
-                "activate"
-              ]
-            },
-            "description": "Activate an advertisement (change status to ACTIVE)"
-          }
-        },
-        {
-          "name": "Deactivate Advertisement",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/advertisements/{{advertisementId}}/deactivate",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "advertisements",
-                "{{advertisementId}}",
-                "deactivate"
-              ]
-            },
-            "description": "Deactivate an advertisement (change status to PAUSED)"
-          }
-        },
-        {
-          "name": "Delete Advertisement",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/advertisements/{{advertisementId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "advertisements",
-                "{{advertisementId}}"
-              ]
-            },
-            "description": "Soft delete an advertisement"
-          }
-        },
-        {
-          "name": "Bulk Upload Advertisements",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"advertisements\": [\n    {\n      \"adName\": \"Ad 1 - Spring Collection\",\n      \"mediaUrl\": \"https://example.com/spring.jpg\",\n      \"mediaType\": \"IMAGE\",\n      \"duration\": 30,\n      \"description\": \"Spring collection launch\"\n    },\n    {\n      \"adName\": \"Ad 2 - Summer Promo\",\n      \"mediaUrl\": \"https://example.com/summer.mp4\",\n      \"mediaType\": \"VIDEO\",\n      \"duration\": 60,\n      \"description\": \"Summer promotional video\"\n    }\n  ]\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/advertisements/bulk-upload",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "advertisements",
-                "bulk-upload"
-              ]
-            },
-            "description": "Bulk upload advertisements (max 100 per request)"
+            }
           }
         }
       ]
     },
     {
-      "name": "📺 Displays (12 endpoints)",
+      "name": "📺 Displays",
       "item": [
         {
           "name": "Create Display",
@@ -532,352 +150,22 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"displayId\": \"DISPLAY_001\",\n  \"location\": \"Main Hall Entrance\",\n  \"layout\": \"LANDSCAPE\",\n  \"resolution\": {\n    \"width\": 1920,\n    \"height\": 1080\n  },\n  \"configuration\": {\n    \"brightness\": 100,\n    \"volume\": 50,\n    \"refreshRate\": 60,\n    \"orientation\": \"LANDSCAPE\"\n  },\n  \"serialNumber\": \"SN123456789\"\n}"
+              "raw": "{\n  \"displayId\": \"DISPLAY_001\",\n  \"location\": \"Main Hall\",\n  \"layout\": \"LANDSCAPE\",\n  \"resolution\": {\n    \"width\": 1920,\n    \"height\": 1080\n  },\n  \"serialNumber\": \"SN123456789\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/displays",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "displays"
-              ]
-            },
-            "description": "Create a new display device (requires authentication)"
-          }
-        },
-        {
-          "name": "List Displays",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/displays?page=1&limit=10&status=ONLINE&location=Main%20Hall&sortBy=createdAt&sortOrder=desc",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "displays"
-              ],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
-                },
-                {
-                  "key": "status",
-                  "value": "ONLINE"
-                },
-                {
-                  "key": "location",
-                  "value": "Main Hall"
-                },
-                {
-                  "key": "sortBy",
-                  "value": "createdAt"
-                },
-                {
-                  "key": "sortOrder",
-                  "value": "desc"
-                }
-              ]
-            },
-            "description": "List all displays with pagination and filtering"
-          }
-        },
-        {
-          "name": "Get Display by ID",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/displays/{{displayId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "displays",
-                "{{displayId}}"
-              ]
-            },
-            "description": "Get a single display by ID"
-          }
-        },
-        {
-          "name": "Get Display Status",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/displays/{{displayId}}/status",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "displays",
-                "{{displayId}}",
-                "status"
-              ]
-            },
-            "description": "Get display online/offline status and last ping time"
-          }
-        },
-        {
-          "name": "Get Display Assigned Loops",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/displays/{{displayId}}/loops",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "displays",
-                "{{displayId}}",
-                "loops"
-              ]
-            },
-            "description": "Get advertisement loops assigned to a display"
-          }
-        },
-        {
-          "name": "Get Displays by Location",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/displays/location/Main%20Hall",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "displays",
-                "location",
-                "Main Hall"
-              ]
-            },
-            "description": "Get all displays at a specific location"
-          }
-        },
-        {
-          "name": "Update Display",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"location\": \"Updated Location\",\n  \"configuration\": {\n    \"brightness\": 80,\n    \"volume\": 60\n  }\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/displays/{{displayId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "displays",
-                "{{displayId}}"
-              ]
-            },
-            "description": "Update display properties and configuration"
-          }
-        },
-        {
-          "name": "Delete Display",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/displays/{{displayId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "displays",
-                "{{displayId}}"
-              ]
-            },
-            "description": "Soft delete a display"
-          }
-        },
-        {
-          "name": "Pair Display (by Serial Number)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"displayId\": \"DISPLAY_002\",\n  \"location\": \"Floor 2 Entrance\",\n  \"layout\": \"PORTRAIT\",\n  \"resolution\": {\n    \"width\": 1080,\n    \"height\": 1920\n  },\n  \"serialNumber\": \"SN987654321\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/displays/pair",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "displays",
-                "pair"
-              ]
-            },
-            "description": "Pair/activate a display using serial number"
-          }
-        },
-        {
-          "name": "Ping Display (Heartbeat)",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/displays/{{displayId}}/ping",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "displays",
-                "{{displayId}}",
-                "ping"
-              ]
-            },
-            "description": "Record display heartbeat/health check (public endpoint for display devices)"
-          }
-        },
-        {
-          "name": "Update Display Configuration",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"brightness\": 85,\n  \"volume\": 55,\n  \"refreshRate\": 60,\n  \"orientation\": \"LANDSCAPE\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/displays/{{displayId}}/config",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "displays",
-                "{{displayId}}",
-                "config"
-              ]
-            },
-            "description": "Update display configuration (brightness, volume, refresh rate, orientation)"
+              "host": ["{{baseUrl}}"],
+              "path": ["displays"]
+            }
           }
         }
       ]
     },
     {
-      "name": "👤 Profile (4 endpoints)",
+      "name": "⏳ Display Loops",
       "item": [
         {
-          "name": "Get User Profile",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/profile",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "profile"
-              ]
-            },
-            "description": "Get authenticated user's profile information"
-          }
-        },
-        {
-          "name": "Update User Profile",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"phone\": \"+1234567890\",\n  \"company\": \"ABC Advertising Corp\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/profile",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "profile"
-              ]
-            },
-            "description": "Update user's profile information"
-          }
-        },
-        {
-          "name": "Get User Avatar",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/profile/avatar",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "profile",
-                "avatar"
-              ]
-            },
-            "description": "Get user's avatar image"
-          }
-        },
-        {
-          "name": "Upload User Avatar",
+          "name": "Create Display Loop",
           "request": {
             "method": "POST",
             "header": [
@@ -892,107 +180,43 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"avatarUrl\": \"https://example.com/avatars/user_123.jpg\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/profile/avatar",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "profile",
-                "avatar"
-              ]
-            },
-            "description": "Upload or update user's avatar"
-          }
-        }
-      ]
-    },
-    {
-      "name": "⏳ Display Loops (TO IMPLEMENT - 8 endpoints)",
-      "item": [
-        {
-          "name": "[TODO] Create Display Loop",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Morning Ads - Peak Hours\",\n  \"description\": \"Advertisements to display during morning peak hours (6am-9am)\",\n  \"advertisements\": [\"ad_123\", \"ad_456\", \"ad_789\"],\n  \"displayIds\": [\"disp_001\", \"disp_002\"],\n  \"loopCount\": 5\n}"
+              "raw": "{\n  \"loopName\": \"Morning Playlist\",\n  \"displayId\": \"{{displayId}}\",\n  \"rotationType\": \"SEQUENTIAL\",\n  \"displayLayout\": \"FULLSCREEN\",\n  \"description\": \"Main morning rotation\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/display-loops",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "display-loops"
-              ]
-            },
-            "description": "Create a new display loop (playlist of advertisements)"
+              "host": ["{{baseUrl}}"],
+              "path": ["display-loops"]
+            }
           }
         },
         {
-          "name": "[TODO] List Display Loops",
+          "name": "List Display Loops",
           "request": {
             "method": "GET",
-            "header": [],
             "url": {
-              "raw": "{{baseUrl}}/display-loops?page=1&limit=10&status=ACTIVE",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "display-loops"
-              ],
+              "raw": "{{baseUrl}}/display-loops?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["display-loops"],
               "query": [
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
-                },
-                {
-                  "key": "status",
-                  "value": "ACTIVE"
-                }
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
               ]
-            },
-            "description": "List all display loops with pagination"
+            }
           }
         },
         {
-          "name": "[TODO] Get Display Loop",
+          "name": "Get Display Loop",
           "request": {
             "method": "GET",
-            "header": [],
             "url": {
-              "raw": "{{baseUrl}}/display-loops/loop_123",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "display-loops",
-                "loop_123"
-              ]
-            },
-            "description": "Get a specific display loop"
+              "raw": "{{baseUrl}}/display-loops/{{loopId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["display-loops", "{{loopId}}"]
+            }
           }
         },
         {
-          "name": "[TODO] Update Display Loop",
+          "name": "Update Display Loop",
           "request": {
             "method": "PUT",
             "header": [
@@ -1007,23 +231,17 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Updated Morning Ads\",\n  \"advertisements\": [\"ad_111\", \"ad_222\"],\n  \"loopCount\": 3\n}"
+              "raw": "{\n  \"loopName\": \"Updated Morning Playlist\",\n  \"rotationType\": \"RANDOM\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/display-loops/loop_123",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "display-loops",
-                "loop_123"
-              ]
-            },
-            "description": "Update a display loop"
+              "raw": "{{baseUrl}}/display-loops/{{loopId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["display-loops", "{{loopId}}"]
+            }
           }
         },
         {
-          "name": "[TODO] Delete Display Loop",
+          "name": "Delete Display Loop",
           "request": {
             "method": "DELETE",
             "header": [
@@ -1033,20 +251,14 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/display-loops/loop_123",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "display-loops",
-                "loop_123"
-              ]
-            },
-            "description": "Delete a display loop"
+              "raw": "{{baseUrl}}/display-loops/{{loopId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["display-loops", "{{loopId}}"]
+            }
           }
         },
         {
-          "name": "[TODO] Assign Advertisements to Loop",
+          "name": "Add Advertisement to Loop",
           "request": {
             "method": "POST",
             "header": [
@@ -1061,317 +273,36 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"displays\": [\"disp_001\", \"disp_002\", \"disp_003\"]\n}"
+              "raw": "{\n  \"advertisementId\": \"{{advertisementId}}\",\n  \"duration\": 30,\n  \"order\": 0,\n  \"weight\": 1\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/display-loops/loop_123/assign",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "display-loops",
-                "loop_123",
-                "assign"
-              ]
-            },
-            "description": "Assign advertisements to a display loop"
+              "raw": "{{baseUrl}}/display-loops/{{loopId}}/advertisements",
+              "host": ["{{baseUrl}}"],
+              "path": ["display-loops", "{{loopId}}", "advertisements"]
+            }
           }
         },
         {
-          "name": "[TODO] Deploy Loop to Displays",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/display-loops/loop_123/deploy",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "display-loops",
-                "loop_123",
-                "deploy"
-              ]
-            },
-            "description": "Deploy a loop to assigned displays"
-          }
-        },
-        {
-          "name": "[TODO] Get Loop Playback Schedule",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/display-loops/loop_123/schedule",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "display-loops",
-                "loop_123",
-                "schedule"
-              ]
-            },
-            "description": "Get playback schedule for a loop"
-          }
-        }
-      ]
-    },
-    {
-      "name": "📊 Analytics (TO IMPLEMENT - 5 endpoints)",
-      "item": [
-        {
-          "name": "[TODO] Record Advertisement View",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"advertisementId\": \"ad_123\",\n  \"displayId\": \"disp_001\",\n  \"duration\": 30\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/analytics/record-view",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "analytics",
-                "record-view"
-              ]
-            },
-            "description": "Record an advertisement view (called by display device)"
-          }
-        },
-        {
-          "name": "[TODO] Record Advertisement Click",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"advertisementId\": \"ad_123\",\n  \"displayId\": \"disp_001\",\n  \"userId\": \"user_456\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/analytics/record-click",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "analytics",
-                "record-click"
-              ]
-            },
-            "description": "Record an advertisement click"
-          }
-        },
-        {
-          "name": "[TODO] Get Performance Report",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/analytics/reports/ad_123?startDate=2026-01-01&endDate=2026-04-09",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "analytics",
-                "reports",
-                "ad_123"
-              ],
-              "query": [
-                {
-                  "key": "startDate",
-                  "value": "2026-01-01"
-                },
-                {
-                  "key": "endDate",
-                  "value": "2026-04-09"
-                }
-              ]
-            },
-            "description": "Get detailed performance report for an advertisement"
-          }
-        },
-        {
-          "name": "[TODO] Get Analytics Dashboard",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/analytics/dashboard",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "analytics",
-                "dashboard"
-              ]
-            },
-            "description": "Get analytics dashboard summary"
-          }
-        },
-        {
-          "name": "[TODO] Export Analytics Data",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/analytics/export?format=csv&startDate=2026-01-01&endDate=2026-04-09",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "analytics",
-                "export"
-              ],
-              "query": [
-                {
-                  "key": "format",
-                  "value": "csv"
-                },
-                {
-                  "key": "startDate",
-                  "value": "2026-01-01"
-                },
-                {
-                  "key": "endDate",
-                  "value": "2026-04-09"
-                }
-              ]
-            },
-            "description": "Export analytics data in CSV or JSON format"
-          }
-        }
-      ]
-    },
-    {
-      "name": "📋 System Logs (TO IMPLEMENT - 4 endpoints)",
-      "item": [
-        {
-          "name": "[TODO] Record System Event",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"type\": \"USER_ACTION\",\n  \"action\": \"Advertisement Created\",\n  \"userId\": \"user_123\",\n  \"resourceType\": \"Advertisement\",\n  \"resourceId\": \"ad_456\",\n  \"status\": \"SUCCESS\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/system-logs/record",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "system-logs",
-                "record"
-              ]
-            },
-            "description": "Record a system event or user action"
-          }
-        },
-        {
-          "name": "[TODO] List System Logs",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/system-logs?page=1&limit=20&type=USER_ACTION&startDate=2026-04-01",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "system-logs"
-              ],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "20"
-                },
-                {
-                  "key": "type",
-                  "value": "USER_ACTION"
-                },
-                {
-                  "key": "startDate",
-                  "value": "2026-04-01"
-                }
-              ]
-            },
-            "description": "List system logs with filtering"
-          }
-        },
-        {
-          "name": "[TODO] Get System Log Entry",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/system-logs/log_123",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "system-logs",
-                "log_123"
-              ]
-            },
-            "description": "Get a specific system log entry"
-          }
-        },
-        {
-          "name": "[TODO] Purge Old Logs",
+          "name": "Remove Advertisement from Loop",
           "request": {
             "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/display-loops/{{loopId}}/advertisements/{{advertisementId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["display-loops", "{{loopId}}", "advertisements", "{{advertisementId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Advertisement Order",
+          "request": {
+            "method": "PUT",
             "header": [
               {
                 "key": "Authorization",
@@ -1384,19 +315,123 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"beforeDate\": \"2026-01-01\"\n}"
+              "raw": "{\n  \"newOrder\": 1\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/system-logs/purge",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "system-logs",
-                "purge"
-              ]
+              "raw": "{{baseUrl}}/display-loops/{{loopId}}/advertisements/{{advertisementId}}/order",
+              "host": ["{{baseUrl}}"],
+              "path": ["display-loops", "{{loopId}}", "advertisements", "{{advertisementId}}", "order"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📊 Analytics",
+      "item": [
+        {
+          "name": "Record Analytics Event",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"displayId\": \"{{displayId}}\",\n  \"adId\": \"{{advertisementId}}\",\n  \"loopId\": \"{{loopId}}\",\n  \"impressions\": 1,\n  \"viewDuration\": 30,\n  \"completedViews\": 1,\n  \"metrics\": {\n    \"clicks\": 0,\n    \"interactions\": 1\n  },\n  \"metadata\": {\n    \"deviceType\": \"SMART_TV\",\n    \"location\": \"Main Hall\"\n  }\n}"
             },
-            "description": "Purge old system logs (Admin only)"
+            "url": {
+              "raw": "{{baseUrl}}/analytics/record",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "record"]
+            }
+          }
+        },
+        {
+          "name": "List Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/analytics?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Aggregated Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/stats?adId={{advertisementId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "stats"],
+              "query": [
+                { "key": "adId", "value": "{{advertisementId}}" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📋 System Logs",
+      "item": [
+        {
+          "name": "List System Logs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/system-logs?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["system-logs"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get System Log Entry",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/system-logs/{{logId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["system-logs", "{{logId}}"]
+            }
           }
         }
       ]
