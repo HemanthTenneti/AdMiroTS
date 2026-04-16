@@ -27,11 +27,11 @@ export class AdvertisementRepository extends BaseRepository<Advertisement> {
   }
 
   async incrementViews(id: string): Promise<void> {
-    await this.model.findByIdAndUpdate(id, { $inc: { views: 1 } });
+    await this.model.findOneAndUpdate({ id }, { $inc: { views: 1 } });
   }
 
   async incrementClicks(id: string): Promise<void> {
-    await this.model.findByIdAndUpdate(id, { $inc: { clicks: 1 } });
+    await this.model.findOneAndUpdate({ id }, { $inc: { clicks: 1 } });
   }
 }
 

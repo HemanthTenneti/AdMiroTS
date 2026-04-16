@@ -23,11 +23,11 @@ export class DisplayLoopRepository extends BaseRepository<DisplayLoop> {
   }
 
   async addAdvertisement(loopId: string, adData: any): Promise<void> {
-    await this.model.findByIdAndUpdate(loopId, { $push: { advertisements: adData } });
+    await this.model.findOneAndUpdate({ id: loopId }, { $push: { advertisements: adData } });
   }
 
   async removeAdvertisement(loopId: string, adId: string): Promise<void> {
-    await this.model.findByIdAndUpdate(loopId, {
+    await this.model.findOneAndUpdate({ id: loopId }, {
       $pull: { "advertisements.advertisementId": adId },
     });
   }

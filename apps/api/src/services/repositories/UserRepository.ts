@@ -38,8 +38,8 @@ export class UserRepository extends BaseRepository<User> {
    * Automatically sets updatedAt timestamp
    */
   async update(id: string, userData: Partial<IUser>): Promise<User | null> {
-    const doc = await this.model.findByIdAndUpdate(
-      id,
+    const doc = await this.model.findOneAndUpdate(
+      { id },
       { ...userData, updatedAt: new Date() },
       { new: true }
     );

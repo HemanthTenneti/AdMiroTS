@@ -15,7 +15,7 @@ export abstract class BaseRepository<T = Record<string, any>> {
   constructor(protected model: Model<any>) {}
 
   async findById(id: string): Promise<T | null> {
-    return this.model.findById(id);
+    return this.model.findOne({ id });
   }
 
   async findOne(filter: Record<string, any>): Promise<T | null> {
@@ -56,11 +56,11 @@ export abstract class BaseRepository<T = Record<string, any>> {
   }
 
   async updateById(id: string, data: Record<string, any>): Promise<T | null> {
-    return this.model.findByIdAndUpdate(id, data, { new: true });
+    return this.model.findOneAndUpdate({ id }, data, { new: true });
   }
 
   async deleteById(id: string): Promise<T | null> {
-    return this.model.findByIdAndDelete(id);
+    return this.model.findOneAndDelete({ id });
   }
 
   async count(filter: Record<string, any> = {}): Promise<number> {

@@ -38,7 +38,7 @@ export class AnalyticsRepository extends BaseRepository<Analytics> {
     if (metrics.interactions !== undefined) update["engagementMetrics.interactions"] = metrics.interactions;
     if (metrics.dwellTime !== undefined) update["engagementMetrics.dwellTime"] = metrics.dwellTime;
 
-    await this.model.findByIdAndUpdate(id, update);
+    await this.model.findOneAndUpdate({ id }, update);
   }
 }
 

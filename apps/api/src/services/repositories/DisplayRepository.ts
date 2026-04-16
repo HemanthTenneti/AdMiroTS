@@ -28,7 +28,7 @@ export class DisplayRepository extends BaseRepository<Display> {
 
   async updateLastPing(id: string): Promise<void> {
     // Update lastSeen timestamp (when display last communicated with server)
-    await this.model.findByIdAndUpdate(id, { lastSeen: new Date() });
+    await this.model.findOneAndUpdate({ id }, { lastSeen: new Date() });
   }
 
   /**
