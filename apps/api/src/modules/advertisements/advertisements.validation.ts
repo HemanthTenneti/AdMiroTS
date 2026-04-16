@@ -11,7 +11,7 @@ export const CreateAdvertisementSchema = z.object({
     .min(1, "Ad name is required")
     .max(255, "Ad name cannot exceed 255 characters"),
   mediaUrl: z.string().url("Invalid media URL").max(2048, "Media URL cannot exceed 2048 characters"),
-  mediaType: z.enum(["IMAGE", "VIDEO"]),
+  mediaType: z.enum(["image", "video"]),
   duration: z
     .number()
     .int("Duration must be an integer")
@@ -37,7 +37,7 @@ export const UpdateAdvertisementSchema = z.object({
     .url("Invalid media URL")
     .max(2048, "Media URL cannot exceed 2048 characters")
     .optional(),
-  mediaType: z.enum(["IMAGE", "VIDEO"]).optional(),
+  mediaType: z.enum(["image", "video"]).optional(),
   duration: z
     .number()
     .int("Duration must be an integer")

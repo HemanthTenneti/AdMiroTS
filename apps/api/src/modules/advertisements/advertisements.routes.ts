@@ -35,6 +35,12 @@ export function createAdvertisementRoutes(jwtSecret: string): Router {
     }
   );
 
+  // GET /api/advertisements/user/:userId - Get all ads by a specific advertiser
+  // MUST be before /:id to prevent Express from matching "user" as an ID
+  router.get("/user/:userId", (req: Request, res: Response, next: NextFunction) => {
+    adController.getAdvertisementsByUser(req, res, next).catch(next);
+  });
+
   // GET /api/advertisements/:id - Get single advertisement by ID
   router.get("/:id", (req: Request, res: Response, next: NextFunction) => {
     adController.getAdvertisement(req, res, next).catch(next);
@@ -43,11 +49,6 @@ export function createAdvertisementRoutes(jwtSecret: string): Router {
   // GET /api/advertisements/:id/stats - Get advertisement statistics (views, clicks, CTR)
   router.get("/:id/stats", (req: Request, res: Response, next: NextFunction) => {
     adController.getAdvertisementStats(req, res, next).catch(next);
-  });
-
-  // GET /api/advertisements/user/:userId - Get all ads by a specific advertiser
-  router.get("/user/:userId", (req: Request, res: Response, next: NextFunction) => {
-    adController.getAdvertisementsByUser(req, res, next).catch(next);
   });
 
   /**

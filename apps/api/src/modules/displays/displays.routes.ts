@@ -35,6 +35,12 @@ export function createDisplayRoutes(jwtSecret: string): Router {
     }
   );
 
+  // GET /api/displays/location/:location - Get displays at specific location
+  // MUST be before /:id to prevent Express from matching "location" as an ID
+  router.get("/location/:location", (req: Request, res: Response, next: NextFunction) => {
+    displayController.getDisplaysByLocation(req, res).catch(next);
+  });
+
   // GET /api/displays/:id - Get single display by ID
   router.get("/:id", (req: Request, res: Response, next: NextFunction) => {
     displayController.getDisplay(req, res).catch(next);
@@ -48,11 +54,6 @@ export function createDisplayRoutes(jwtSecret: string): Router {
   // GET /api/displays/:id/loops - Get loops assigned to a display
   router.get("/:id/loops", (req: Request, res: Response, next: NextFunction) => {
     displayController.getAssignedLoops(req, res).catch(next);
-  });
-
-  // GET /api/displays/location/:location - Get displays at specific location
-  router.get("/location/:location", (req: Request, res: Response, next: NextFunction) => {
-    displayController.getDisplaysByLocation(req, res).catch(next);
   });
 
   /**

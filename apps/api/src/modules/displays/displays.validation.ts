@@ -8,7 +8,7 @@ import { z } from "zod";
 export const CreateDisplaySchema = z.object({
   displayId: z.string().min(1, "Display ID is required").max(100, "Display ID cannot exceed 100 characters"),
   location: z.string().min(1, "Location is required").max(255, "Location cannot exceed 255 characters"),
-  layout: z.enum(["LANDSCAPE", "PORTRAIT"]).describe("Layout orientation"),
+  layout: z.enum(["landscape", "portrait"]).describe("Layout orientation"),
   resolution: z.object({
     width: z.number().int("Width must be an integer").positive("Width must be positive"),
     height: z.number().int("Height must be an integer").positive("Height must be positive"),
@@ -17,7 +17,7 @@ export const CreateDisplaySchema = z.object({
     brightness: z.number().int("Brightness must be an integer").min(0).max(100).default(100),
     volume: z.number().int("Volume must be an integer").min(0).max(100).default(50),
     refreshRate: z.number().int("Refresh rate must be an integer").positive("Refresh rate must be positive").default(60),
-    orientation: z.enum(["LANDSCAPE", "PORTRAIT"]).default("LANDSCAPE"),
+    orientation: z.enum(["landscape", "portrait"]).default("landscape"),
   }).optional(),
   serialNumber: z.string().min(1, "Serial number is required").max(100, "Serial number cannot exceed 100 characters").optional(),
 });
@@ -28,7 +28,7 @@ export const UpdateDisplaySchema = z.object({
     brightness: z.number().int("Brightness must be an integer").min(0).max(100).optional(),
     volume: z.number().int("Volume must be an integer").min(0).max(100).optional(),
     refreshRate: z.number().int("Refresh rate must be an integer").positive("Refresh rate must be positive").optional(),
-    orientation: z.enum(["LANDSCAPE", "PORTRAIT"]).optional(),
+    orientation: z.enum(["landscape", "portrait"]).optional(),
   }).optional(),
 });
 
@@ -50,7 +50,7 @@ export const DisplayConfigSchema = z.object({
   brightness: z.number().int("Brightness must be an integer").min(0).max(100),
   volume: z.number().int("Volume must be an integer").min(0).max(100),
   refreshRate: z.number().int("Refresh rate must be an integer").positive("Refresh rate must be positive"),
-  orientation: z.enum(["LANDSCAPE", "PORTRAIT"]),
+  orientation: z.enum(["landscape", "portrait"]),
 });
 
 export const PairDisplaySchema = z.object({
