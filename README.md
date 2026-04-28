@@ -170,6 +170,10 @@ Design principles:
 - admin-only gates for privileged actions
 - strict input validation and typed request DTOs
 
+## Repository Pattern
+
+The data access layer follows the Repository Pattern to provide a consistent interface for interacting with MongoDB collections. The `BaseRepository` class encapsulates common CRUD operations, pagination, and filtering logic that all concrete repositories inherit. Concrete repositories—including `AdvertisementRepository`, `DisplayRepository`, and `UserRepository`—extend this base to add domain-specific queries, custom mappings, and business logic tailored to their entities. This approach centralizes data access concerns, improves testability through dependency injection, and enforces a clear separation of concerns between domain logic and data persistence.
+
 ## Frontend Design
 
 Frontend uses Next.js App Router with feature-first organization:

@@ -266,23 +266,75 @@ export class DisplayController {
     }
   }
 
-  /**
-   * GET /api/displays/location/:location
-   * Get all displays at a specific location
-   */
   async getDisplaysByLocation(req: Request, res: Response): Promise<void> {
     try {
       const location = Array.isArray(req.params.location) ? req.params.location[0] : req.params.location;
-      if (!location) {
-        throw new ValidationError("Location is required");
-      }
-      const displays = await this.displayService.getDisplaysByLocation(location);
+      if (!location) throw new ValidationError("Location is required");
 
-      const response: SuccessResponse<any> = {
+      const displays = await this.displayService.getDisplaysByLocation(location);
+      res.status(200).json({ success: true, data: displays });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // POST /api/displays/register-self
+  // Display device registers itself and waits for admin approval
+  async registerSelf(req: Request, res: Response): Promise<void> {
+    try {
+      const { displayName, location, displayId, password, resolution, browserInfo } = req.body;
+
+      if (!displayName || !location) {
+        throw new ValidationError("displayName and location are required");
+      }
+
+      const result = await this.displayService.registerSelf({
+        displayName,
+        location,
+        displayId,
+        password,
+        resolution: resolution || { width: 1920, height: 1080 },
+        browserInfo,
+      });
+
+      res.status(201).json({
         success: true,
-        data: displays,
-      };
-      res.status(200).json(response);
+        data: {
+          displayId: result.display.displayId,
+          connectionToken: result.connectionToken,
+          status: result.display.status,
+          isPendingApproval: result.isPendingApproval,
+        },
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // GET /api/displays/by-token/:token
+  // Used by display device to poll for approval status
+  async getByConnectionToken(req: Request, res: Response): Promise<void> {
+    try {
+      const token = Array.isArray(req.params.token) ? req.params.token[0] : req.params.token;
+      if (!token) throw new ValidationError("Connection token is required");
+
+      const display = await this.displayService.getByConnectionToken(token);
+      res.status(200).json({ success: true, data: display });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // POST /api/displays/report-status
+  // Heartbeat from display device — updates lastSeen and logs current ad
+  async reportStatus(req: Request, res: Response): Promise<void> {
+    try {
+      const { connectionToken, status, currentAdPlaying } = req.body;
+
+      if (!connectionToken) throw new ValidationError("connectionToken is required");
+
+      await this.displayService.reportStatus({ connectionToken, status, currentAdPlaying });
+      res.status(200).json({ success: true, data: { message: "Status recorded" } });
     } catch (error) {
       throw error;
     }
