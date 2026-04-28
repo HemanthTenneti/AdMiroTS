@@ -41,6 +41,12 @@ export class DisplayRepository extends BaseRepository<Display> {
     if (!doc) return null;
     return new Display(doc.toObject() as IDisplay);
   }
+
+  async findByConnectionToken(token: string): Promise<Display | null> {
+    const doc = await this.model.findOne({ connectionToken: token });
+    if (!doc) return null;
+    return new Display(doc.toObject() as IDisplay);
+  }
 }
 
 export default DisplayRepository;

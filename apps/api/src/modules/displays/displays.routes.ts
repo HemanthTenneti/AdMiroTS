@@ -18,14 +18,26 @@ export function createDisplayRoutes(jwtSecret: string): Router {
   // Auth middleware for protected routes
   const authMiddleware = jwtAuth.authenticate();
 
-  /**
-   * PUBLIC ROUTES (no authentication required)
-   * These endpoints are accessible to all users
-   */
+  // --- Display device endpoints (no auth — device doesn't have user token) ---
+
+  // POST /api/displays/register-self — display device self-registers
+  router.post("/register-self", (req: Request, res: Response, next: NextFunction) => {
+    displayController.registerSelf(req, res).catch(next);
+  });
+
+  // GET /api/displays/by-token/:token — poll for approval status
+  router.get("/by-token/:token", (req: Request, res: Response, next: NextFunction) => {
+    displayController.getByConnectionToken(req, res).catch(next);
+  });
+
+  // POST /api/displays/report-status — heartbeat from display device
+  router.post("/report-status", (req: Request, res: Response, next: NextFunction) => {
+    displayController.reportStatus(req, res).catch(next);
+  });
+
+  // --- Standard public/protected routes ---
 
   // GET /api/displays - List all displays with pagination
-  // Query params: page, limit, status, location, layout, sortBy, sortOrder
-  // Rate limited to prevent data scraping
   router.get(
     "/",
     publicDataRateLimiter,

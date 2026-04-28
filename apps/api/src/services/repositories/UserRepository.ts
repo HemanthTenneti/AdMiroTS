@@ -75,6 +75,17 @@ export class UserRepository extends BaseRepository<User> {
   }
 
   /**
+   * Find user by username or email address
+   */
+  async findByUsernameOrEmail(usernameOrEmail: string): Promise<User | null> {
+    const doc = await this.model.findOne({
+      $or: [{ email: usernameOrEmail }, { username: usernameOrEmail }],
+    });
+    if (!doc) return null;
+    return new User(doc.toObject() as IUser);
+  }
+
+  /**
    * Find all active users
    */
   async findActive(): Promise<User[]> {

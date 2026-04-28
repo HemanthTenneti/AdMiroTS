@@ -358,14 +358,6 @@ export class DisplayService {
     return this.displayRepository.findByLocation(location);
   }
 
-  /**
-   * Pair a display (complete setup process)
-   * Marks a display as ONLINE once the pairing process completes
-   *
-   * @param serialNumber - Display serial number
-   * @returns Updated Display entity with ONLINE status
-   * @throws NotFoundError if no display with that serial number exists
-   */
   async pairDisplay(serialNumber: string): Promise<Display> {
     // Find display by serial number
     const existing = await this.displayRepository.findByDisplayId(serialNumber);
@@ -373,18 +365,91 @@ export class DisplayService {
       throw new NotFoundError("Display not found");
     }
 
-    // Update status to ONLINE
     const updated = await this.displayRepository.updateById(existing.id, {
       status: DisplayStatus.ONLINE,
       updatedAt: new Date(),
     });
 
-    if (!updated) {
-      throw new NotFoundError("Failed to pair display");
-    }
+    if (!updated) throw new NotFoundError("Failed to pair display");
 
     Logger.info(`Display paired: ${serialNumber}`);
     return updated;
+  }
+
+  // Self-registration: a physical display device registers itself and waits for admin approval
+  async registerSelf(data: {
+    displayName: string;
+    location: string;
+    displayId?: string;
+    password?: string;
+    resolution: { width: number; height: number };
+    browserInfo?: Record<string, string>;
+  }): Promise<{ display: Display; connectionToken: string; isPendingApproval: boolean }> {
+    const id = IdGenerator.displayId();
+    const connectionToken = `ct-${id}-${Date.now()}`;
+    const displayId = data.displayId || id;
+
+    // Check if a display with this ID already exists
+    const existing = await this.displayRepository.findByDisplayId(displayId);
+    if (existing) {
+      throw new ValidationError(`Display with ID "${displayId}" already exists`);
+    }
+
+    const display = new Display({
+      id,
+      displayId,
+      displayName: data.displayName,
+      location: data.location,
+      resolution: data.resolution as any,
+      configuration: {
+        brightness: 100,
+        volume: 50,
+        refreshRate: 60,
+        orientation: "LANDSCAPE",
+      } as any,
+      status: DisplayStatus.INACTIVE,
+      connectionToken,
+      password: data.password,
+      isConnected: false,
+      needsRefresh: false,
+      firmwareVersion: "1.0.0",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const created = await this.displayRepository.create(display as any);
+    Logger.info(`Display self-registered: ${displayId} (pending approval)`);
+
+    return { display: created, connectionToken, isPendingApproval: true };
+  }
+
+  // Look up a display by its connection token — used by display devices polling for approval
+  async getByConnectionToken(token: string): Promise<Display> {
+    const display = await this.displayRepository.findByConnectionToken(token);
+    if (!display) {
+      throw new NotFoundError("Display not found for this connection token");
+    }
+    return display;
+  }
+
+  // Report status from a display device (heartbeat + current ad being played)
+  async reportStatus(data: {
+    connectionToken: string;
+    status: string;
+    currentAdPlaying?: string;
+  }): Promise<void> {
+    const display = await this.displayRepository.findByConnectionToken(data.connectionToken);
+    if (!display) {
+      throw new NotFoundError("Display not found for this connection token");
+    }
+
+    await this.displayRepository.updateById(display.id, {
+      lastSeen: new Date(),
+      isConnected: true,
+      updatedAt: new Date(),
+    });
+
+    Logger.info(`Display status reported: ${display.displayId} — ${data.status}`);
   }
 }
 
