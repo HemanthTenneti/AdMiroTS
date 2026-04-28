@@ -8,8 +8,8 @@
   ],
   "scripts": {
     "dev": "concurrently \"npm run dev -w @admiro/api\" \"npm run dev -w @admiro/web\"",
-    "build": "npm run build -ws",
-    "typecheck": "npm run typecheck -ws"
+    "build": "npm run build -w @admiro/domain && npm run build -w @admiro/shared && npm run build -w @admiro/api && npm run build -w @admiro/web",
+    "typecheck": "npm run typecheck --workspaces"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",

@@ -4,6 +4,7 @@
     "moduleResolution": "node",
     "target": "ES2022",
     "outDir": "dist",
+    "rootDir": "src",
     "baseUrl": "../../",
     "paths": {
       "@admiro/domain": ["packages/domain/src/index.ts"],

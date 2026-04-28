@@ -4,8 +4,7 @@
   "version": "0.1.0",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc -p tsconfig.json && npm run build:move-dist",
-    "build:move-dist": "mv dist/apps/api/src/* dist/ && rm -rf dist/apps dist/packages",
+    "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
     "test": "jest",
@@ -13,6 +12,7 @@
     "test:coverage": "jest --coverage"
   },
   "dependencies": {
+    "@admiro/domain": "0.1.0",
     "@admiro/shared": "0.1.0",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
