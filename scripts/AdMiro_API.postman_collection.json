@@ -1,0 +1,1684 @@
+{
+  "info": {
+    "_postman_id": "admiro-api-complete-v2",
+    "name": "AdMiro API - Complete Collection",
+    "description": "Complete API collection for AdMiro Digital Signage Platform.\n\n## Quick Start\n1. Create an environment with `base_url` = `http://localhost:8000`\n2. Run requests in order: Register → Login → then any protected route\n3. Token auto-captures from Register and Login responses\n4. Created resource IDs auto-capture into variables\n\n## Auth Response Format\nAuth endpoints return `{ message, user, token }` directly (NOT wrapped in `{ success, data }`).\nAll other endpoints return `{ success: true, data }` or `{ success: false, error }`.\n\n## Rate Limits (Dev - Extremely Lenient)\n- Auth: 1000 requests per minute\n- Public data: 2000 requests per minute\n- General: 5000 requests per minute",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000", "type": "string" },
+    { "key": "auth_token", "value": "", "type": "string" },
+    { "key": "user_id", "value": "", "type": "string" },
+    { "key": "ad_id", "value": "", "type": "string" },
+    { "key": "display_id", "value": "", "type": "string" },
+    { "key": "loop_id", "value": "", "type": "string" },
+    { "key": "analytics_id", "value": "", "type": "string" },
+    { "key": "log_id", "value": "", "type": "string" },
+    { "key": "test_email", "value": "postman@test.com", "type": "string" },
+    { "key": "test_password", "value": "TestPass123", "type": "string" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{auth_token}}", "type": "string" }
+    ]
+  },
+  "item": [
+    {
+      "name": "System",
+      "description": "Health check and API discovery endpoints",
+      "item": [
+        {
+          "name": "Health Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Service is ok', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.status).to.equal('ok');",
+                  "  pm.expect(json.service).to.equal('admiro-api');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/health",
+              "host": ["{{base_url}}"],
+              "path": ["api", "health"]
+            }
+          }
+        },
+        {
+          "name": "Workflow Discovery",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns workflow modules', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.workflow).to.be.an('array');",
+                  "  pm.expect(json.workflow).to.include('auth');",
+                  "  pm.expect(json.workflow).to.include('advertisements');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/workflow",
+              "host": ["{{base_url}}"],
+              "path": ["api", "workflow"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "description": "Authentication endpoints. NOTE: Auth responses use a different format — `{ message, user, token }` not `{ success, data }`.",
+      "item": [
+        {
+          "name": "1. Register New User",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Generate unique email per run to avoid conflicts",
+                  "const timestamp = Date.now();",
+                  "pm.variables.set('test_email', `postman-${timestamp}@test.com`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201 or 409', () => {",
+                  "  pm.expect([201, 409]).to.include(pm.response.code);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.test('Has token', () => pm.expect(json.token).to.be.a('string'));",
+                  "  pm.test('Has user object', () => pm.expect(json.user).to.be.an('object'));",
+                  "",
+                  "  // Auto-set variables",
+                  "  pm.collectionVariables.set('auth_token', json.token);",
+                  "  pm.collectionVariables.set('user_id', json.user.id);",
+                  "  console.log('Registered user:', json.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{test_email}}\",\n  \"password\": \"{{test_password}}\",\n  \"username\": \"postman_tester\",\n  \"role\": \"advertiser\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "2. Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "const json = pm.response.json();",
+                  "pm.test('Has token', () => pm.expect(json.token).to.be.a('string'));",
+                  "pm.test('Has user object', () => pm.expect(json.user).to.be.an('object'));",
+                  "pm.test('Token is JWT', () => pm.expect(json.token.split('.')).to.have.length(3));",
+                  "",
+                  "// Auto-set variables for all subsequent requests",
+                  "pm.collectionVariables.set('auth_token', json.token);",
+                  "pm.collectionVariables.set('user_id', json.user.id);",
+                  "console.log('Logged in as:', json.user.email, '| ID:', json.user.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{test_email}}\",\n  \"password\": \"{{test_password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "3. Get Current User (Me)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns user object', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.user).to.be.an('object');",
+                  "  pm.expect(json.user.email).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "me"]
+            }
+          }
+        },
+        {
+          "name": "4. Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  pm.test('Returns new token', () => pm.expect(json.token).to.be.a('string'));",
+                  "  pm.collectionVariables.set('auth_token', json.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/refresh",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "refresh"]
+            }
+          }
+        },
+        {
+          "name": "5. Change Password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Success message', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.message).to.include('successfully');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"{{test_password}}\",\n  \"newPassword\": \"NewTestPass456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/change-password",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "change-password"]
+            }
+          }
+        },
+        {
+          "name": "6. Logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Logout message', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.message).to.include('Logout');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "description": "User profile management. All routes require authentication.",
+      "item": [
+        {
+          "name": "Get Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Success response', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "  pm.expect(json.data).to.be.an('object');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Update Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Profile updated', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Postman\",\n  \"lastName\": \"Tester\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Get Avatar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns avatar data', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "  pm.expect(json.data).to.have.property('avatarUrl');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/profile/avatar",
+              "host": ["{{base_url}}"],
+              "path": ["api", "profile", "avatar"]
+            }
+          }
+        },
+        {
+          "name": "Upload Avatar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Avatar uploaded', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"avatarUrl\": \"https://api.dicebear.com/7.x/avataaars/svg?seed=postman\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/profile/avatar",
+              "host": ["{{base_url}}"],
+              "path": ["api", "profile", "avatar"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Advertisements",
+      "description": "Advertisement CRUD and lifecycle. Public GET routes, protected POST/PUT/DELETE routes.\n\nEnum values: mediaType = image | video, status = active | scheduled | paused | expired | draft",
+      "item": [
+        {
+          "name": "Create Advertisement",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.test('Success response', () => pm.expect(json.success).to.be.true);",
+                  "  pm.test('Has ad ID', () => pm.expect(json.data.id).to.be.a('string'));",
+                  "  pm.collectionVariables.set('ad_id', json.data.id);",
+                  "  console.log('Created ad:', json.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"adName\": \"Summer Campaign 2026\",\n  \"mediaUrl\": \"https://example.com/summer-sale.jpg\",\n  \"mediaType\": \"image\",\n  \"duration\": 30,\n  \"description\": \"Summer collection at 50% off\",\n  \"targetAudience\": \"18-45 demographics\",\n  \"fileSize\": 2048000\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/advertisements",
+              "host": ["{{base_url}}"],
+              "path": ["api", "advertisements"]
+            }
+          }
+        },
+        {
+          "name": "Create Second Advertisement (Video)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.collectionVariables.set('ad_id_2', json.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"adName\": \"Winter Sale Promo Video\",\n  \"mediaUrl\": \"https://example.com/winter-promo.mp4\",\n  \"mediaType\": \"video\",\n  \"duration\": 15,\n  \"description\": \"Holiday season promotional video\",\n  \"targetAudience\": \"All ages\",\n  \"fileSize\": 15360000\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/advertisements",
+              "host": ["{{base_url}}"],
+              "path": ["api", "advertisements"]
+            }
+          }
+        },
+        {
+          "name": "List Advertisements",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Success with pagination', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "  pm.expect(json.data.data).to.be.an('array');",
+                  "  pm.expect(json.data.pagination).to.have.property('total');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/advertisements?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "advertisements"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "status", "value": "draft", "disabled": true },
+                { "key": "mediaType", "value": "image", "disabled": true },
+                { "key": "sortBy", "value": "createdAt", "disabled": true },
+                { "key": "sortOrder", "value": "desc", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Advertisement by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns ad data', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "  pm.expect(json.data).to.have.property('adName');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/advertisements/{{ad_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "advertisements", "{{ad_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Ad Statistics",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns stats', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "  pm.expect(json.data).to.have.property('views');",
+                  "  pm.expect(json.data).to.have.property('clicks');",
+                  "  pm.expect(json.data).to.have.property('clickThroughRate');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/advertisements/{{ad_id}}/stats",
+              "host": ["{{base_url}}"],
+              "path": ["api", "advertisements", "{{ad_id}}", "stats"]
+            }
+          }
+        },
+        {
+          "name": "Get Ads by User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns user ads', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "  pm.expect(json.data).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/advertisements/user/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "advertisements", "user", "{{user_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Advertisement",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Ad updated', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"adName\": \"Updated Summer Campaign\",\n  \"description\": \"Updated: Summer collection now 60% off!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/advertisements/{{ad_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "advertisements", "{{ad_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Activate Advertisement",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Status changed to active', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/advertisements/{{ad_id}}/activate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "advertisements", "{{ad_id}}", "activate"]
+            }
+          }
+        },
+        {
+          "name": "Deactivate Advertisement",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/advertisements/{{ad_id}}/deactivate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "advertisements", "{{ad_id}}", "deactivate"]
+            }
+          }
+        },
+        {
+          "name": "Bulk Upload Advertisements",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Bulk created', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "  pm.expect(json.data.count).to.be.greaterThan(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"advertisements\": [\n    {\n      \"adName\": \"Bulk Ad 1 - Banner\",\n      \"mediaUrl\": \"https://example.com/banner1.jpg\",\n      \"mediaType\": \"image\",\n      \"duration\": 10\n    },\n    {\n      \"adName\": \"Bulk Ad 2 - Video Clip\",\n      \"mediaUrl\": \"https://example.com/clip2.mp4\",\n      \"mediaType\": \"video\",\n      \"duration\": 20\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/advertisements/bulk-upload",
+              "host": ["{{base_url}}"],
+              "path": ["api", "advertisements", "bulk-upload"]
+            }
+          }
+        },
+        {
+          "name": "Delete Advertisement (Soft)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Delete confirmed', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/advertisements/{{ad_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "advertisements", "{{ad_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Displays",
+      "description": "Display device management. Public GET routes, protected POST/PUT/DELETE routes.\n\nEnum values: status = online | offline | inactive, layout = landscape | portrait",
+      "item": [
+        {
+          "name": "Create Display",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.test('Success', () => pm.expect(json.success).to.be.true);",
+                  "  pm.collectionVariables.set('display_id', json.data.id);",
+                  "  pm.collectionVariables.set('display_displayId', json.data.displayId);",
+                  "  console.log('Created display:', json.data.id, '| displayId:', json.data.displayId);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"displayId\": \"DISPLAY-HALL-001\",\n  \"location\": \"Main Hall\",\n  \"layout\": \"landscape\",\n  \"resolution\": {\n    \"width\": 1920,\n    \"height\": 1080\n  },\n  \"serialNumber\": \"SN-HALL-001\",\n  \"configuration\": {\n    \"brightness\": 100,\n    \"volume\": 50,\n    \"refreshRate\": 60,\n    \"orientation\": \"landscape\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/displays",
+              "host": ["{{base_url}}"],
+              "path": ["api", "displays"]
+            }
+          }
+        },
+        {
+          "name": "Create Second Display",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.collectionVariables.set('display_id_2', json.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"displayId\": \"DISPLAY-LOBBY-002\",\n  \"location\": \"Lobby Entrance\",\n  \"layout\": \"portrait\",\n  \"resolution\": {\n    \"width\": 1080,\n    \"height\": 1920\n  },\n  \"serialNumber\": \"SN-LOBBY-002\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/displays",
+              "host": ["{{base_url}}"],
+              "path": ["api", "displays"]
+            }
+          }
+        },
+        {
+          "name": "List Displays",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Success with pagination', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "  pm.expect(json.data.data).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/displays?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "displays"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "status", "value": "online", "disabled": true },
+                { "key": "location", "value": "Main Hall", "disabled": true },
+                { "key": "sortBy", "value": "createdAt", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Displays by Location",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns location displays', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "  pm.expect(json.data).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/displays/location/Main Hall",
+              "host": ["{{base_url}}"],
+              "path": ["api", "displays", "location", "Main Hall"]
+            }
+          }
+        },
+        {
+          "name": "Get Display by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns display', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "  pm.expect(json.data).to.have.property('displayId');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/displays/{{display_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "displays", "{{display_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Display Status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns status info', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "  pm.expect(json.data).to.have.property('isOnline');",
+                  "  pm.expect(json.data).to.have.property('status');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/displays/{{display_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "displays", "{{display_id}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "Get Assigned Loops",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns loop info', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/displays/{{display_id}}/loops",
+              "host": ["{{base_url}}"],
+              "path": ["api", "displays", "{{display_id}}", "loops"]
+            }
+          }
+        },
+        {
+          "name": "Update Display",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Display updated', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"location\": \"Updated - East Wing Hall\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/displays/{{display_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "displays", "{{display_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Ping Display (Heartbeat)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Ping received', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.data.message).to.equal('Ping received');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/displays/{{display_id}}/ping",
+              "host": ["{{base_url}}"],
+              "path": ["api", "displays", "{{display_id}}", "ping"]
+            }
+          }
+        },
+        {
+          "name": "Pair Display",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201 or 404', () => {",
+                  "  pm.expect([201, 404]).to.include(pm.response.code);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "  pm.test('Display paired', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.true;",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serialNumber\": \"DISPLAY-HALL-001\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/displays/pair",
+              "host": ["{{base_url}}"],
+              "path": ["api", "displays", "pair"]
+            }
+          }
+        },
+        {
+          "name": "Update Display Config",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Config updated', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"brightness\": 75,\n  \"volume\": 80,\n  \"refreshRate\": 60,\n  \"orientation\": \"landscape\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/displays/{{display_id}}/config",
+              "host": ["{{base_url}}"],
+              "path": ["api", "displays", "{{display_id}}", "config"]
+            }
+          }
+        },
+        {
+          "name": "Delete Display (Soft)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Delete confirmed', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/displays/{{display_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "displays", "{{display_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Display Loops",
+      "description": "Display loop (playlist) management. Public GET, protected POST/PUT/DELETE.\n\nEnum values: rotationType = sequential | random | weighted, displayLayout = fullscreen | masonry",
+      "item": [
+        {
+          "name": "Create Display Loop",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Ensure display_id_2 is set (use second display for loops)",
+                  "if (!pm.collectionVariables.get('display_id_2')) {",
+                  "  pm.collectionVariables.set('display_id_2', pm.collectionVariables.get('display_id'));",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.test('Success', () => pm.expect(json.success).to.be.true);",
+                  "  pm.collectionVariables.set('loop_id', json.data.id);",
+                  "  console.log('Created loop:', json.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loopName\": \"Morning Ad Rotation\",\n  \"displayId\": \"{{display_id}}\",\n  \"rotationType\": \"sequential\",\n  \"displayLayout\": \"fullscreen\",\n  \"description\": \"Morning schedule for main hall display\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/display-loops",
+              "host": ["{{base_url}}"],
+              "path": ["api", "display-loops"]
+            }
+          }
+        },
+        {
+          "name": "List Display Loops",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Success with pagination', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "  pm.expect(json.data.data).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/display-loops?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "display-loops"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "displayId", "value": "{{display_id}}", "disabled": true },
+                { "key": "isActive", "value": "true", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Display Loop",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns loop', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "  pm.expect(json.data).to.have.property('loopName');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/display-loops/{{loop_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "display-loops", "{{loop_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Add Advertisement to Loop",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Use ad_id_2 if available (from the second ad created), else ad_id",
+                  "const adId2 = pm.collectionVariables.get('ad_id_2');",
+                  "if (adId2) {",
+                  "  pm.variables.set('current_ad_id', adId2);",
+                  "} else {",
+                  "  pm.variables.set('current_ad_id', pm.collectionVariables.get('ad_id'));",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Ad added to loop', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "  pm.expect(json.data.advertisements).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"advertisementId\": \"{{current_ad_id}}\",\n  \"duration\": 30,\n  \"order\": 0,\n  \"weight\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/display-loops/{{loop_id}}/advertisements",
+              "host": ["{{base_url}}"],
+              "path": ["api", "display-loops", "{{loop_id}}", "advertisements"]
+            }
+          }
+        },
+        {
+          "name": "Update Advertisement Order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Order updated', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newOrder\": 0\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/display-loops/{{loop_id}}/advertisements/{{ad_id}}/order",
+              "host": ["{{base_url}}"],
+              "path": ["api", "display-loops", "{{loop_id}}", "advertisements", "{{ad_id}}", "order"]
+            }
+          }
+        },
+        {
+          "name": "Update Display Loop",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Loop updated', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loopName\": \"Updated Afternoon Rotation\",\n  \"rotationType\": \"random\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/display-loops/{{loop_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "display-loops", "{{loop_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Remove Advertisement from Loop",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Ad removed', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/display-loops/{{loop_id}}/advertisements/{{ad_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "display-loops", "{{loop_id}}", "advertisements", "{{ad_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Display Loop",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Loop deleted', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/display-loops/{{loop_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "display-loops", "{{loop_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "description": "Analytics recording and reporting. POST /record is public (displays report metrics). GET routes require auth.\n\nRecords analytics events for display/ad/loop performance tracking.",
+      "item": [
+        {
+          "name": "Record Analytics Event",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.test('Event recorded', () => pm.expect(json.success).to.be.true);",
+                  "  pm.collectionVariables.set('analytics_id', json.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"displayId\": \"{{display_id}}\",\n  \"adId\": \"{{ad_id}}\",\n  \"loopId\": \"{{loop_id}}\",\n  \"impressions\": 150,\n  \"viewDuration\": 4500,\n  \"completedViews\": 120,\n  \"partialViews\": 30,\n  \"metrics\": {\n    \"clicks\": 12,\n    \"interactions\": 45,\n    \"dwellTime\": 3200\n  },\n  \"metadata\": {\n    \"deviceType\": \"SMART_TV\",\n    \"location\": \"Main Hall\",\n    \"weatherCondition\": \"sunny\",\n    \"crowdDensity\": \"medium\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/analytics/record",
+              "host": ["{{base_url}}"],
+              "path": ["api", "analytics", "record"]
+            }
+          }
+        },
+        {
+          "name": "List Analytics",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Success with pagination', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "  pm.expect(json.data.data).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/analytics?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "analytics"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "displayId", "value": "{{display_id}}", "disabled": true },
+                { "key": "adId", "value": "{{ad_id}}", "disabled": true },
+                { "key": "startDate", "value": "2025-01-01", "disabled": true },
+                { "key": "endDate", "value": "2026-12-31", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Aggregated Stats",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns aggregated metrics', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "  pm.expect(json.data).to.have.property('totalImpressions');",
+                  "  pm.expect(json.data).to.have.property('totalClicks');",
+                  "  pm.expect(json.data).to.have.property('averageCTR');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/stats",
+              "host": ["{{base_url}}"],
+              "path": ["api", "analytics", "stats"],
+              "query": [
+                { "key": "displayId", "value": "{{display_id}}", "disabled": true },
+                { "key": "adId", "value": "{{ad_id}}", "disabled": true },
+                { "key": "startDate", "value": "2025-01-01", "disabled": true },
+                { "key": "endDate", "value": "2026-12-31", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Analytics Record",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns analytics record', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "  pm.expect(json.data).to.have.property('impressions');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/{{analytics_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "analytics", "{{analytics_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "System Logs",
+      "description": "Audit trail and system logging. ALL routes require authentication.\n\nEnum values: action = create | update | delete | status_change | approve | reject | other\nentityType = display | advertisement | loop | user | system",
+      "item": [
+        {
+          "name": "Record System Log",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.test('Log recorded', () => pm.expect(json.success).to.be.true);",
+                  "  pm.collectionVariables.set('log_id', json.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"create\",\n  \"entityType\": \"advertisement\",\n  \"entityId\": \"{{ad_id}}\",\n  \"description\": \"Created new advertisement via Postman\",\n  \"changes\": {\n    \"adName\": { \"before\": null, \"after\": \"Summer Campaign 2026\" },\n    \"status\": { \"before\": null, \"after\": \"draft\" }\n  },\n  \"metadata\": {\n    \"source\": \"postman\",\n    \"version\": \"2.0\"\n  },\n  \"ipAddress\": \"127.0.0.1\",\n  \"userAgent\": \"Postman Runtime\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/system-logs/record",
+              "host": ["{{base_url}}"],
+              "path": ["api", "system-logs", "record"]
+            }
+          }
+        },
+        {
+          "name": "List System Logs",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Success with pagination', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "  pm.expect(json.data.data).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/system-logs?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "system-logs"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "action", "value": "create", "disabled": true },
+                { "key": "entityType", "value": "advertisement", "disabled": true },
+                { "key": "userId", "value": "{{user_id}}", "disabled": true },
+                { "key": "startDate", "value": "2025-01-01", "disabled": true },
+                { "key": "endDate", "value": "2026-12-31", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get System Log",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns log entry', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "  pm.expect(json.data).to.have.property('action');",
+                  "  pm.expect(json.data).to.have.property('details');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/system-logs/{{log_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "system-logs", "{{log_id}}"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
