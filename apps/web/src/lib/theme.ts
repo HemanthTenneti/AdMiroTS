@@ -1,13 +1,22 @@
 export const colors = {
-  primary: "#8b6f47",
-  primaryDark: "#6d5636",
-  primaryDarker: "#5f4a2f",
-  primaryLight: "#d4c4a8",
-  bg: "#faf9f7",
-  bgSecondary: "#f5f3f0",
-  border: "#e5e5e5",
-  text: "#3a3530",
-  textSecondary: "#6b6460",
+  // Dark system (primary)
+  accent: "#7E3AF0",
+  accentLight: "#9F67FF",
+  accentMuted: "rgba(126,58,240,0.15)",
+  bgBase: "#080410",
+  bgSurface: "#0C0C0C",
+  bgCard: "#111118",
+  borderSubtle: "rgba(255,255,255,0.08)",
+  textPrimary: "#FFFFFF",
+  textSecondary: "rgba(255,255,255,0.5)",
+  textMuted: "rgba(255,255,255,0.3)",
+
+  // Light system (toggle fallback)
+  lightBg: "#FAFAF9",
+  lightSurface: "#FFFFFF",
+  lightBorder: "#E5E7EB",
+  lightText: "#111827",
+  lightTextSecondary: "#6B7280",
 };
 
 export default colors;

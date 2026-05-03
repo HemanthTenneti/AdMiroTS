@@ -6,6 +6,7 @@ import {
   AddLoopAdvertisementPayloadSchema,
   CreateDisplayLoopPayloadSchema,
 } from "@admiro/shared";
+import DashboardLayout from "@/components/DashboardLayout";
 import { advertisementsApi } from "@/lib/api/advertisements.api";
 import { displayLoopsApi } from "@/lib/api/display-loops.api";
 import { displaysApi } from "@/lib/api/displays.api";
@@ -151,10 +152,11 @@ export default function LoopsPage() {
   };
 
   if (!authReady) {
-    return <div className="p-6 text-sm text-[var(--color-text-secondary)]">Checking session...</div>;
+    return <div className="p-6 text-sm text-white/50">Checking session...</div>;
   }
 
   return (
+    <DashboardLayout>
     <div className="space-y-6">
       <PageTitle
         title="Display Loops"
@@ -263,36 +265,36 @@ export default function LoopsPage() {
         </Panel>
       </div>
 
-      {error ? <p className="text-sm text-[#8a2a2a]">{error}</p> : null}
+      {error ? <p className="text-sm text-red-400">{error}</p> : null}
 
       <Panel>
         <h2 className="mb-4 text-lg font-semibold">Existing Loops</h2>
         {loading ? (
-          <div className="rounded-xl border border-dashed border-[var(--color-border)] bg-white p-8 text-center text-sm text-[var(--color-text-muted)]">
+          <div className="rounded-xl border border-dashed border-[var(--color-border)] bg-white/5 p-8 text-center text-sm text-white/40">
             Loading loops...
           </div>
         ) : loops.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-[var(--color-border)] bg-white p-8 text-center text-sm text-[var(--color-text-muted)]">
+          <div className="rounded-xl border border-dashed border-[var(--color-border)] bg-white/5 p-8 text-center text-sm text-white/40">
             No loops found.
           </div>
         ) : (
           <DataTable headers={["Loop", "Display", "Rotation", "Layout", "Ads", "Updated", "Actions"]}>
             {loops.map((loop) => (
-              <tr key={loop.id} className="bg-white">
+              <tr key={loop.id} className="hover:bg-white/[0.03]">
                 <td className="px-4 py-3">
                   <div className="font-medium">{loop.loopName}</div>
-                  <div className="text-xs text-[var(--color-text-muted)]">{loop.loopId}</div>
+                  <div className="text-xs text-white/40">{loop.loopId}</div>
                 </td>
                 <td className="px-4 py-3 font-mono text-xs">{loop.displayId}</td>
-                <td className="px-4 py-3 capitalize text-[var(--color-text-secondary)]">{loop.rotationType}</td>
+                <td className="px-4 py-3 capitalize text-white/50">{loop.rotationType}</td>
                 <td className="px-4 py-3">
                   <StatusPill label={loop.displayLayout} tone="info" />
                 </td>
-                <td className="px-4 py-3 text-[var(--color-text-secondary)]">{loop.advertisements?.length ?? 0}</td>
-                <td className="px-4 py-3 text-[var(--color-text-muted)]">{formatDateTime(loop.updatedAt)}</td>
+                <td className="px-4 py-3 text-white/50">{loop.advertisements?.length ?? 0}</td>
+                <td className="px-4 py-3 text-white/40">{formatDateTime(loop.updatedAt)}</td>
                 <td className="px-4 py-3">
                   <SecondaryButton
-                    className="border-[#e6c1bc] bg-[#f9e3df] text-[#8a2a2a] hover:bg-[#f4d3cd]"
+                    className="border-red-500/20 bg-red-500/15 text-red-400 hover:bg-red-500/25"
                     onClick={() => void deleteLoop(loop.id)}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -304,5 +306,6 @@ export default function LoopsPage() {
         )}
       </Panel>
     </div>
+    </DashboardLayout>
   );
 }

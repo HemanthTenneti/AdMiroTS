@@ -1,22 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --color-primary: #8b6f47;
-  --color-primary-dark: #6d5636;
-  --color-primary-darker: #4f3e28;
-  --color-primary-light: #d7c6ab;
-
-  --color-bg: #f4ede2;
-  --color-bg-secondary: #efe5d6;
-  --color-bg-tertiary: #e7dccb;
-  --color-surface: #faf5ec;
-
-  --color-border: #dfd2bc;
-  --color-border-strong: #cdbb9e;
-
-  --color-text: #352b1f;
-  --color-text-secondary: #665746;
-  --color-text-muted: #847664;
+  --color-accent: #7E3AF0;
+  --color-accent-dark: #6D28D9;
+  --color-accent-light: #F5F3FF;
+  --color-accent-border: #DDD6FE;
+  --color-bg: #FAFAF9;
+  --color-bg-dark: #0C0C0C;
+  --color-heading: #1F1529;
+  --color-text: #0A0A0A;
+  --color-text-muted: #6B7280;
+  --color-border: #E5E7EB;
 }
 
 * {
@@ -25,15 +19,13 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 80px;
 }
 
 body {
-  min-height: 100vh;
-  background:
-    radial-gradient(circle at 10% -10%, rgba(139, 111, 71, 0.12), transparent 42%),
-    radial-gradient(circle at 90% 0%, rgba(109, 86, 54, 0.09), transparent 35%),
-    var(--color-bg);
+  background-color: var(--color-bg);
   color: var(--color-text);
+  font-family: var(--font-bricolage), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

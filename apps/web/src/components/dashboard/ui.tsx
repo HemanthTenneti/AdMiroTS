@@ -30,7 +30,7 @@ export function Panel({
   return (
     <div
       className={cn(
-        "rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-[0_8px_22px_rgba(90,70,45,0.08)]",
+        "rounded-xl border border-white/8 bg-[#111118] p-5 shadow-[0_18px_55px_rgba(0,0,0,0.22)]",
         className
       )}
     >
@@ -48,7 +48,7 @@ export function PrimaryButton({
     <button
       type={type}
       className={cn(
-        "inline-flex items-center justify-center rounded-xl border border-[var(--color-primary-dark)] bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white transition hover:bg-[var(--color-primary-dark)] disabled:cursor-not-allowed disabled:opacity-60",
+        "inline-flex items-center justify-center rounded-lg border border-[#7E3AF0] bg-[#7E3AF0] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#9F67FF] disabled:cursor-not-allowed disabled:opacity-60",
         className
       )}
       {...props}
@@ -65,7 +65,7 @@ export function SecondaryButton({
     <button
       type={type}
       className={cn(
-        "inline-flex items-center justify-center rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-bg-secondary)] px-4 py-2 text-sm font-medium text-[var(--color-text)] transition hover:bg-[var(--color-bg-tertiary)] disabled:cursor-not-allowed disabled:opacity-60",
+        "inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white/70 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-60",
         className
       )}
       {...props}
@@ -78,7 +78,7 @@ export function TextInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
     <input
       {...props}
       className={cn(
-        "w-full rounded-xl border border-[var(--color-border-strong)] bg-white px-3 py-2 text-sm text-[var(--color-text)] outline-none transition placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[color:rgba(139,111,71,0.25)]",
+        "w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-[#7E3AF0] focus:ring-2 focus:ring-[#7E3AF0]/25",
         props.className
       )}
     />
@@ -90,7 +90,7 @@ export function TextArea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement
     <textarea
       {...props}
       className={cn(
-        "w-full rounded-xl border border-[var(--color-border-strong)] bg-white px-3 py-2 text-sm text-[var(--color-text)] outline-none transition placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[color:rgba(139,111,71,0.25)]",
+        "w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-[#7E3AF0] focus:ring-2 focus:ring-[#7E3AF0]/25",
         props.className
       )}
     />
@@ -102,7 +102,7 @@ export function SelectInput(props: React.SelectHTMLAttributes<HTMLSelectElement>
     <select
       {...props}
       className={cn(
-        "w-full rounded-xl border border-[var(--color-border-strong)] bg-white px-3 py-2 text-sm text-[var(--color-text)] outline-none transition focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[color:rgba(139,111,71,0.25)]",
+        "w-full rounded-lg border border-white/10 bg-[#111118] px-3 py-2 text-sm text-white outline-none transition focus:border-[#7E3AF0] focus:ring-2 focus:ring-[#7E3AF0]/25",
         props.className
       )}
     />
@@ -117,21 +117,21 @@ export function DataTable({
   children: React.ReactNode;
 }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-[var(--color-border)] bg-white">
-      <table className="min-w-full divide-y divide-[var(--color-border)] text-sm">
-        <thead className="bg-[var(--color-bg-secondary)]">
+    <div className="overflow-x-auto rounded-xl border border-white/8 bg-[#111118]">
+      <table className="min-w-full divide-y divide-white/8 text-sm">
+        <thead className="bg-white/5">
           <tr>
             {headers.map((header) => (
               <th
                 key={header}
-                className="px-4 py-3 text-left font-medium uppercase tracking-wide text-[var(--color-text-secondary)]"
+                className="px-4 py-3 text-left font-medium uppercase tracking-wide text-white/50"
               >
                 {header}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-[var(--color-border)]">{children}</tbody>
+        <tbody className="divide-y divide-white/5">{children}</tbody>
       </table>
     </div>
   );
@@ -145,11 +145,11 @@ export function StatusPill({
   tone?: "neutral" | "success" | "danger" | "warning" | "info";
 }) {
   const tones: Record<string, string> = {
-    neutral: "bg-[#ece7df] text-[#4f4336]",
-    success: "bg-[#d9ead8] text-[#245530]",
-    danger: "bg-[#f3d9d6] text-[#7d2e2b]",
-    warning: "bg-[#f6e5c7] text-[#6b4b12]",
-    info: "bg-[#dce7f5] text-[#224a7f]",
+    neutral: "bg-white/10 text-white/60",
+    success: "bg-green-500/15 text-green-400",
+    danger: "bg-red-500/15 text-red-400",
+    warning: "bg-yellow-500/15 text-yellow-400",
+    info: "bg-[#7E3AF0]/15 text-[#9F67FF]",
   };
 
   return (

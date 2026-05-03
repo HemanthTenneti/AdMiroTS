@@ -7,6 +7,7 @@ import gsap from "gsap";
 import { Eye, EyeOff, Monitor, Plug } from "lucide-react";
 import { authApi } from "@/lib/api/auth.api";
 import { useAuthStore } from "@/features/auth/store/authStore";
+import { GradientBarsBackground } from "@/components/ui/gradient-bars-background";
 
 type GoogleCredentialResponse = {
   credential?: string;
@@ -114,7 +115,7 @@ export default function LoginPage() {
     document.head.appendChild(script);
   }, []);
 
-  // Card flip animation on mode toggle
+  // Card fade animation on mode toggle
   useEffect(() => {
     if (!cardRef.current) return;
     gsap.to(cardRef.current, {
@@ -248,10 +249,10 @@ export default function LoginPage() {
   };
 
   const inputClass =
-    "w-full px-4 py-3 border border-[#e5e5e5] rounded-lg focus:outline-none focus:border-[#8b6f47] bg-white text-black placeholder:text-gray-400";
+    "w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-[#7E3AF0] focus:ring-1 focus:ring-[#7E3AF0]";
 
   const GoogleSVG = () => (
-    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+    <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
       <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
       <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
       <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
@@ -260,29 +261,32 @@ export default function LoginPage() {
   );
 
   return (
-    <main ref={mainRef} className="min-h-screen flex">
-      {/* Left — form */}
-      <div className="w-full lg:w-1/2 flex flex-col items-center justify-center px-8 py-12 bg-[#faf9f7]">
+    <main ref={mainRef} className="min-h-screen flex bg-[#080410]">
+      {/* Left — form panel */}
+      <div className="w-full md:w-1/2 flex flex-col items-center justify-center px-8 py-12 bg-[#080410]">
         <div className="w-full max-w-md">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 mb-4">
-            <div className="w-8 h-8 bg-[#8b6f47] rounded flex items-center justify-center text-white text-sm font-bold">
+          <Link href="/" className="flex items-center gap-3 mb-8">
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#7E3AF0] to-[#9F67FF] flex items-center justify-center text-white text-sm font-bold shadow-lg shadow-[#7E3AF0]/30">
               A
             </div>
-            <span className="text-2xl font-bold text-black">AdMiro</span>
+            <span className="text-2xl font-bold text-white tracking-tight">AdMiro</span>
           </Link>
 
           {/* Card */}
-          <div ref={cardRef} className="w-full bg-white rounded-2xl border-2 border-[#e5e5e5] p-8">
-            <h1 className="text-3xl font-bold text-black mb-2">
+          <div
+            ref={cardRef}
+            className="w-full bg-[#0C0C0C] rounded-2xl border border-white/8 p-8"
+          >
+            <h1 className="text-2xl font-bold text-white mb-1">
               {isLogin ? "Welcome back" : "Create account"}
             </h1>
-            <p className="text-gray-600 mb-8">
+            <p className="text-white/50 text-sm mb-8">
               {isLogin ? "Log in to your AdMiro account" : "Join AdMiro to manage your displays"}
             </p>
 
             {error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+              <div className="mb-6 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
                 {error}
               </div>
             )}
@@ -290,7 +294,7 @@ export default function LoginPage() {
             {isLogin ? (
               <form onSubmit={handleLogin} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-black mb-2">
+                  <label className="block text-sm font-medium text-white/70 mb-2">
                     Username or Email
                   </label>
                   <input
@@ -305,7 +309,7 @@ export default function LoginPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-black mb-2">
+                  <label className="block text-sm font-medium text-white/70 mb-2">
                     Password
                   </label>
                   <div className="relative">
@@ -321,9 +325,9 @@ export default function LoginPage() {
                     <button
                       type="button"
                       onClick={() => setShowPassword((p) => !p)}
-                      className="absolute right-4 top-3.5 text-gray-600 hover:text-black"
+                      className="absolute right-4 top-3.5 text-white/40 hover:text-white/80"
                     >
-                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                   </div>
                 </div>
@@ -331,22 +335,22 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full px-4 py-3 bg-[#8b6f47] text-white font-bold rounded-lg hover:bg-[#6b5535] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-3 bg-[#7E3AF0] hover:bg-[#9F67FF] text-white font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? "Logging in..." : "Log in"}
                 </button>
 
-                <div className="flex items-center gap-4 my-6">
-                  <div className="flex-1 h-px bg-[#e5e5e5]" />
-                  <span className="text-xs text-gray-600">OR</span>
-                  <div className="flex-1 h-px bg-[#e5e5e5]" />
+                <div className="flex items-center gap-4 my-2">
+                  <div className="flex-1 h-px bg-white/10" />
+                  <span className="text-xs text-white/30">OR</span>
+                  <div className="flex-1 h-px bg-white/10" />
                 </div>
 
                 <button
                   type="button"
                   onClick={handleGoogleAuth}
                   disabled={googleLoading}
-                  className="w-full flex items-center justify-center gap-3 px-4 py-3 border-2 border-[#e5e5e5] text-black font-semibold rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                  className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-white/10 bg-white/5 text-white/70 font-medium rounded-lg hover:bg-white/10 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <GoogleSVG />
                   {googleLoading ? "Opening Google..." : "Continue with Google"}
@@ -356,7 +360,7 @@ export default function LoginPage() {
               <form onSubmit={handleRegister} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-black mb-2">First Name</label>
+                    <label className="block text-sm font-medium text-white/70 mb-2">First Name</label>
                     <input
                       type="text"
                       name="firstName"
@@ -367,7 +371,7 @@ export default function LoginPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-black mb-2">Last Name</label>
+                    <label className="block text-sm font-medium text-white/70 mb-2">Last Name</label>
                     <input
                       type="text"
                       name="lastName"
@@ -380,7 +384,7 @@ export default function LoginPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-black mb-2">Username</label>
+                  <label className="block text-sm font-medium text-white/70 mb-2">Username</label>
                   <input
                     type="text"
                     name="username"
@@ -393,7 +397,7 @@ export default function LoginPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-black mb-2">Email</label>
+                  <label className="block text-sm font-medium text-white/70 mb-2">Email</label>
                   <input
                     type="email"
                     name="email"
@@ -406,7 +410,7 @@ export default function LoginPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-black mb-2">Password</label>
+                  <label className="block text-sm font-medium text-white/70 mb-2">Password</label>
                   <div className="relative">
                     <input
                       type={showPassword ? "text" : "password"}
@@ -420,15 +424,15 @@ export default function LoginPage() {
                     <button
                       type="button"
                       onClick={() => setShowPassword((p) => !p)}
-                      className="absolute right-4 top-3.5 text-gray-600 hover:text-black"
+                      className="absolute right-4 top-3.5 text-white/40 hover:text-white/80"
                     >
-                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-black mb-2">Confirm Password</label>
+                  <label className="block text-sm font-medium text-white/70 mb-2">Confirm Password</label>
                   <input
                     type={showPassword ? "text" : "password"}
                     name="confirmPassword"
@@ -443,22 +447,22 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full px-4 py-3 bg-[#8b6f47] text-white font-bold rounded-lg hover:bg-[#6b5535] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-3 bg-[#7E3AF0] hover:bg-[#9F67FF] text-white font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? "Creating account..." : "Create account"}
                 </button>
 
-                <div className="flex items-center gap-4 my-6">
-                  <div className="flex-1 h-px bg-[#e5e5e5]" />
-                  <span className="text-xs text-gray-600">OR</span>
-                  <div className="flex-1 h-px bg-[#e5e5e5]" />
+                <div className="flex items-center gap-4 my-2">
+                  <div className="flex-1 h-px bg-white/10" />
+                  <span className="text-xs text-white/30">OR</span>
+                  <div className="flex-1 h-px bg-white/10" />
                 </div>
 
                 <button
                   type="button"
                   onClick={handleGoogleAuth}
                   disabled={googleLoading}
-                  className="w-full flex items-center justify-center gap-3 px-4 py-3 border-2 border-[#e5e5e5] text-black font-semibold rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                  className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-white/10 bg-white/5 text-white/70 font-medium rounded-lg hover:bg-white/10 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <GoogleSVG />
                   {googleLoading ? "Opening Google..." : "Sign up with Google"}
@@ -467,48 +471,48 @@ export default function LoginPage() {
             )}
 
             {/* Toggle login / register */}
-            <div className="mt-6 text-center border-t border-gray-200 pt-6 space-y-4">
-              <p className="text-gray-600">
+            <div className="mt-6 border-t border-white/8 pt-6 space-y-4">
+              <p className="text-center text-white/50 text-sm">
                 {isLogin ? "Don't have an account? " : "Already have an account? "}
-                <button onClick={switchMode} className="text-[#8b6f47] font-bold hover:underline">
+                <button
+                  onClick={switchMode}
+                  className="text-[#9F67FF] hover:text-white font-semibold"
+                >
                   {isLogin ? "Sign up" : "Log in"}
                 </button>
               </p>
 
               {/* Display device links */}
-              <div className="pt-4">
-                <div className="relative mb-4">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-300" />
-                  </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-white text-gray-600">or</span>
-                  </div>
+              <div className="pt-2">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="flex-1 h-px bg-white/8" />
+                  <span className="text-xs text-white/30">display device</span>
+                  <div className="flex-1 h-px bg-white/8" />
                 </div>
                 <div className="space-y-2">
                   <Link
                     href="/display-register"
-                    className="w-full px-6 py-2 border-2 border-[#8b6f47] text-[#8b6f47] font-semibold rounded-lg hover:bg-[#f5f0e8] text-center flex items-center justify-center gap-2"
+                    className="w-full px-4 py-2.5 border border-[#7E3AF0]/40 text-[#9F67FF] font-medium rounded-lg hover:bg-[#7E3AF0]/10 text-center flex items-center justify-center gap-2 text-sm"
                   >
-                    <Monitor size={18} className="text-[#8b6f47]" />
+                    <Monitor size={16} />
                     Register Display
                   </Link>
                   <Link
                     href="/display-login"
-                    className="w-full px-6 py-2 border-2 border-blue-500 font-semibold rounded-lg hover:bg-blue-50 text-center flex items-center justify-center gap-2"
+                    className="w-full px-4 py-2.5 border border-white/10 text-white/50 font-medium rounded-lg hover:bg-white/5 hover:text-white/70 text-center flex items-center justify-center gap-2 text-sm"
                   >
-                    <Plug size={18} className="text-blue-500" />
-                    <span className="text-blue-500">Login to Display</span>
+                    <Plug size={16} />
+                    Login to Display
                   </Link>
                 </div>
-                <p className="text-xs text-gray-500 mt-2 text-center">
+                <p className="text-xs text-white/30 mt-3 text-center">
                   Turn this device into an ad display
                 </p>
               </div>
             </div>
 
-            <div className="mt-8 text-center">
-              <Link href="/" className="text-gray-600 hover:text-black">
+            <div className="mt-6 text-center">
+              <Link href="/" className="text-white/30 hover:text-white/60 text-sm">
                 Back to home
               </Link>
             </div>
@@ -516,15 +520,9 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right — background image */}
-      <div className="hidden lg:flex w-1/2 items-center justify-center relative overflow-hidden bg-[radial-gradient(circle_at_20%_20%,#f2e9d8_0%,#e7d8bf_40%,#dac6a7_100%)]">
-        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.20),rgba(255,255,255,0.0))]" />
-        <div className="relative z-10 max-w-md px-8 text-[#2d2418]">
-          <h2 className="text-4xl font-semibold leading-tight">AdMiro Control Suite</h2>
-          <p className="mt-4 text-base text-[#4b3f2e]">
-            Manage displays, media, and playback loops from one clean dashboard.
-          </p>
-        </div>
+      {/* Right — gradient bars panel */}
+      <div className="hidden md:flex w-1/2 h-screen sticky top-0">
+        <GradientBarsBackground className="w-full h-full" />
       </div>
     </main>
   );

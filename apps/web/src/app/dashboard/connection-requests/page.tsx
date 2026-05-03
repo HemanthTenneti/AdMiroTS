@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Check, RefreshCw, X } from "lucide-react";
+import DashboardLayout from "@/components/DashboardLayout";
 import { useDashboardAuth } from "@/hooks/useDashboardAuth";
 import { displaysApi } from "@/lib/api/displays.api";
 import {
@@ -72,10 +73,11 @@ export default function ConnectionRequestsPage() {
   };
 
   if (!authReady) {
-    return <div className="p-6 text-sm text-[var(--color-text-secondary)]">Checking session...</div>;
+    return <div className="p-6 text-sm text-white/50">Checking session...</div>;
   }
 
   return (
+    <DashboardLayout>
     <div className="space-y-6">
       <PageTitle
         title="Connection Requests"
@@ -98,37 +100,37 @@ export default function ConnectionRequestsPage() {
       />
 
       <Panel>
-        {error ? <p className="mb-4 text-sm text-[#8a2a2a]">{error}</p> : null}
+        {error ? <p className="mb-4 text-sm text-red-400">{error}</p> : null}
         {loading ? (
-          <div className="rounded-xl border border-dashed border-[var(--color-border)] bg-white p-8 text-center text-sm text-[var(--color-text-muted)]">
+          <div className="rounded-xl border border-dashed border-[var(--color-border)] bg-white/5 p-8 text-center text-sm text-white/40">
             Loading requests...
           </div>
         ) : requests.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-[var(--color-border)] bg-white p-8 text-center text-sm text-[var(--color-text-muted)]">
+          <div className="rounded-xl border border-dashed border-[var(--color-border)] bg-white/5 p-8 text-center text-sm text-white/40">
             No requests found for selected status.
           </div>
         ) : (
           <DataTable headers={["Request", "Display", "Location", "Status", "Requested", "Actions"]}>
             {requests.map((request) => (
-              <tr key={request.requestId} className="bg-white align-top">
-                <td className="px-4 py-3 font-mono text-xs text-[var(--color-text-muted)]">{request.requestId}</td>
+              <tr key={request.requestId} className="align-top hover:bg-white/[0.03]">
+                <td className="px-4 py-3 font-mono text-xs text-white/40">{request.requestId}</td>
                 <td className="px-4 py-3">
                   <div className="font-medium">{request.displayId}</div>
-                  <div className="text-xs text-[var(--color-text-muted)]">{request.displayName ?? "Unknown display"}</div>
+                  <div className="text-xs text-white/40">{request.displayName ?? "Unknown display"}</div>
                 </td>
-                <td className="px-4 py-3 text-[var(--color-text-secondary)]">{request.location ?? "-"}</td>
+                <td className="px-4 py-3 text-white/50">{request.location ?? "-"}</td>
                 <td className="px-4 py-3">
                   <StatusPill
                     label={request.status}
                     tone={request.status === "approved" ? "success" : request.status === "rejected" ? "danger" : "warning"}
                   />
                 </td>
-                <td className="px-4 py-3 text-[var(--color-text-muted)]">
+                <td className="px-4 py-3 text-white/40">
                   {request.requestedAt ? formatDateTime(request.requestedAt) : "-"}
                 </td>
                 <td className="px-4 py-3">
                   {request.status !== "pending" ? (
-                    <span className="text-xs text-[var(--color-text-muted)]">No action</span>
+                    <span className="text-xs text-white/40">No action</span>
                   ) : (
                     <div className="space-y-2">
                       <TextInput
@@ -147,7 +149,7 @@ export default function ConnectionRequestsPage() {
                           <Check className="mr-1 h-4 w-4" /> Approve
                         </PrimaryButton>
                         <SecondaryButton
-                          className="border-[#e6c1bc] bg-[#f9e3df] text-[#8a2a2a] hover:bg-[#f4d3cd]"
+                          className="border-red-500/20 bg-red-500/15 text-red-400 hover:bg-red-500/25"
                           onClick={() => void reject(request.requestId)}
                           disabled={processingId === request.requestId}
                         >
@@ -163,5 +165,6 @@ export default function ConnectionRequestsPage() {
         )}
       </Panel>
     </div>
+    </DashboardLayout>
   );
 }

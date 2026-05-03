@@ -1,184 +1,472 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, BarChart3, Clock3, Image, Monitor, Play } from "lucide-react";
-import { advertisementsApi } from "@/lib/api/advertisements.api";
-import { displaysApi } from "@/lib/api/displays.api";
-import { displayLoopsApi } from "@/lib/api/display-loops.api";
-import { systemLogsApi } from "@/lib/api/system-logs.api";
-import { useDashboardAuth } from "@/hooks/useDashboardAuth";
-import { DataTable, PageTitle, Panel, StatusPill } from "@/components/dashboard/ui";
-import { formatDateTime } from "@/lib/utils";
+import {
+  Monitor,
+  FileImage,
+  Eye,
+  MousePointerClick,
+  Plus,
+  ArrowRight,
+  PlaySquare,
+  CalendarDays,
+} from "lucide-react";
+import DashboardLayout from "@/components/DashboardLayout";
+import { displaysApi, type DisplayRecord } from "@/lib/api/displays.api";
+import { advertisementsApi, type AdRecord } from "@/lib/api/advertisements.api";
+import { analyticsApi } from "@/lib/api/analytics.api";
+import { useAuthStore } from "@/features/auth/store/authStore";
 
-interface MetricCard {
-  label: string;
-  value: string;
-  icon: React.ElementType;
-  hint: string;
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+interface DashboardStats {
+  totalDisplays: number;
+  activeAds: number;
+  totalViews: number;
+  totalClicks: number;
 }
 
-export default function DashboardPage() {
-  const { authReady, user } = useDashboardAuth();
+interface DashboardData {
+  stats: DashboardStats;
+  recentDisplays: DisplayRecord[];
+  recentAds: AdRecord[];
+  loading: boolean;
+  statsLoading: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// Custom hook — all data fetching isolated here
+// ---------------------------------------------------------------------------
+
+function useDashboardData(): DashboardData {
+  const [stats, setStats] = useState<DashboardStats>({
+    totalDisplays: 0,
+    activeAds: 0,
+    totalViews: 0,
+    totalClicks: 0,
+  });
+  const [recentDisplays, setRecentDisplays] = useState<DisplayRecord[]>([]);
+  const [recentAds, setRecentAds] = useState<AdRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [displayCount, setDisplayCount] = useState(0);
-  const [adCount, setAdCount] = useState(0);
-  const [loopCount, setLoopCount] = useState(0);
-  const [recentLogs, setRecentLogs] = useState<any[]>([]);
+  const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {
-    if (!authReady) return;
+    let cancelled = false;
 
-    const load = async () => {
-      setLoading(true);
+    const fetchAll = async () => {
       try {
-        const [displays, ads, loops, logs] = await Promise.all([
-          displaysApi.list({ page: 1, limit: 1 }),
-          advertisementsApi.list({ page: 1, limit: 1 }),
-          displayLoopsApi.list({ page: 1, limit: 1 }),
-          systemLogsApi.list({ page: 1, limit: 5 }),
+        const [displaysRes, adsRes, analyticsRes] = await Promise.allSettled([
+          displaysApi.list({ limit: 5 }),
+          advertisementsApi.list({ limit: 5 }),
+          analyticsApi.overview(),
         ]);
 
-        setDisplayCount(displays.data.data.pagination.total);
-        setAdCount(ads.data.data.pagination.total);
-        setLoopCount(loops.data.data.pagination.total);
-        setRecentLogs(logs.data.data.data);
-      } catch {
-        // 401 redirects are handled by the Axios interceptor; avoid unhandled promise rejections.
-        setRecentLogs([]);
+        if (cancelled) return;
+
+        // Displays
+        if (displaysRes.status === "fulfilled") {
+          const payload = displaysRes.value.data.data;
+          setRecentDisplays(payload.data);
+          setStats((prev) => ({
+            ...prev,
+            totalDisplays: payload.pagination.total,
+          }));
+        }
+
+        // Ads
+        if (adsRes.status === "fulfilled") {
+          const payload = adsRes.value.data.data;
+          setRecentAds(payload.data);
+          setStats((prev) => ({
+            ...prev,
+            activeAds: payload.pagination.total,
+          }));
+        }
+
+        // Analytics overview
+        if (analyticsRes.status === "fulfilled") {
+          const overview = analyticsRes.value.data.data;
+          setStats((prev) => ({
+            ...prev,
+            totalViews: overview.totalViews,
+            totalClicks: overview.totalClicks,
+          }));
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setStatsLoading(false);
+          setLoading(false);
+        }
       }
     };
 
-    void load();
-  }, [authReady]);
+    fetchAll();
 
-  const metrics = useMemo<MetricCard[]>(
-    () => [
-      {
-        label: "Displays",
-        value: String(displayCount),
-        icon: Monitor,
-        hint: "Connected and managed screens",
-      },
-      {
-        label: "Advertisements",
-        value: String(adCount),
-        icon: Image,
-        hint: "Media assets available for loops",
-      },
-      {
-        label: "Display Loops",
-        value: String(loopCount),
-        icon: Play,
-        hint: "Scheduled playback loops",
-      },
-      {
-        label: "Recent Logs",
-        value: String(recentLogs.length),
-        icon: Clock3,
-        hint: "Latest system activity records",
-      },
-    ],
-    [adCount, displayCount, loopCount, recentLogs.length]
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return { stats, recentDisplays, recentAds, loading, statsLoading };
+}
+
+// ---------------------------------------------------------------------------
+// Sub-components
+// ---------------------------------------------------------------------------
+
+function SkeletonBlock({ className }: { className?: string }) {
+  return (
+    <div
+      className={`animate-pulse bg-white/8 rounded-xl ${className ?? ""}`}
+    />
   );
+}
 
-  if (!authReady) {
-    return <div className="p-6 text-sm text-[var(--color-text-secondary)]">Checking session...</div>;
+interface StatusBadgeProps {
+  status: string;
+}
+
+function StatusBadge({ status }: StatusBadgeProps) {
+  const upper = status.toUpperCase();
+
+  let cls = "px-2 py-0.5 rounded-md text-xs font-medium ";
+  if (upper === "ACTIVE") {
+    cls += "bg-green-500/15 text-green-400";
+  } else if (upper === "PENDING") {
+    cls += "bg-yellow-500/15 text-yellow-400";
+  } else {
+    cls += "bg-white/8 text-white/40";
   }
 
+  return <span className={cls}>{upper}</span>;
+}
+
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Stat card
+// ---------------------------------------------------------------------------
+
+interface MetricCardProps {
+  label: string;
+  value: number;
+  loading: boolean;
+  Icon: React.ElementType;
+}
+
+function MetricCard({ label, value, loading, Icon }: MetricCardProps) {
   return (
-    <div className="space-y-6">
-      <PageTitle
-        title={`Welcome${user?.firstName ? `, ${user.firstName}` : ""}`}
-        subtitle="Control displays, approve devices, and publish campaigns from one place."
-      />
-
-      <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {metrics.map(({ label, value, icon: Icon, hint }) => (
-          <Panel key={label}>
-            <div className="mb-4 flex items-center justify-between">
-              <div className="rounded-xl bg-[var(--color-bg-secondary)] p-2.5">
-                <Icon className="h-5 w-5 text-[var(--color-primary)]" />
-              </div>
-              {loading ? <span className="text-xs text-[var(--color-text-muted)]">syncing...</span> : null}
-            </div>
-            <div className="text-3xl font-semibold tracking-tight">{loading ? "..." : value}</div>
-            <div className="mt-1 text-sm text-[var(--color-text-secondary)]">{label}</div>
-            <div className="mt-2 text-xs text-[var(--color-text-muted)]">{hint}</div>
-          </Panel>
-        ))}
-      </section>
-
-      <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Link
-          href="/dashboard/displays"
-          className="group rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 transition hover:border-[var(--color-primary)]"
-        >
-          <div className="mb-3 text-sm font-medium text-[var(--color-text-secondary)]">Devices</div>
-          <div className="text-xl font-semibold">Manage Displays</div>
-          <div className="mt-2 text-sm text-[var(--color-text-muted)]">Create displays, update config, and check live status.</div>
-          <div className="mt-4 flex items-center gap-2 text-sm font-medium text-[var(--color-primary)]">
-            Open <ArrowRight className="h-4 w-4" />
-          </div>
-        </Link>
-
-        <Link
-          href="/dashboard/ads"
-          className="group rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 transition hover:border-[var(--color-primary)]"
-        >
-          <div className="mb-3 text-sm font-medium text-[var(--color-text-secondary)]">Media</div>
-          <div className="text-xl font-semibold">Upload Advertisements</div>
-          <div className="mt-2 text-sm text-[var(--color-text-muted)]">Use signed R2 uploads and publish instantly.</div>
-          <div className="mt-4 flex items-center gap-2 text-sm font-medium text-[var(--color-primary)]">
-            Open <ArrowRight className="h-4 w-4" />
-          </div>
-        </Link>
-
-        <Link
-          href="/dashboard/analytics"
-          className="group rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 transition hover:border-[var(--color-primary)]"
-        >
-          <div className="mb-3 text-sm font-medium text-[var(--color-text-secondary)]">Insights</div>
-          <div className="text-xl font-semibold">Review Analytics</div>
-          <div className="mt-2 text-sm text-[var(--color-text-muted)]">Track delivery, impressions, and click-through trends.</div>
-          <div className="mt-4 flex items-center gap-2 text-sm font-medium text-[var(--color-primary)]">
-            Open <ArrowRight className="h-4 w-4" />
-          </div>
-        </Link>
-      </section>
-
-      <Panel>
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Recent System Activity</h2>
-          <Link
-            href="/dashboard/logs"
-            className="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-primary)] hover:underline"
-          >
-            View all <BarChart3 className="h-4 w-4" />
-          </Link>
+    <div className="bg-[#111118] border border-white/8 rounded-xl p-5 flex flex-col gap-4">
+      <div className="flex items-center justify-between">
+        <div className="bg-[#7E3AF0]/15 rounded-lg p-2">
+          <Icon size={18} className="text-[#9F67FF]" />
         </div>
-
-        {recentLogs.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-[var(--color-border)] bg-white p-8 text-center text-sm text-[var(--color-text-muted)]">
-            No log records yet.
-          </div>
+      </div>
+      <div>
+        <p className="text-white/50 text-sm mb-1">{label}</p>
+        {loading ? (
+          <SkeletonBlock className="h-8 w-20" />
         ) : (
-          <DataTable headers={["Action", "Entity", "Description", "Time"]}>
-            {recentLogs.map((log) => (
-              <tr key={log.id} className="bg-white">
-                <td className="px-4 py-3">
-                  <StatusPill label={log.action} tone="info" />
-                </td>
-                <td className="px-4 py-3 capitalize text-[var(--color-text-secondary)]">{log.entityType}</td>
-                <td className="px-4 py-3 text-[var(--color-text)]">{log.description}</td>
-                <td className="px-4 py-3 text-[var(--color-text-muted)]">{formatDateTime(log.createdAt)}</td>
-              </tr>
-            ))}
-          </DataTable>
+          <p className="text-2xl font-bold text-white">
+            {value.toLocaleString()}
+          </p>
         )}
-      </Panel>
+      </div>
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Page
+// ---------------------------------------------------------------------------
+
+export default function DashboardPage() {
+  const router = useRouter();
+  const store = useAuthStore();
+  const [authReady, setAuthReady] = useState(false);
+
+  // Auth guard — must run before data fetching renders
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+    store.hydrate();
+    setAuthReady(true);
+  }, [router, store]);
+
+  if (!authReady) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-[#080410]">
+        <div className="w-10 h-10 rounded-full border-2 border-[#7E3AF0] border-t-transparent animate-spin" />
+      </div>
+    );
+  }
+
+  return <DashboardInner />;
+}
+
+// Separated so hooks only run after auth guard passes
+function DashboardInner() {
+  const store = useAuthStore();
+  const { stats, recentDisplays, recentAds, loading, statsLoading } =
+    useDashboardData();
+
+  const firstName = store.user?.firstName ?? "User";
+
+  return (
+    <DashboardLayout>
+      <div className="min-h-screen bg-[#080410]">
+        <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+
+          {/* ----------------------------------------------------------------
+              Welcome header
+          ---------------------------------------------------------------- */}
+          <div className="flex items-end justify-between">
+            <div>
+              <p className="text-white/50 text-sm mb-1">Dashboard Overview</p>
+              <h1 className="text-3xl font-bold text-white">
+                Welcome back, {firstName}
+              </h1>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Link
+                href="/dashboard/displays/new"
+                className="bg-[#7E3AF0] hover:bg-[#9F67FF] text-white rounded-lg px-4 py-2 text-sm font-medium flex items-center gap-2"
+              >
+                <Plus size={15} />
+                Add Display
+              </Link>
+              <Link
+                href="/dashboard/ads/new"
+                className="bg-[#7E3AF0] hover:bg-[#9F67FF] text-white rounded-lg px-4 py-2 text-sm font-medium flex items-center gap-2"
+              >
+                <FileImage size={15} />
+                Upload Ad
+              </Link>
+            </div>
+          </div>
+
+          {/* ----------------------------------------------------------------
+              Metric cards
+          ---------------------------------------------------------------- */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <MetricCard
+              label="Total Displays"
+              value={stats.totalDisplays}
+              loading={statsLoading}
+              Icon={Monitor}
+            />
+            <MetricCard
+              label="Active Ads"
+              value={stats.activeAds}
+              loading={statsLoading}
+              Icon={FileImage}
+            />
+            <MetricCard
+              label="Total Views"
+              value={stats.totalViews}
+              loading={statsLoading}
+              Icon={Eye}
+            />
+            <MetricCard
+              label="Total Clicks"
+              value={stats.totalClicks}
+              loading={statsLoading}
+              Icon={MousePointerClick}
+            />
+          </div>
+
+          {/* ----------------------------------------------------------------
+              Recent displays + Recent ads — two-column grid
+          ---------------------------------------------------------------- */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            {/* Recent Displays */}
+            <div className="bg-[#111118] border border-white/8 rounded-xl p-5">
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="text-white font-semibold text-lg">
+                  Recent Displays
+                </h2>
+                <Link
+                  href="/dashboard/displays"
+                  className="text-white/50 hover:text-white text-sm flex items-center gap-1"
+                >
+                  View all
+                  <ArrowRight size={13} />
+                </Link>
+              </div>
+
+              {loading ? (
+                <div className="space-y-3">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <SkeletonBlock key={i} className="h-12 w-full" />
+                  ))}
+                </div>
+              ) : recentDisplays.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-10 gap-3">
+                  <div className="bg-[#7E3AF0]/10 rounded-full p-3">
+                    <Monitor size={22} className="text-white/30" />
+                  </div>
+                  <p className="text-white/50 text-sm">No displays yet</p>
+                  <Link
+                    href="/dashboard/displays/new"
+                    className="bg-[#7E3AF0] hover:bg-[#9F67FF] text-white rounded-lg px-4 py-2 text-sm font-medium"
+                  >
+                    Add your first display
+                  </Link>
+                </div>
+              ) : (
+                <ul className="divide-y divide-white/5">
+                  {recentDisplays.map((display) => (
+                    <li
+                      key={display.id}
+                      className="flex items-center justify-between py-3 gap-3"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="bg-[#7E3AF0]/15 rounded-lg p-1.5 shrink-0">
+                          <Monitor size={14} className="text-[#9F67FF]" />
+                        </div>
+                        <span className="text-white text-sm font-medium truncate">
+                          {display.displayName}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <StatusBadge status={display.status} />
+                        <span className="text-white/40 text-xs flex items-center gap-1">
+                          <CalendarDays size={11} />
+                          {display.createdAt ? formatDate(display.createdAt) : "—"}
+                        </span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            {/* Recent Ads */}
+            <div className="bg-[#111118] border border-white/8 rounded-xl p-5">
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="text-white font-semibold text-lg">
+                  Recent Ads
+                </h2>
+                <Link
+                  href="/dashboard/ads"
+                  className="text-white/50 hover:text-white text-sm flex items-center gap-1"
+                >
+                  View all
+                  <ArrowRight size={13} />
+                </Link>
+              </div>
+
+              {loading ? (
+                <div className="space-y-3">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <SkeletonBlock key={i} className="h-12 w-full" />
+                  ))}
+                </div>
+              ) : recentAds.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-10 gap-3">
+                  <div className="bg-[#7E3AF0]/10 rounded-full p-3">
+                    <FileImage size={22} className="text-white/30" />
+                  </div>
+                  <p className="text-white/50 text-sm">No ads yet</p>
+                  <Link
+                    href="/dashboard/ads/new"
+                    className="bg-[#7E3AF0] hover:bg-[#9F67FF] text-white rounded-lg px-4 py-2 text-sm font-medium"
+                  >
+                    Upload your first ad
+                  </Link>
+                </div>
+              ) : (
+                <ul className="divide-y divide-white/5">
+                  {recentAds.map((ad) => (
+                    <li
+                      key={ad.id}
+                      className="flex items-center justify-between py-3 gap-3"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="bg-[#7E3AF0]/15 rounded-lg p-1.5 shrink-0">
+                          <FileImage size={14} className="text-[#9F67FF]" />
+                        </div>
+                        <span className="text-white text-sm font-medium truncate">
+                          {ad.adName}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <span className="text-white/40 text-xs font-mono bg-white/5 px-1.5 py-0.5 rounded">
+                          {ad.mediaType}
+                        </span>
+                        <StatusBadge status={ad.status} />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+
+          {/* ----------------------------------------------------------------
+              Quick actions
+          ---------------------------------------------------------------- */}
+          <div className="bg-[#111118] border border-white/8 rounded-xl p-5">
+            <h2 className="text-white font-semibold text-lg mb-4">
+              Quick Actions
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {[
+                {
+                  label: "Add Display",
+                  href: "/dashboard/displays/new",
+                  Icon: Monitor,
+                },
+                {
+                  label: "Upload Ad",
+                  href: "/dashboard/ads/new",
+                  Icon: FileImage,
+                },
+                {
+                  label: "Create Loop",
+                  href: "/dashboard/loops",
+                  Icon: PlaySquare,
+                },
+              ].map(({ label, href, Icon }) => (
+                <Link
+                  key={label}
+                  href={href}
+                  className="flex items-center justify-between bg-white/4 hover:bg-white/7 border border-white/8 rounded-xl px-4 py-3 group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="bg-[#7E3AF0]/15 rounded-lg p-2">
+                      <Icon size={16} className="text-[#9F67FF]" />
+                    </div>
+                    <span className="text-white text-sm font-medium">
+                      {label}
+                    </span>
+                  </div>
+                  <ArrowRight
+                    size={14}
+                    className="text-white/30 group-hover:text-white/60"
+                  />
+                </Link>
+              ))}
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </DashboardLayout>
   );
 }

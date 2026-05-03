@@ -17,12 +17,12 @@ export interface AdRecord {
   mediaUrl: string;
   mediaType: "image" | "video";
   duration: number;
-  description?: string;
+  description?: string | undefined;
   status: string;
   views: number;
   clicks: number;
-  fileSize?: number;
-  mediaObjectKey?: string;
+  fileSize?: number | undefined;
+  mediaObjectKey?: string | undefined;
   createdAt: string;
   updatedAt: string;
 }
