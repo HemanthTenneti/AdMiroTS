@@ -6,18 +6,7 @@ const NAV_COLUMNS = [
     heading: "Product",
     links: [
       { label: "Features", href: "/#features" },
-      { label: "Security", href: "/#security" },
-      { label: "Pricing", href: "/#pricing" },
-      { label: "Roadmap", href: "/#roadmap" },
-    ],
-  },
-  {
-    heading: "Company",
-    links: [
-      { label: "About", href: "/about" },
-      { label: "Blog", href: "/blog" },
-      { label: "Careers", href: "/careers" },
-      { label: "Contact", href: "/contact" },
+      { label: "How it works", href: "/#how-it-works" },
     ],
   },
   {
@@ -25,8 +14,6 @@ const NAV_COLUMNS = [
     links: [
       { label: "Privacy", href: "/privacy" },
       { label: "Terms", href: "/terms" },
-      { label: "Cookies", href: "/cookies" },
-      { label: "Status", href: "/status" },
     ],
   },
 ] as const;
@@ -43,7 +30,7 @@ export function Footer() {
       <div className="max-w-6xl mx-auto px-6 md:px-8">
 
         {/* Main grid */}
-        <div className="grid grid-cols-2 md:grid-cols-[2fr_1fr_1fr_1fr] gap-12 py-16 border-b border-white/[0.06]">
+        <div className="grid grid-cols-2 md:grid-cols-[2fr_1fr_1fr] gap-12 py-16 border-b border-white/[0.06]">
 
           {/* Brand column */}
           <div className="col-span-2 md:col-span-1 flex flex-col gap-4">

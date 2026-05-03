@@ -1,4 +1,4 @@
-import { Zap, BarChart2, Layers, Lock, Code, Eye } from "lucide-react";
+import { Zap, BarChart2, Layers, Lock, Code, Eye, Rocket } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 type FeatureCard = {
@@ -69,6 +69,16 @@ const FEATURES: FeatureCard[] = [
     subtitle: "99.9% uptime",
     description: "Instant offline alerts and continuous health checks. Know the moment anything goes wrong.",
     icon: Eye,
+    colSpan: "col-span-1",
+    rowSpan: "row-span-1",
+    featured: false,
+  },
+  {
+    id: "deploy",
+    title: "Deploy in Minutes",
+    subtitle: "Zero setup required",
+    description: "No hardware to configure. Connect your displays and start broadcasting. Live in under 10 minutes.",
+    icon: Rocket,
     colSpan: "col-span-1",
     rowSpan: "row-span-1",
     featured: false,
@@ -146,7 +156,7 @@ export function Features() {
           <p className="text-xs font-semibold text-[#7E3AF0] uppercase tracking-widest mb-4">
             Platform capabilities
           </p>
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#0A0A0A] leading-[1.1] max-w-2xl">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#0A0A0A] leading-[1.1] max-w-3xl">
             Everything you need to
             <span className="block text-[#6B7280] font-medium mt-1">
               run a world-class display network

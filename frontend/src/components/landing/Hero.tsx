@@ -145,9 +145,10 @@ export function Hero() {
   }, []);
 
   return (
-    <GradientBarsBackground className="min-h-screen" numBars={24} animationDuration={2.5} overlayColor="rgba(8,4,16,0.6)">
+    <div className="rounded-b-[2rem] overflow-hidden">
+    <GradientBarsBackground className="h-screen" numBars={24} animationDuration={2.5} overlayColor="rgba(8,4,16,0.6)">
       <div
-        className="max-w-7xl mx-auto px-4 md:px-8 py-28 md:py-36"
+        className="max-w-7xl mx-auto px-4 md:px-8 flex flex-col justify-center h-full pt-20"
         aria-labelledby="hero-heading"
       >
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-12 lg:gap-16 items-center">
@@ -233,5 +234,6 @@ export function Hero() {
         </div>
       </div>
     </GradientBarsBackground>
+    </div>
   );
 }

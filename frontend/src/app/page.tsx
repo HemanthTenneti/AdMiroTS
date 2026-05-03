@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import gsap from "gsap";
-import { ChevronUp } from "lucide-react";
 import { Navbar } from "@/components/landing/Navbar";
 import { Hero } from "@/components/landing/Hero";
 import { Features } from "@/components/landing/Features";
@@ -55,13 +54,6 @@ export default function LandingPage() {
       <CTA />
       <Footer />
 
-      <button
-        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-        className="fixed bottom-8 right-8 w-11 h-11 bg-[#7E3AF0] text-white rounded-full flex items-center justify-center shadow-lg hover:bg-[#6D28D9] hover:scale-110 transition-[background-color,transform] duration-200 z-50"
-        aria-label="Scroll to top"
-      >
-        <ChevronUp size={18} />
-      </button>
     </main>
   );
 }

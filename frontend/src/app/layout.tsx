@@ -14,6 +14,9 @@ const bricolage = Bricolage_Grotesque({
 export const metadata: Metadata = {
   title: "AdMiro — Digital Ad Management",
   description: "Manage digital advertisements across multiple displays in real-time",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -51,9 +51,8 @@ export function Navbar() {
         >
           <div className="grid grid-cols-3 items-center">
             {/* Logo — left */}
-            <Link href="/" className="flex items-center gap-2" aria-label="AdMiro home">
+            <Link href="/" className="flex items-center" aria-label="AdMiro home">
               <img src="/logo.svg" alt="AdMiro" className="h-8 w-auto brightness-0 invert" />
-              <span className="text-white font-bold text-xl tracking-tight">AdMiro</span>
             </Link>
 
             {/* Center pill links — truly centered */}
@@ -75,13 +74,7 @@ export function Navbar() {
             </nav>
 
             {/* Right actions — desktop */}
-            <div className="hidden md:flex items-center justify-end gap-3">
-              <Link
-                href="/login"
-                className="text-sm font-semibold text-white/50 hover:text-white transition-colors duration-150 px-3 py-2"
-              >
-                Log in
-              </Link>
+            <div className="hidden md:flex items-center justify-end">
               <Link
                 href="/login"
                 className="bg-[#7E3AF0] text-white rounded-full px-5 py-2 text-sm font-bold hover:bg-[#6D28D9] hover:scale-[1.03] transition-[background-color,transform] duration-200"
@@ -123,13 +116,6 @@ export function Navbar() {
                 ))}
               </nav>
               <div className="flex flex-col gap-2">
-                <Link
-                  href="/login"
-                  onClick={() => setMobileOpen(false)}
-                  className="w-full text-center px-4 py-2.5 text-sm font-semibold text-white/50 border border-white/15 rounded-xl hover:border-white/30 hover:text-white transition-[border-color,color] duration-150"
-                >
-                  Log in
-                </Link>
                 <Link
                   href="/login"
                   onClick={() => setMobileOpen(false)}

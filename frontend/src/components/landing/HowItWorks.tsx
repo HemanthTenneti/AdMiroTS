@@ -56,7 +56,7 @@ export function HowItWorks() {
         <div className="relative">
           {/* Connector line — desktop only */}
           <div
-            className="hidden md:block absolute top-[3.25rem] left-[calc(12.5%+1.25rem)] right-[calc(12.5%+1.25rem)] h-px border-t border-dashed border-[#E5E7EB]"
+            className="hidden md:block absolute top-[4.5rem] left-[calc(12.5%+1.25rem)] right-[calc(12.5%+1.25rem)] h-px border-t border-dashed border-[#E5E7EB]"
             aria-hidden="true"
           />
 

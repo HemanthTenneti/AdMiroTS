@@ -6,12 +6,13 @@ const trustItems = ["Free forever", "No credit card", "5-min setup"] as const;
 
 export function CTA() {
   return (
+    <div className="px-4 md:px-8 py-12">
     <GradientBarsBackground
       flipped
       numBars={24}
       animationDuration={3}
       overlayColor="rgba(8,4,16,0.55)"
-      className="py-28 px-6"
+      className="rounded-[2rem] py-28 px-6"
     >
       <div className="max-w-3xl mx-auto flex flex-col items-center text-center gap-6">
         <h2 className="text-4xl md:text-5xl font-bold text-white tracking-tight leading-tight">
@@ -48,5 +49,6 @@ export function CTA() {
         </ul>
       </div>
     </GradientBarsBackground>
+    </div>
   );
 }

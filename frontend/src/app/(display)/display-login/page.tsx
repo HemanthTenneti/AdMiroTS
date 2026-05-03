@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import gsap from "gsap";
-import { Loader2, Monitor } from "lucide-react";
+import { Loader2, Monitor, ArrowLeft } from "lucide-react";
 import { displaysApi } from "@/lib/api/displays.api";
 import { GradientBarsBackground } from "@/components/ui/gradient-bars-background";
 
@@ -203,11 +203,17 @@ export default function DisplayLoginPage() {
     "w-full px-4 py-3 rounded-xl bg-white/[0.06] border border-white/10 text-white placeholder:text-white/25 focus:outline-none focus:border-[#7E3AF0] focus:ring-1 focus:ring-[#7E3AF0]/50 text-sm";
 
   return (
-    <main ref={mainRef} className="h-screen overflow-hidden flex bg-[#0a0a0a]">
-      <div className="w-full md:w-1/2 h-full flex flex-col items-center justify-center overflow-y-auto px-8 py-12 bg-[#0a0a0a]">
+    <GradientBarsBackground className="min-h-screen" numBars={20} animationDuration={2.5} overlayColor="rgba(8,4,16,0.65)">
+    <main ref={mainRef} className="min-h-screen flex">
+      <div className="w-full md:w-1/2 flex flex-col items-center justify-center overflow-y-auto px-8 py-12 bg-[#0a0a0a]">
         <div className="w-full max-w-sm">
-          <Link href="/login" className="flex items-center gap-2.5 mb-10">
+          <Link href="/login" className="flex items-center gap-2.5 mb-6">
             <img src="/logo.svg" alt="AdMiro" className="h-8 w-auto brightness-0 invert" />
+          </Link>
+
+          <Link href="/login" className="inline-flex items-center gap-1.5 text-white/40 hover:text-white text-xs mb-6 transition-colors duration-150">
+            <ArrowLeft size={14} />
+            Back to login
           </Link>
 
           <h1 className="text-3xl font-bold text-white tracking-tight">Display Login</h1>
@@ -344,9 +350,8 @@ export default function DisplayLoginPage() {
         </div>
       </div>
 
-      <div className="hidden md:block w-1/2 h-full relative">
-        <GradientBarsBackground className="w-full h-full" />
-      </div>
+      <div className="hidden md:block md:w-1/2" />
     </main>
+    </GradientBarsBackground>
   );
 }
