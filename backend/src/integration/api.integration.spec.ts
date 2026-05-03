@@ -22,6 +22,8 @@ describe("API Integration", function () {
 
   let rejectedDisplayToken = "";
   let rejectedDisplayRequestId = "";
+  let passwordlessDisplayToken = "";
+  let passwordlessDisplayPublicId = "";
 
   let manualDisplayDbId = "";
   let manualDisplayPublicId = "";
@@ -35,6 +37,19 @@ describe("API Integration", function () {
   let systemLogId = "";
 
   const authHeader = () => ({ Authorization: `Bearer ${authToken}` });
+
+  const expectConnectionRequestShape = (request: any) => {
+    expect(request.id).to.be.a("string").and.not.empty;
+    expect(request.requestId).to.be.a("string").and.not.empty;
+    expect(request.displayId).to.be.a("string").and.not.empty;
+    expect(["pending", "approved", "rejected"]).to.include(request.status);
+    if (request.respondedAt !== null && request.respondedAt !== undefined) {
+      expect(request.respondedAt).to.be.a("string");
+    }
+    if (request.rejectionReason !== null && request.rejectionReason !== undefined) {
+      expect(request.rejectionReason).to.be.a("string");
+    }
+  };
 
   before(async () => {
     process.env.NODE_ENV = "test";
@@ -217,6 +232,22 @@ describe("API Integration", function () {
       approvedDisplayToken = response.body.data.connectionToken;
     });
 
+    it("POST /api/displays/register-self supports passwordless display registration", async () => {
+      const response = await api.post("/api/displays/register-self").send({
+        displayName: "Token Only Screen",
+        location: "HQ Hallway",
+        displayId: "DISP-NOPASS-01",
+        resolution: { width: 1920, height: 1080 },
+        browserInfo: { browserVersion: "integration-browser" },
+      });
+
+      expect(response.status).to.equal(201);
+      passwordlessDisplayPublicId = response.body.data.displayId;
+      passwordlessDisplayToken = response.body.data.connectionToken;
+      expect(passwordlessDisplayPublicId).to.equal("DISP-NOPASS-01");
+      expect(passwordlessDisplayToken).to.be.a("string").and.not.empty;
+    });
+
     it("GET /api/displays/by-token returns pending request details", async () => {
       const response = await api.get(`/api/displays/by-token/${approvedDisplayToken}`);
       expect(response.status).to.equal(200);
@@ -224,6 +255,14 @@ describe("API Integration", function () {
       approvedDisplayDbId = response.body.data.id;
       approvedDisplayRequestId = response.body.data.connectionRequestId;
       expect(approvedDisplayDbId).to.be.a("string").and.not.empty;
+    });
+
+    it("GET /api/displays/by-token returns pending details for passwordless display", async () => {
+      const response = await api.get(`/api/displays/by-token/${passwordlessDisplayToken}`);
+      expect(response.status).to.equal(200);
+      expect(response.body.data.connectionRequestStatus).to.equal("pending");
+      expect(response.body.data.connectionRequestId).to.be.a("string");
+      expect(response.body.data.rejectionReason).to.equal(null);
     });
 
     it("POST /api/displays/login-display authenticates device", async () => {
@@ -234,6 +273,17 @@ describe("API Integration", function () {
 
       expect(response.status).to.equal(200);
       expect(response.body.data.connectionToken).to.equal(approvedDisplayToken);
+    });
+
+    it("POST /api/displays/login-display rejects password login for passwordless displays", async () => {
+      const response = await api.post("/api/displays/login-display").send({
+        displayId: passwordlessDisplayPublicId,
+        password: "some-password",
+      });
+
+      expect(response.status).to.equal(400);
+      expect(response.body.error.code).to.equal("VALIDATION_ERROR");
+      expect(response.body.error.message).to.include("connection token");
     });
 
     it("POST /api/displays/login alias authenticates device", async () => {
@@ -269,6 +319,10 @@ describe("API Integration", function () {
 
       expect(response.status).to.equal(200);
       expect(response.body.success).to.equal(true);
+      expect(response.body.data.data).to.be.an("array").and.not.empty;
+      for (const requestRecord of response.body.data.data) {
+        expectConnectionRequestShape(requestRecord);
+      }
     });
 
     it("POST /api/displays/connection-requests/:id/approve approves request", async () => {

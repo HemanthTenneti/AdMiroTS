@@ -473,14 +473,36 @@ export class DisplayService {
       filters?.sortOrder ?? "desc"
     );
 
-    const displayIds = data.map((request: any) => request.displayId).filter(Boolean) as string[];
+    const normalizedRequests = data.map((request: any) =>
+      typeof request?.toObject === "function" ? request.toObject() : request
+    );
+
+    const displayIds = normalizedRequests
+      .map((request: any) => request.displayId)
+      .filter((displayId: unknown): displayId is string => typeof displayId === "string" && displayId.length > 0);
     const displays = await this.displayRepository.findByDisplayIds(displayIds);
     const displayMap = new Map(displays.map((display) => [display.id, display]));
 
-    const hydrated = data.map((request: any) => {
-      const display = displayMap.get(request.displayId);
+    const hydrated = normalizedRequests.map((request: any) => {
+      const requestId =
+        (typeof request.requestId === "string" && request.requestId) ||
+        (typeof request.id === "string" && request.id) ||
+        (typeof request.displayId === "string" && request.displayId) ||
+        "";
+      const displayId = typeof request.displayId === "string" ? request.displayId : "";
+      const status = Object.values(ConnectionRequestStatus).includes(request.status as ConnectionRequestStatus)
+        ? request.status
+        : ConnectionRequestStatus.PENDING;
+      const display = displayMap.get(displayId);
+
       return {
         ...request,
+        id: typeof request.id === "string" ? request.id : requestId,
+        requestId,
+        displayId,
+        status,
+        respondedAt: request.respondedAt ?? null,
+        rejectionReason: request.rejectionReason ?? null,
         display: display
           ? {
               id: display.id,

@@ -28,9 +28,15 @@ interface LoopData {
   rotationType: "sequential" | "random";
 }
 
-interface LoginData {
+type LoginMethod = "password" | "token";
+
+interface PasswordLoginData {
   displayId: string;
   password: string;
+}
+
+interface TokenLoginData {
+  connectionToken: string;
 }
 
 export default function DisplayPage() {
@@ -51,7 +57,12 @@ export default function DisplayPage() {
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [loopData, setLoopData] = useState<LoopData | null>(null);
   const [loginMode, setLoginMode] = useState(false);
-  const [loginData, setLoginData] = useState<LoginData>({ displayId: "", password: "" });
+  const [loginMethod, setLoginMethod] = useState<LoginMethod>("password");
+  const [passwordLoginData, setPasswordLoginData] = useState<PasswordLoginData>({
+    displayId: "",
+    password: "",
+  });
+  const [tokenLoginData, setTokenLoginData] = useState<TokenLoginData>({ connectionToken: "" });
   const [loginError, setLoginError] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
@@ -248,25 +259,59 @@ export default function DisplayPage() {
     setLoginError("");
 
     try {
-      const response = await displaysApi.loginDisplay({
-        displayId: loginData.displayId,
-        password: loginData.password,
-      });
+      let resolvedDisplayId = "";
+      let resolvedConnectionToken = "";
 
-      localStorage.setItem("displayId", response.data.data.displayId);
-      localStorage.setItem("connectionToken", response.data.data.connectionToken);
+      if (loginMethod === "password") {
+        const response = await displaysApi.loginDisplay({
+          displayId: passwordLoginData.displayId.trim(),
+          password: passwordLoginData.password.trim(),
+        });
+        resolvedDisplayId = response.data.data.displayId;
+        resolvedConnectionToken = response.data.data.connectionToken;
+      } else {
+        resolvedConnectionToken = tokenLoginData.connectionToken.trim();
+        const response = await displaysApi.getByConnectionToken(resolvedConnectionToken);
+        const displayData = response.data.data as {
+          displayId: string;
+          connectionRequestStatus?: "pending" | "approved" | "rejected";
+          rejectionReason?: string | null;
+          assignedAdmin?: string | null;
+        };
 
-      setDisplayId(response.data.data.displayId);
+        if (displayData.connectionRequestStatus === "rejected") {
+          throw new Error(
+            `This display registration was rejected${displayData.rejectionReason ? `: ${displayData.rejectionReason}` : "."}`
+          );
+        }
+
+        if (
+          displayData.connectionRequestStatus === "pending" ||
+          (!displayData.connectionRequestStatus && !displayData.assignedAdmin)
+        ) {
+          throw new Error("This display is still pending admin approval.");
+        }
+
+        resolvedDisplayId = displayData.displayId;
+      }
+
+      localStorage.setItem("displayId", resolvedDisplayId);
+      localStorage.setItem("connectionToken", resolvedConnectionToken);
+      localStorage.setItem("displayMode", "true");
+
+      setDisplayId(resolvedDisplayId);
       setLoginMode(false);
       setLoading(false);
 
       fetchAdsForDisplay();
-      reportDisplayStatus(response.data.data.connectionToken, "online");
+      reportDisplayStatus(resolvedConnectionToken, "online");
     } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: { message?: string } } };
-      setLoginError(
-        axiosErr.response?.data?.message || "Failed to authenticate display."
-      );
+      const axiosErr = err as { response?: { data?: { message?: string } }; message?: string };
+      const message = axiosErr.response?.data?.message || axiosErr.message || "Failed to authenticate display.";
+      if (message.toLowerCase().includes("connection token")) {
+        setLoginMethod("token");
+      }
+      setLoginError(message);
     } finally {
       setLoginLoading(false);
     }
@@ -291,7 +336,9 @@ export default function DisplayPage() {
     setDisplayId(null);
     setAds([]);
     setCurrentAd(null);
-    setLoginData({ displayId: "", password: "" });
+    setPasswordLoginData({ displayId: "", password: "" });
+    setTokenLoginData({ connectionToken: "" });
+    setLoginMethod("password");
     setLoginMode(true);
     setShowMenu(false);
   };
@@ -378,7 +425,38 @@ export default function DisplayPage() {
       <div className="w-screen h-screen flex items-center justify-center bg-gradient-to-br from-[#1a1a1a] to-[#2a2a2a]">
         <div className="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl">
           <h1 className="text-3xl font-bold text-black mb-2">Display Login</h1>
-          <p className="text-gray-600 mb-6">Enter your display credentials to activate</p>
+          <p className="text-gray-600 mb-6">Activate this display using password or connection token</p>
+
+          <div className="grid grid-cols-2 rounded-lg border border-gray-200 bg-gray-100 p-1 mb-6">
+            <button
+              type="button"
+              onClick={() => {
+                setLoginMethod("password");
+                setLoginError("");
+              }}
+              className={`px-3 py-2 rounded-md text-xs font-semibold transition-colors ${
+                loginMethod === "password"
+                  ? "bg-[#8b6f47] text-white"
+                  : "text-gray-600 hover:text-black"
+              }`}
+            >
+              Display ID + Password
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setLoginMethod("token");
+                setLoginError("");
+              }}
+              className={`px-3 py-2 rounded-md text-xs font-semibold transition-colors ${
+                loginMethod === "token"
+                  ? "bg-[#8b6f47] text-white"
+                  : "text-gray-600 hover:text-black"
+              }`}
+            >
+              Connection Token
+            </button>
+          </div>
 
           {loginError && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
@@ -387,28 +465,48 @@ export default function DisplayPage() {
           )}
 
           <form onSubmit={handleDisplayLogin} className="space-y-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Display ID</label>
-              <input
-                type="text"
-                value={loginData.displayId}
-                onChange={(e) => setLoginData({ ...loginData, displayId: e.target.value })}
-                placeholder="e.g., DISP-1234567890-ABC123"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8b6f47] focus:border-transparent"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Password</label>
-              <input
-                type="password"
-                value={loginData.password}
-                onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-                placeholder="Enter your display password"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8b6f47] focus:border-transparent"
-                required
-              />
-            </div>
+            {loginMethod === "password" ? (
+              <>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Display ID</label>
+                  <input
+                    type="text"
+                    value={passwordLoginData.displayId}
+                    onChange={(e) =>
+                      setPasswordLoginData({ ...passwordLoginData, displayId: e.target.value })
+                    }
+                    placeholder="e.g., DISP-1234567890-ABC123"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8b6f47] focus:border-transparent"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+                  <input
+                    type="password"
+                    value={passwordLoginData.password}
+                    onChange={(e) =>
+                      setPasswordLoginData({ ...passwordLoginData, password: e.target.value })
+                    }
+                    placeholder="Enter your display password"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8b6f47] focus:border-transparent"
+                    required
+                  />
+                </div>
+              </>
+            ) : (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Connection Token</label>
+                <input
+                  type="text"
+                  value={tokenLoginData.connectionToken}
+                  onChange={(e) => setTokenLoginData({ connectionToken: e.target.value })}
+                  placeholder="ct-disp_..."
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8b6f47] focus:border-transparent font-mono text-sm"
+                  required
+                />
+              </div>
+            )}
             <button
               type="submit"
               disabled={loginLoading}
@@ -420,17 +518,29 @@ export default function DisplayPage() {
                   Authenticating...
                 </>
               ) : (
-                "Activate Display"
+                loginMethod === "password" ? "Activate Display" : "Activate with Token"
               )}
             </button>
           </form>
 
           <div className="mt-6 p-4 bg-blue-50 rounded-lg text-sm text-blue-800">
-            <p className="font-semibold mb-2">How to find credentials:</p>
+            <p className="font-semibold mb-2">
+              {loginMethod === "password" ? "How to find credentials:" : "How token login works:"}
+            </p>
             <ol className="list-decimal list-inside space-y-1">
-              <li>Use the Display ID from your display setup</li>
-              <li>Enter the password you set for this display</li>
-              <li>If you forgot your password, reset it from the admin dashboard</li>
+              {loginMethod === "password" ? (
+                <>
+                  <li>Use the Display ID from your display setup</li>
+                  <li>Enter the password you set for this display</li>
+                  <li>If password login fails, switch to connection token mode</li>
+                </>
+              ) : (
+                <>
+                  <li>Use the connection token generated during display registration</li>
+                  <li>Pending displays must be approved in the admin dashboard first</li>
+                  <li>Once approved, this display can activate immediately with the token</li>
+                </>
+              )}
             </ol>
           </div>
         </div>

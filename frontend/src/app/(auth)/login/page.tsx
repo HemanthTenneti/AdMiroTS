@@ -13,6 +13,13 @@ type GoogleCredentialResponse = {
   credential?: string;
 };
 
+type PromptMomentNotification = {
+  isNotDisplayed?: () => boolean;
+  getNotDisplayedReason?: () => string;
+  isSkippedMoment?: () => boolean;
+  getSkippedReason?: () => string;
+};
+
 declare global {
   interface Window {
     google?: {
@@ -24,7 +31,7 @@ declare global {
             ux_mode?: "popup" | "redirect";
             context?: "signin" | "signup" | "use";
           }) => void;
-          prompt: () => void;
+          prompt: (listener?: (notification: PromptMomentNotification) => void) => void;
         };
       };
     };
@@ -56,6 +63,7 @@ export default function LoginPage() {
   const store = useAuthStore();
   const mainRef = useRef<HTMLElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const googlePromptTimeoutRef = useRef<number | null>(null);
 
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
@@ -112,7 +120,19 @@ export default function LoginPage() {
     script.async = true;
     script.defer = true;
     script.onload = () => setGoogleReady(true);
+    script.onerror = () => {
+      setGoogleReady(false);
+      setError("Failed to load Google Sign-In script. Disable blockers and refresh the page.");
+    };
     document.head.appendChild(script);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (googlePromptTimeoutRef.current) {
+        window.clearTimeout(googlePromptTimeoutRef.current);
+      }
+    };
   }, []);
 
   // Card fade animation on mode toggle
@@ -163,6 +183,12 @@ export default function LoginPage() {
   };
 
   const handleGoogleAuth = async () => {
+    const currentOrigin = typeof window !== "undefined" ? window.location.origin : "this origin";
+    const oauthHint =
+      `Google OAuth setup issue for ${currentOrigin}. ` +
+      "In Google Cloud Console > APIs & Services > Credentials > OAuth 2.0 Client IDs (Web app), " +
+      `add "${currentOrigin}" to Authorized JavaScript origins and ensure NEXT_PUBLIC_GOOGLE_CLIENT_ID matches that client.`;
+
     if (!googleClientId) {
       setError("Google sign-in is not configured. Missing NEXT_PUBLIC_GOOGLE_CLIENT_ID.");
       return;
@@ -177,10 +203,21 @@ export default function LoginPage() {
     setError("");
 
     try {
+      let credentialResolved = false;
+
+      if (googlePromptTimeoutRef.current) {
+        window.clearTimeout(googlePromptTimeoutRef.current);
+      }
+
       window.google.accounts.id.initialize({
         client_id: googleClientId,
         context: isLogin ? "signin" : "signup",
         callback: async (response: GoogleCredentialResponse) => {
+          credentialResolved = true;
+          if (googlePromptTimeoutRef.current) {
+            window.clearTimeout(googlePromptTimeoutRef.current);
+          }
+
           try {
             if (!response.credential) {
               setError("Google did not return a valid identity token.");
@@ -201,7 +238,42 @@ export default function LoginPage() {
           }
         },
       });
-      window.google.accounts.id.prompt();
+
+      window.google.accounts.id.prompt((notification: PromptMomentNotification) => {
+        const notDisplayed = notification.isNotDisplayed?.() === true;
+        const skipped = notification.isSkippedMoment?.() === true;
+        const notDisplayedReason = notification.getNotDisplayedReason?.();
+        const skippedReason = notification.getSkippedReason?.();
+
+        if (notDisplayed && (notDisplayedReason === "unregistered_origin" || notDisplayedReason === "invalid_client")) {
+          setError(oauthHint);
+          setGoogleLoading(false);
+          return;
+        }
+
+        if (notDisplayed && notDisplayedReason === "secure_http_required") {
+          setError(
+            "Google Sign-In requires HTTPS on non-localhost origins. Use https:// for this domain."
+          );
+          setGoogleLoading(false);
+          return;
+        }
+
+        if (skipped && skippedReason === "issuing_failed") {
+          setError("Google could not issue a credential for this session. Try another Google account.");
+          setGoogleLoading(false);
+        }
+      });
+
+      googlePromptTimeoutRef.current = window.setTimeout(() => {
+        if (credentialResolved) return;
+        setGoogleLoading(false);
+        setError(
+          "Google sign-in did not return a credential. " +
+            "This is usually an OAuth client/origin mismatch. " +
+            oauthHint
+        );
+      }, 8000);
     } catch {
       setError("Unable to open Google sign-in prompt.");
       setGoogleLoading(false);

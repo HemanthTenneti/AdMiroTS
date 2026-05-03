@@ -8,7 +8,7 @@ const EnvSchema = z.object({
   JWT_SECRET: z.string().min(1, "JWT_SECRET environment variable is required"),
   JWT_EXPIRES_IN: z.string().default("7d"),
   GOOGLE_CLIENT_ID: z.string().min(1, "GOOGLE_CLIENT_ID environment variable is required"),
-  CORS_ORIGINS: z.string().default("http://localhost:3000"),
+  CORS_ORIGINS: z.string().default("http://localhost:3000,http://127.0.0.1:3000"),
   BCRYPT_SALT_ROUNDS: z.coerce.number().int().min(4).max(15).default(12),
 
   R2_ACCOUNT_ID: z.string().min(1).optional(),

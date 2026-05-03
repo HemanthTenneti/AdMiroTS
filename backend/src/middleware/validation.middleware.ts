@@ -14,8 +14,8 @@ export function validateRequest(schema: ZodSchema) {
       next();
     } catch (error: any) {
       const details: Record<string, string> = {};
-      if (error.errors) {
-        error.errors.forEach((err: any) => {
+      if (error.issues) {
+        error.issues.forEach((err: any) => {
           const path = err.path.join(".");
           details[path] = err.message;
         });

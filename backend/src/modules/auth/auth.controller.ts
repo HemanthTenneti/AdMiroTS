@@ -6,9 +6,11 @@ import { AuthenticatedRequest } from "../../types/auth.types";
 export class AuthController {
   private authService: AuthService;
   private googleClient: OAuth2Client;
+  private googleClientId: string;
 
   constructor(jwtSecret: string, googleClientId: string, jwtExpiresIn?: string) {
     this.authService = new AuthService(jwtSecret, jwtExpiresIn);
+    this.googleClientId = googleClientId;
     this.googleClient = new OAuth2Client(googleClientId);
   }
 
@@ -124,15 +126,9 @@ export class AuthController {
         return;
       }
 
-      const googleClientId = process.env.GOOGLE_CLIENT_ID;
-      if (!googleClientId) {
-        res.status(500).json({ success: false, message: "Google client ID not configured" });
-        return;
-      }
-
       const ticket = await this.googleClient.verifyIdToken({
         idToken: token,
-        audience: googleClientId,
+        audience: this.googleClientId,
       });
 
       const payload = ticket.getPayload();
@@ -162,6 +158,25 @@ export class AuthController {
         res.status(401).json({ success: false, message: error.message });
         return;
       }
+
+      if (error instanceof Error) {
+        const lowerMessage = error.message.toLowerCase();
+        if (
+          lowerMessage.includes("wrong recipient") ||
+          lowerMessage.includes("audience") ||
+          lowerMessage.includes("invalid token signature") ||
+          lowerMessage.includes("token used too") ||
+          lowerMessage.includes("malformed")
+        ) {
+          res.status(401).json({
+            success: false,
+            message:
+              "Invalid Google token or OAuth client mismatch. Ensure frontend NEXT_PUBLIC_GOOGLE_CLIENT_ID and backend GOOGLE_CLIENT_ID point to the same Web OAuth client.",
+          });
+          return;
+        }
+      }
+
       console.error("Google auth error:", error);
       res.status(500).json({ success: false, message: "Google authentication failed" });
     }

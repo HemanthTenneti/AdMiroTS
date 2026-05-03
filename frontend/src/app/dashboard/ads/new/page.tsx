@@ -42,6 +42,9 @@ interface MediaPreview {
   sizeMb: string;
 }
 
+const MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024;
+const MAX_VIDEO_SIZE_BYTES = 250 * 1024 * 1024;
+
 // ---------------------------------------------------------------------------
 // Custom hook
 // ---------------------------------------------------------------------------
@@ -106,8 +109,12 @@ function useNewAd() {
       toast.error("Only image and video files are allowed.");
       return;
     }
-    if (file.size > 100 * 1024 * 1024) {
-      toast.error("File must not exceed 100 MB.");
+    if (isImage && file.size > MAX_IMAGE_SIZE_BYTES) {
+      toast.error("Image file must not exceed 10 MB.");
+      return;
+    }
+    if (isVideo && file.size > MAX_VIDEO_SIZE_BYTES) {
+      toast.error("Video file must not exceed 250 MB.");
       return;
     }
 
@@ -188,34 +195,45 @@ function useNewAd() {
 
     setLoading(true);
     try {
-      const payload = {
+      const basePayload = {
         adName: formData.adName.trim(),
-        mediaUrl: (mediaInputMode === "link" ? mediaLink.trim() : "") || "",
+        mediaUrl: mediaInputMode === "link" ? mediaLink.trim() : "",
         mediaType: formData.mediaType,
         duration: Number(formData.duration),
       };
       const description = formData.description.trim();
 
       if (mediaInputMode === "file" && selectedFile) {
-        // FormData upload path — extend advertisementsApi.create with FormData
-        const fd = new FormData();
-        fd.append("media", selectedFile);
-        fd.append("adName", payload.adName);
-        fd.append("mediaType", payload.mediaType);
-        fd.append("duration", String(payload.duration));
-        if (description) fd.append("description", description);
+        const uploadMeta = await advertisementsApi.createUploadUrl({
+          mediaType: selectedFile.type.startsWith("image/") ? "image" : "video",
+          mimeType: selectedFile.type,
+          fileName: selectedFile.name,
+          fileSize: selectedFile.size,
+        });
 
-        // Use create with cast since the API layer accepts the same endpoint
+        const { uploadUrl, publicUrl, objectKey } = uploadMeta.data.data;
+        const uploadResponse = await fetch(uploadUrl, {
+          method: "PUT",
+          headers: { "Content-Type": selectedFile.type },
+          body: selectedFile,
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error("Failed to upload media file to storage.");
+        }
+
         await advertisementsApi.create({
-          adName: payload.adName,
-          mediaUrl: "",
-          mediaType: payload.mediaType,
-          duration: payload.duration,
+          adName: basePayload.adName,
+          mediaUrl: publicUrl,
+          mediaType: selectedFile.type.startsWith("image/") ? "image" : "video",
+          duration: basePayload.duration,
+          fileSize: selectedFile.size,
+          mediaObjectKey: objectKey,
           ...(description ? { description } : {}),
         });
       } else {
         await advertisementsApi.create({
-          ...payload,
+          ...basePayload,
           ...(description ? { description } : {}),
         });
       }
@@ -430,7 +448,7 @@ export default function NewAdvertisementPage() {
                         Drag and drop or click to browse
                       </p>
                       <p className="text-white/30 text-xs">
-                        JPG, PNG, GIF, WebP, MP4, MOV · Max 100 MB
+                        JPG, PNG, GIF, WebP (max 10 MB) · MP4, MOV, WebM (max 250 MB)
                       </p>
                     </div>
                   ) : (

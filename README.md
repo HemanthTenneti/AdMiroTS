@@ -220,6 +220,12 @@ npm run typecheck
 npm run test:backend
 ```
 
+### Frontend Contract Smoke Tests
+
+```bash
+npm run test:frontend-contracts
+```
+
 ### Standalone backend
 
 ```bash
@@ -239,7 +245,20 @@ npm install
 npm run dev
 npm run build
 npm run typecheck
+npm run test:contracts
 ```
+
+## Runtime Configuration Checklist
+
+- Backend runtime uses `backend/.env`.
+- Frontend runtime uses `frontend/.env.local`.
+- Keep these values aligned:
+  - `frontend/.env.local:NEXT_PUBLIC_API_BASE_URL` -> backend URL (default `http://localhost:8000`)
+  - `frontend/.env.local:NEXT_PUBLIC_GOOGLE_CLIENT_ID` == `backend/.env:GOOGLE_CLIENT_ID`
+- For local CORS, include both:
+  - `http://localhost:3000`
+  - `http://127.0.0.1:3000`
+- Ensure R2 values are populated in backend env if you use file uploads.
 
 ## Deployment Notes
 
@@ -253,6 +272,26 @@ npm run typecheck
   - `MONGODB_URI`, `JWT_SECRET`, `JWT_EXPIRES_IN`
   - `GOOGLE_CLIENT_ID`, `CORS_ORIGINS`
   - `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_PUBLIC_BASE_URL`, `R2_UPLOAD_URL_TTL_SECONDS`
+
+### Google Sign-In Troubleshooting
+
+If browser console shows `GSI_LOGGER: The given origin is not allowed for the given client ID`:
+
+- Ensure `frontend/.env.local` has `NEXT_PUBLIC_GOOGLE_CLIENT_ID`.
+- Ensure `backend/.env` has `GOOGLE_CLIENT_ID`.
+- Both values must be the same Google OAuth **Web application** client ID.
+- In Google Cloud Console for that client ID, add your exact frontend origin to **Authorized JavaScript origins**.
+  - Local example: `http://localhost:3000`
+  - Also add `http://127.0.0.1:3000` if you open frontend via 127.0.0.1
+  - Include the port if not 80/443.
+  - Do not include path/query/hash.
+- Restart frontend and backend dev servers after changing env vars.
+
+## Audit Assets
+
+- Contract matrix: [`docs/CONTRACT_CONFORMANCE_MATRIX.md`](docs/CONTRACT_CONFORMANCE_MATRIX.md)
+- Local smoke checklist: [`docs/LOCAL_SMOKE_CHECKLIST.md`](docs/LOCAL_SMOKE_CHECKLIST.md)
+- Audit report template: [`docs/AUDIT_PASS_REPORT_TEMPLATE.md`](docs/AUDIT_PASS_REPORT_TEMPLATE.md)
 
 ## Example End-to-End Flow
 
