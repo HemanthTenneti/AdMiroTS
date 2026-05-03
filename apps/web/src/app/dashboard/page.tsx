@@ -166,7 +166,7 @@ interface MetricCardProps {
 
 function MetricCard({ label, value, loading, Icon }: MetricCardProps) {
   return (
-    <div className="bg-[#111118] border border-white/8 rounded-xl p-5 flex flex-col gap-4">
+    <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-5 flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <div className="bg-[#7E3AF0]/15 rounded-lg p-2">
           <Icon size={18} className="text-[#9F67FF]" />
@@ -192,23 +192,24 @@ function MetricCard({ label, value, loading, Icon }: MetricCardProps) {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const store = useAuthStore();
+  const hydrate = useAuthStore((s) => s.hydrate);
   const [authReady, setAuthReady] = useState(false);
 
-  // Auth guard — must run before data fetching renders
+  // Auth guard — stable selector prevents infinite re-render loop
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     if (!token) {
       router.push("/login");
       return;
     }
-    store.hydrate();
+    hydrate();
     setAuthReady(true);
-  }, [router, store]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (!authReady) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#080410]">
+      <div className="flex items-center justify-center min-h-screen bg-[#0a0a0a]">
         <div className="w-10 h-10 rounded-full border-2 border-[#7E3AF0] border-t-transparent animate-spin" />
       </div>
     );
@@ -227,7 +228,7 @@ function DashboardInner() {
 
   return (
     <DashboardLayout>
-      <div className="min-h-screen bg-[#080410]">
+      <div className="min-h-screen bg-[#0a0a0a]">
         <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
 
           {/* ----------------------------------------------------------------
@@ -295,7 +296,7 @@ function DashboardInner() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
             {/* Recent Displays */}
-            <div className="bg-[#111118] border border-white/8 rounded-xl p-5">
+            <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-5">
               <div className="flex items-center justify-between mb-5">
                 <h2 className="text-white font-semibold text-lg">
                   Recent Displays
@@ -329,7 +330,7 @@ function DashboardInner() {
                   </Link>
                 </div>
               ) : (
-                <ul className="divide-y divide-white/5">
+                <ul className="divide-y divide-[var(--ds-border)]">
                   {recentDisplays.map((display) => (
                     <li
                       key={display.id}
@@ -357,7 +358,7 @@ function DashboardInner() {
             </div>
 
             {/* Recent Ads */}
-            <div className="bg-[#111118] border border-white/8 rounded-xl p-5">
+            <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-5">
               <div className="flex items-center justify-between mb-5">
                 <h2 className="text-white font-semibold text-lg">
                   Recent Ads
@@ -391,7 +392,7 @@ function DashboardInner() {
                   </Link>
                 </div>
               ) : (
-                <ul className="divide-y divide-white/5">
+                <ul className="divide-y divide-[var(--ds-border)]">
                   {recentAds.map((ad) => (
                     <li
                       key={ad.id}
@@ -421,7 +422,7 @@ function DashboardInner() {
           {/* ----------------------------------------------------------------
               Quick actions
           ---------------------------------------------------------------- */}
-          <div className="bg-[#111118] border border-white/8 rounded-xl p-5">
+          <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-5">
             <h2 className="text-white font-semibold text-lg mb-4">
               Quick Actions
             </h2>
@@ -446,7 +447,7 @@ function DashboardInner() {
                 <Link
                   key={label}
                   href={href}
-                  className="flex items-center justify-between bg-white/4 hover:bg-white/7 border border-white/8 rounded-xl px-4 py-3 group"
+                  className="flex items-center justify-between bg-white/4 hover:bg-white/7 border border-[var(--ds-border)] rounded-xl px-4 py-3 group"
                 >
                   <div className="flex items-center gap-3">
                     <div className="bg-[#7E3AF0]/15 rounded-lg p-2">

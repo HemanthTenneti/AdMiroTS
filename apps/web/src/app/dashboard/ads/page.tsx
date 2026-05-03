@@ -235,7 +235,7 @@ interface AdCardProps {
 
 function AdCard({ ad, deleteLoading, onEdit, onDeleteRequest }: AdCardProps) {
   return (
-    <div className="bg-[#111118] border border-white/[0.08] rounded-xl overflow-hidden hover:border-[#7E3AF0]/40 transition-colors flex flex-col">
+    <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl overflow-hidden hover:border-[#7E3AF0]/40 transition-colors flex flex-col">
       {/* Media preview */}
       <div className="bg-white/5 aspect-video flex items-center justify-center relative overflow-hidden">
         {ad.mediaUrl ? (
@@ -381,7 +381,7 @@ export default function AdvertisementsPage() {
           </div>
 
           {/* Filters */}
-          <div className="bg-[#111118] border border-white/[0.08] rounded-xl p-4 mb-6 space-y-4">
+          <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-4 mb-6 space-y-4">
             {/* Search */}
             <div className="relative">
               <Search
@@ -444,7 +444,7 @@ export default function AdvertisementsPage() {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as SortBy)}
-                  className="bg-[#111118] border border-white/10 text-white text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#7E3AF0] transition-colors"
+                  className="bg-[var(--ds-card)] border border-white/10 text-white text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#7E3AF0] transition-colors"
                 >
                   <option value="createdAt">Created Date</option>
                   <option value="adName">Name</option>
@@ -454,7 +454,7 @@ export default function AdvertisementsPage() {
                 <select
                   value={order}
                   onChange={(e) => setOrder(e.target.value as Order)}
-                  className="bg-[#111118] border border-white/10 text-white text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#7E3AF0] transition-colors"
+                  className="bg-[var(--ds-card)] border border-white/10 text-white text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#7E3AF0] transition-colors"
                 >
                   <option value="desc">Newest First</option>
                   <option value="asc">Oldest First</option>
@@ -477,7 +477,7 @@ export default function AdvertisementsPage() {
               </div>
             </div>
           ) : advertisements.length === 0 ? (
-            <div className="bg-[#111118] border border-white/[0.08] rounded-xl p-12 text-center">
+            <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-12 text-center">
               <div className="w-12 h-12 bg-white/[0.04] rounded-xl flex items-center justify-center mx-auto mb-4">
                 <LayoutGrid size={22} className="text-white/20" />
               </div>
@@ -583,7 +583,7 @@ export default function AdvertisementsPage() {
       {/* Delete confirm modal */}
       {deleteConfirmId && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-[#111118] border border-white/[0.08] rounded-xl p-6 max-w-sm w-full">
+          <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-6 max-w-sm w-full">
             <h3 className="text-white font-semibold text-base mb-2">
               Delete Advertisement
             </h3>

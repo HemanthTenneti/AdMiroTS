@@ -171,7 +171,7 @@ export default function NewDisplayPage() {
 
   return (
     <DashboardLayout>
-      <main className="min-h-screen bg-[#080410] p-8">
+      <main className="min-h-screen bg-[#0a0a0a] p-8">
         <div className="max-w-2xl mx-auto">
 
           {/* Back nav */}
@@ -202,7 +202,7 @@ export default function NewDisplayPage() {
           )}
 
           {/* Form card */}
-          <div className="bg-[#111118] border border-white/8 rounded-xl p-6">
+          <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-6">
             <form onSubmit={handleSubmit} className="space-y-5">
 
               {/* Display ID */}
@@ -312,7 +312,7 @@ export default function NewDisplayPage() {
               </div>
 
               {/* Divider */}
-              <div className="border-t border-white/8 pt-5">
+              <div className="border-t border-[var(--ds-border)] pt-5">
                 <button
                   type="submit"
                   disabled={submitting}
@@ -327,7 +327,7 @@ export default function NewDisplayPage() {
           </div>
 
           {/* Tips card */}
-          <div className="mt-6 bg-[#111118] border border-white/8 rounded-xl p-5">
+          <div className="mt-6 bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-5">
             <div className="flex items-center gap-2 mb-3">
               <Info size={15} className="text-[#9F67FF]" />
               <span className="text-white/70 text-sm font-medium">Setup tips</span>

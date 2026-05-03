@@ -211,11 +211,11 @@ function SortIcon({ col, sortBy, sortOrder }: { col: string; sortBy: SortColumn;
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
     online: "bg-green-500/15 text-green-400 border border-green-500/20",
-    offline: "bg-white/5 text-white/40 border border-white/8",
+    offline: "bg-white/5 text-white/40 border border-[var(--ds-border)]",
     inactive: "bg-yellow-500/15 text-yellow-400 border border-yellow-500/20",
     pending: "bg-yellow-500/15 text-yellow-400 border border-yellow-500/20",
   };
-  const cls = map[status] ?? "bg-white/5 text-white/40 border border-white/8";
+  const cls = map[status] ?? "bg-white/5 text-white/40 border border-[var(--ds-border)]";
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${cls}`}>
       {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -267,7 +267,7 @@ export default function DisplaysPage() {
 
   return (
     <DashboardLayout>
-      <main className="min-h-screen bg-[#080410] p-8">
+      <main className="min-h-screen bg-[#0a0a0a] p-8">
         <div className="max-w-7xl mx-auto">
 
           {/* Header */}
@@ -342,7 +342,7 @@ export default function DisplaysPage() {
             </div>
           ) : displays.length === 0 ? (
             /* Empty state */
-            <div className="bg-[#111118] border border-white/8 rounded-xl p-16 text-center">
+            <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-16 text-center">
               <p className="text-white/60 text-lg font-medium mb-2">
                 {activeSearchTerm ? "No displays found" : "No displays yet"}
               </p>
@@ -364,11 +364,11 @@ export default function DisplaysPage() {
             </div>
           ) : (
             /* Table */
-            <div className="bg-[#111118] border border-white/8 rounded-xl overflow-hidden">
+            <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="bg-white/5 border-b border-white/8">
+                    <tr className="bg-white/5 border-b border-[var(--ds-border)]">
                       {columns.map((col) => (
                         <th
                           key={col.key}
@@ -546,7 +546,7 @@ export default function DisplaysPage() {
       {/* Delete confirmation modal */}
       {deleteConfirmId && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#111118] border border-white/8 rounded-xl p-6 w-full max-w-sm shadow-2xl">
+          <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-6 w-full max-w-sm shadow-2xl">
             <h3 className="text-white font-semibold text-lg mb-2">Delete Display</h3>
             <p className="text-white/50 text-sm mb-6">
               Are you sure you want to delete this display? This action cannot be undone.

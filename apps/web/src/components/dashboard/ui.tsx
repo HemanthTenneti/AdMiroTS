@@ -12,8 +12,8 @@ export function PageTitle({
   return (
     <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight text-[var(--color-text)]">{title}</h1>
-        {subtitle ? <p className="mt-1 text-sm text-[var(--color-text-secondary)]">{subtitle}</p> : null}
+        <h1 className="text-3xl font-semibold tracking-tight text-[var(--ds-text)]">{title}</h1>
+        {subtitle ? <p className="mt-1 text-sm text-[var(--ds-text-2)]">{subtitle}</p> : null}
       </div>
       {action ? <div>{action}</div> : null}
     </div>
@@ -30,7 +30,7 @@ export function Panel({
   return (
     <div
       className={cn(
-        "rounded-xl border border-white/8 bg-[#111118] p-5 shadow-[0_18px_55px_rgba(0,0,0,0.22)]",
+        "rounded-xl border border-[var(--ds-border)] bg-[var(--ds-card)] p-5 shadow-[0_18px_55px_rgba(0,0,0,0.22)]",
         className
       )}
     >
@@ -65,7 +65,7 @@ export function SecondaryButton({
     <button
       type={type}
       className={cn(
-        "inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white/70 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-60",
+        "inline-flex items-center justify-center rounded-lg border border-[var(--ds-border)] bg-[var(--ds-hover)] px-4 py-2 text-sm font-semibold text-[var(--ds-text-2)] transition hover:bg-[var(--ds-input)] hover:text-[var(--ds-text)] disabled:cursor-not-allowed disabled:opacity-60",
         className
       )}
       {...props}
@@ -78,7 +78,7 @@ export function TextInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
     <input
       {...props}
       className={cn(
-        "w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-[#7E3AF0] focus:ring-2 focus:ring-[#7E3AF0]/25",
+        "w-full rounded-lg border border-[var(--ds-input-border)] bg-[var(--ds-input)] px-3 py-2 text-sm text-[var(--ds-text)] outline-none transition placeholder:text-[var(--ds-text-3)] focus:border-[#7E3AF0] focus:ring-2 focus:ring-[#7E3AF0]/25",
         props.className
       )}
     />
@@ -90,7 +90,7 @@ export function TextArea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement
     <textarea
       {...props}
       className={cn(
-        "w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-[#7E3AF0] focus:ring-2 focus:ring-[#7E3AF0]/25",
+        "w-full rounded-lg border border-[var(--ds-input-border)] bg-[var(--ds-input)] px-3 py-2 text-sm text-[var(--ds-text)] outline-none transition placeholder:text-[var(--ds-text-3)] focus:border-[#7E3AF0] focus:ring-2 focus:ring-[#7E3AF0]/25",
         props.className
       )}
     />
@@ -102,7 +102,7 @@ export function SelectInput(props: React.SelectHTMLAttributes<HTMLSelectElement>
     <select
       {...props}
       className={cn(
-        "w-full rounded-lg border border-white/10 bg-[#111118] px-3 py-2 text-sm text-white outline-none transition focus:border-[#7E3AF0] focus:ring-2 focus:ring-[#7E3AF0]/25",
+        "w-full rounded-lg border border-[var(--ds-input-border)] bg-[var(--ds-card)] px-3 py-2 text-sm text-[var(--ds-text)] outline-none transition focus:border-[#7E3AF0] focus:ring-2 focus:ring-[#7E3AF0]/25",
         props.className
       )}
     />
@@ -117,21 +117,21 @@ export function DataTable({
   children: React.ReactNode;
 }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-white/8 bg-[#111118]">
-      <table className="min-w-full divide-y divide-white/8 text-sm">
-        <thead className="bg-white/5">
+    <div className="overflow-x-auto rounded-xl border border-[var(--ds-border)] bg-[var(--ds-card)]">
+      <table className="min-w-full divide-y divide-[var(--ds-border)] text-sm">
+        <thead className="bg-[var(--ds-hover)]">
           <tr>
             {headers.map((header) => (
               <th
                 key={header}
-                className="px-4 py-3 text-left font-medium uppercase tracking-wide text-white/50"
+                className="px-4 py-3 text-left font-medium uppercase tracking-wide text-[var(--ds-text-2)]"
               >
                 {header}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-white/5">{children}</tbody>
+        <tbody className="divide-y divide-[var(--ds-border)]">{children}</tbody>
       </table>
     </div>
   );
@@ -145,7 +145,7 @@ export function StatusPill({
   tone?: "neutral" | "success" | "danger" | "warning" | "info";
 }) {
   const tones: Record<string, string> = {
-    neutral: "bg-white/10 text-white/60",
+    neutral: "bg-[var(--ds-hover)] text-[var(--ds-text-2)]",
     success: "bg-green-500/15 text-green-400",
     danger: "bg-red-500/15 text-red-400",
     warning: "bg-yellow-500/15 text-yellow-400",

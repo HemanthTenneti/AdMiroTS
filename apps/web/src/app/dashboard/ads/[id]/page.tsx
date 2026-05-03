@@ -235,7 +235,7 @@ function StatCard({
   accent: string;
 }) {
   return (
-    <div className="bg-[#111118] border border-white/[0.08] rounded-xl p-4">
+    <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-4">
       <div
         className={`w-8 h-8 rounded-lg flex items-center justify-center mb-3 ${accent}`}
       >
@@ -356,7 +356,7 @@ export default function AdvertisementDetailPage({
 
           {/* Media Preview */}
           {ad.mediaUrl && (
-            <div className="bg-[#111118] border border-white/[0.08] rounded-xl overflow-hidden mb-6">
+            <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl overflow-hidden mb-6">
               <div className="aspect-video bg-white/[0.03] flex items-center justify-center">
                 {ad.mediaType?.toUpperCase() === "VIDEO" ? (
                   <video
@@ -380,7 +380,7 @@ export default function AdvertisementDetailPage({
             {/* Main col */}
             <div className="lg:col-span-2 space-y-5">
               {/* Info card */}
-              <div className="bg-[#111118] border border-white/[0.08] rounded-xl p-5 space-y-4">
+              <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-5 space-y-4">
                 <h2 className="text-white font-semibold text-sm">
                   Information
                 </h2>
@@ -441,7 +441,7 @@ export default function AdvertisementDetailPage({
               </div>
 
               {/* Timestamps */}
-              <div className="bg-[#111118] border border-white/[0.08] rounded-xl p-5">
+              <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-5">
                 <h2 className="text-white/60 text-xs font-medium uppercase tracking-wide mb-4">
                   Timestamps
                 </h2>
@@ -487,7 +487,7 @@ export default function AdvertisementDetailPage({
               </div>
 
               {/* Actions */}
-              <div className="bg-[#111118] border border-white/[0.08] rounded-xl p-4 space-y-2">
+              <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-4 space-y-2">
                 <h2 className="text-white/60 text-xs font-medium uppercase tracking-wide mb-3">
                   Actions
                 </h2>
@@ -545,7 +545,7 @@ export default function AdvertisementDetailPage({
       {/* Delete confirm */}
       {deleteConfirm && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-[#111118] border border-white/[0.08] rounded-xl p-6 max-w-sm w-full">
+          <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-6 max-w-sm w-full">
             <h3 className="text-white font-semibold text-base mb-2">
               Delete Advertisement
             </h3>

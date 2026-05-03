@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import gsap from "gsap";
-import { ArrowLeft, Loader2, Check, Clock, Monitor } from "lucide-react";
+import { Loader2, Copy, Check } from "lucide-react";
 import { displaysApi } from "@/lib/api/displays.api";
+import { GradientBarsBackground } from "@/components/ui/gradient-bars-background";
 
 interface FormData {
   displayName: string;
@@ -26,9 +28,13 @@ interface DeviceInfo {
   userAgent: string;
 }
 
+const inputClass =
+  "w-full px-4 py-3 rounded-xl bg-white/[0.06] border border-white/10 text-white placeholder:text-white/25 focus:outline-none focus:border-[#7E3AF0] focus:ring-1 focus:ring-[#7E3AF0]/50 text-sm";
+
 export default function DisplayRegisterPage() {
   const router = useRouter();
   const mainRef = useRef<HTMLElement>(null);
+  const formRef = useRef<HTMLDivElement>(null);
 
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -38,6 +44,7 @@ export default function DisplayRegisterPage() {
   const [registeredDisplayId, setRegisteredDisplayId] = useState("");
   const [connectionToken, setConnectionToken] = useState("");
   const [deviceInfo, setDeviceInfo] = useState<DeviceInfo | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const [formData, setFormData] = useState<FormData>({
     displayName: "",
@@ -64,6 +71,13 @@ export default function DisplayRegisterPage() {
         mainRef.current,
         { opacity: 0, y: 20 },
         { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }
+      );
+    }
+    if (formRef.current && mounted) {
+      gsap.fromTo(
+        formRef.current,
+        { opacity: 0, scale: 0.97 },
+        { opacity: 1, scale: 1, duration: 0.7, ease: "back.out(1.7)", delay: 0.2 }
       );
     }
   }, [mounted]);
@@ -218,47 +232,74 @@ export default function DisplayRegisterPage() {
     }
   };
 
+  const handleCopyToken = async () => {
+    try {
+      await navigator.clipboard.writeText(connectionToken);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // clipboard not available
+    }
+  };
+
   if (!mounted) return null;
 
   // --- Waiting for approval ---
   if (waitingForApproval) {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-[#faf9f7] to-[#f5f3f0] flex items-center justify-center p-4">
-        <div className="max-w-md w-full text-center">
-          <div className="w-16 h-16 bg-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-            <Clock size={32} className="text-white animate-spin" />
-          </div>
-          <h1 className="text-3xl font-bold text-black mb-2">Waiting for Approval</h1>
-          <p className="text-gray-600 mb-6">
-            Your display is registered. An admin needs to approve it.
-          </p>
-
-          <div className="bg-white rounded-2xl border-2 border-[#e5e5e5] p-6 mb-6 text-left space-y-3">
-            <div>
-              <p className="text-xs text-gray-500 uppercase font-semibold mb-1">Display Name</p>
-              <p className="text-lg font-semibold text-black">{formData.displayName}</p>
+      <main className="h-screen overflow-hidden flex bg-[#0a0a0a] items-center justify-center">
+        <div className="w-full max-w-sm px-8 text-center">
+          <div className="bg-white/[0.04] border border-white/10 rounded-xl p-6">
+            <div className="w-12 h-12 rounded-full border border-[#7E3AF0]/40 bg-[#7E3AF0]/10 mx-auto mb-5 flex items-center justify-center">
+              <Loader2 size={22} className="animate-spin text-[#7E3AF0]" />
             </div>
-            <div>
-              <p className="text-xs text-gray-500 uppercase font-semibold mb-1">Location</p>
-              <p className="text-lg font-semibold text-black">{formData.location}</p>
-            </div>
-            <div>
-              <p className="text-xs text-gray-500 uppercase font-semibold mb-1">Display ID</p>
-              <p className="font-mono text-sm text-[#8b6f47] break-all">{registeredDisplayId}</p>
-            </div>
-          </div>
 
-          <div className="bg-blue-50 rounded-2xl border border-blue-200 p-6 text-left">
-            <h3 className="font-semibold text-blue-900 mb-3">What to do:</h3>
-            <ol className="space-y-2 text-sm text-blue-800">
-              <li>1. Log in to the admin dashboard</li>
-              <li>2. Go to &quot;Connection Requests&quot; page</li>
-              <li>3. Find your display and click &quot;Approve&quot;</li>
-              <li>4. This display will automatically start showing ads</li>
-            </ol>
-          </div>
+            <h2 className="text-lg font-semibold text-white mb-1">Waiting for Approval</h2>
+            <p className="text-white/40 text-sm mb-6">
+              An admin needs to approve this display before it can go live.
+            </p>
 
-          <p className="text-xs text-gray-500 mt-6">Still waiting... (checks every 3 seconds)</p>
+            <div className="text-left space-y-4 mb-6">
+              <div>
+                <p className="text-xs uppercase tracking-wider text-white/30 mb-1">Display Name</p>
+                <p className="text-white text-sm font-medium">{formData.displayName}</p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wider text-white/30 mb-1">Location</p>
+                <p className="text-white text-sm font-medium">{formData.location}</p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wider text-white/30 mb-1.5">
+                  Connection Token
+                </p>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 font-mono text-white bg-white/5 rounded-lg px-3 py-2 text-xs border border-white/10 break-all">
+                    {connectionToken}
+                  </code>
+                  <button
+                    type="button"
+                    onClick={handleCopyToken}
+                    className="shrink-0 text-[#9F67FF] hover:text-white transition-colors duration-150"
+                    title="Copy token"
+                  >
+                    {copied ? <Check size={16} /> : <Copy size={16} />}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="text-left bg-white/[0.03] border border-white/[0.06] rounded-lg px-4 py-3 mb-4">
+              <p className="text-xs text-white/40 font-medium mb-2">What to do next:</p>
+              <ol className="space-y-1 text-xs text-white/30">
+                <li>1. Log in to the admin dashboard</li>
+                <li>2. Go to &quot;Connection Requests&quot;</li>
+                <li>3. Find your display and click &quot;Approve&quot;</li>
+                <li>4. This page will advance automatically</li>
+              </ol>
+            </div>
+
+            <p className="text-white/20 text-xs">Checking every 3 seconds...</p>
+          </div>
         </div>
       </main>
     );
@@ -267,193 +308,185 @@ export default function DisplayRegisterPage() {
   // --- Success ---
   if (success) {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-[#faf9f7] to-[#f5f3f0] flex items-center justify-center p-4">
-        <div className="max-w-md w-full text-center">
-          <div className="w-16 h-16 bg-green-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-            <Check size={32} className="text-white" />
+      <main className="h-screen overflow-hidden flex bg-[#0a0a0a] items-center justify-center">
+        <div className="text-center max-w-sm px-8">
+          <div className="w-16 h-16 bg-green-500/15 border border-green-500/30 rounded-full mx-auto mb-6 flex items-center justify-center">
+            <span className="text-green-400 text-2xl">✓</span>
           </div>
-          <h1 className="text-3xl font-bold text-black mb-2">Approved!</h1>
-          <p className="text-gray-600 mb-6">
+          <h1 className="text-2xl font-bold text-white mb-2">Display Registered!</h1>
+          <p className="text-white/40 text-sm mb-6">
             Your display has been approved. Entering display mode...
           </p>
-          <div className="flex items-center justify-center gap-2 text-[#8b6f47]">
-            <Loader2 size={20} className="animate-spin" />
-            <span>Redirecting...</span>
+          <div className="flex items-center justify-center gap-2 text-white/30 text-sm">
+            <Loader2 size={16} className="animate-spin" />
+            Redirecting...
           </div>
         </div>
       </main>
     );
   }
 
+  // --- Registration form ---
   return (
-    <main
-      ref={mainRef}
-      className="min-h-screen bg-gradient-to-br from-[#faf9f7] to-[#f5f3f0] flex items-center justify-center p-4"
-    >
-      <div className="max-w-md w-full">
-        {/* Back */}
-        <button
-          onClick={() => router.back()}
-          className="flex items-center gap-2 text-gray-600 hover:text-black mb-8"
-        >
-          <ArrowLeft size={20} />
-          Back
-        </button>
+    <main ref={mainRef} className="h-screen overflow-hidden flex bg-[#0a0a0a]">
+      {/* Left — form panel */}
+      <div className="w-full md:w-1/2 h-full flex flex-col items-center justify-center overflow-y-auto px-8 py-12 bg-[#0a0a0a]">
+        <div ref={formRef} className="w-full max-w-sm">
 
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-[#8b6f47] rounded-full mx-auto mb-4 flex items-center justify-center">
-            <Monitor size={32} className="text-white" />
-          </div>
-          <h1 className="text-3xl font-bold text-black mb-2">Register Display</h1>
-          <p className="text-gray-600">Set up this device to display advertisements</p>
-        </div>
+          {/* Logo */}
+          <Link href="/login" className="flex items-center mb-10">
+            <img src="/logo.svg" alt="AdMiro" className="h-8 w-auto brightness-0 invert" />
+          </Link>
 
-        {/* Error */}
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-            {error}
-          </div>
-        )}
+          {/* Heading */}
+          <h1 className="text-3xl font-bold text-white tracking-tight">Register Display</h1>
+          <p className="text-white/40 text-sm mt-1 mb-8">
+            Set up this device to show advertisements
+          </p>
 
-        {/* Form */}
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white rounded-2xl border-2 border-[#e5e5e5] p-8 space-y-6"
-        >
-          {/* Display ID (optional) */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Display ID{" "}
-              <span className="text-gray-500 text-xs">(Optional)</span>
-            </label>
-            <input
-              type="text"
-              name="displayId"
-              value={formData.displayId}
-              onChange={handleInputChange}
-              placeholder="e.g., DISP-LOBBY"
-              maxLength={30}
-              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8b6f47] focus:border-transparent ${
-                fieldErrors.displayId ? "border-red-500" : "border-gray-300"
-              }`}
-            />
-            {fieldErrors.displayId && (
-              <p className="text-sm text-red-500 mt-1">{fieldErrors.displayId}</p>
-            )}
-            <p className="text-xs text-gray-500 mt-1">
-              Create a short ID (3–30 chars) like DISP-LOBBY, or leave blank for auto-generated
-            </p>
-          </div>
-
-          {/* Display Name */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Display Name <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="displayName"
-              value={formData.displayName}
-              onChange={handleInputChange}
-              placeholder="e.g., Living Room Display"
-              maxLength={50}
-              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8b6f47] focus:border-transparent ${
-                fieldErrors.displayName ? "border-red-500" : "border-gray-300"
-              }`}
-            />
-            {fieldErrors.displayName && (
-              <p className="text-sm text-red-500 mt-1">{fieldErrors.displayName}</p>
-            )}
-          </div>
-
-          {/* Location */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Location <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="location"
-              value={formData.location}
-              onChange={handleInputChange}
-              placeholder="e.g., Store Front, Office"
-              maxLength={50}
-              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8b6f47] focus:border-transparent ${
-                fieldErrors.location ? "border-red-500" : "border-gray-300"
-              }`}
-            />
-            {fieldErrors.location && (
-              <p className="text-sm text-red-500 mt-1">{fieldErrors.location}</p>
-            )}
-          </div>
-
-          {/* Password (optional) */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Password{" "}
-              <span className="text-gray-500 text-xs">(Optional)</span>
-            </label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleInputChange}
-              placeholder="Create a password for easy login (4–50 characters)"
-              maxLength={50}
-              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8b6f47] focus:border-transparent ${
-                fieldErrors.password ? "border-red-500" : "border-gray-300"
-              }`}
-            />
-            {fieldErrors.password && (
-              <p className="text-sm text-red-500 mt-1">{fieldErrors.password}</p>
-            )}
-            <p className="text-xs text-gray-500 mt-1">
-              Leave blank to use connection token for login, or set a password for easier access
-            </p>
-          </div>
-
-          {/* Device info */}
-          {deviceInfo && (
-            <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-600">
-              <p className="font-semibold mb-2">Device Information:</p>
-              <p>
-                <strong>Resolution:</strong> {deviceInfo.width} x {deviceInfo.height}
-              </p>
-              <p className="text-xs mt-1 truncate">
-                <strong>Browser:</strong> {deviceInfo.userAgent.substring(0, 60)}...
-              </p>
+          {/* Error banner */}
+          {error && (
+            <div className="bg-red-500/[0.08] border border-red-500/15 text-red-400 text-sm rounded-xl px-4 py-3 mb-6">
+              {error}
             </div>
           )}
 
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-[#8b6f47] hover:bg-[#7a5f3a] disabled:opacity-50 text-white font-semibold rounded-lg"
-          >
-            {loading ? (
-              <>
-                <Loader2 size={20} className="animate-spin" />
-                Registering...
-              </>
-            ) : (
-              "Register Display"
-            )}
-          </button>
-        </form>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Display Name */}
+            <div>
+              <label className="block text-xs uppercase tracking-wider text-white/50 mb-1.5">
+                Display Name <span className="text-red-400">*</span>
+              </label>
+              <input
+                type="text"
+                name="displayName"
+                value={formData.displayName}
+                onChange={handleInputChange}
+                placeholder="e.g., Lobby Screen"
+                maxLength={50}
+                className={inputClass}
+              />
+              {fieldErrors.displayName && (
+                <p className="text-xs text-red-400 mt-1">{fieldErrors.displayName}</p>
+              )}
+            </div>
 
-        {/* Info */}
-        <div className="mt-8 bg-blue-50 rounded-2xl border border-blue-200 p-6">
-          <h3 className="font-semibold text-blue-900 mb-3">What happens next?</h3>
-          <ul className="space-y-2 text-sm text-blue-800">
-            <li>Your device will be registered</li>
-            <li>An admin will receive a connection request</li>
-            <li>Once approved, this device will enter display mode</li>
-            <li>Ads will rotate automatically in full-screen</li>
-            <li>You can exit by pressing the ESC key</li>
-          </ul>
+            {/* Location */}
+            <div>
+              <label className="block text-xs uppercase tracking-wider text-white/50 mb-1.5">
+                Location <span className="text-red-400">*</span>
+              </label>
+              <input
+                type="text"
+                name="location"
+                value={formData.location}
+                onChange={handleInputChange}
+                placeholder="e.g., Store Front, Office"
+                maxLength={50}
+                className={inputClass}
+              />
+              {fieldErrors.location && (
+                <p className="text-xs text-red-400 mt-1">{fieldErrors.location}</p>
+              )}
+            </div>
+
+            {/* Display ID (optional) */}
+            <div>
+              <label className="block text-xs uppercase tracking-wider text-white/50 mb-1.5">
+                Display ID{" "}
+                <span className="text-white/25 normal-case tracking-normal text-xs">(optional)</span>
+              </label>
+              <input
+                type="text"
+                name="displayId"
+                value={formData.displayId}
+                onChange={handleInputChange}
+                placeholder="e.g., DISP-LOBBY"
+                maxLength={30}
+                className={`${inputClass} font-mono`}
+              />
+              {fieldErrors.displayId ? (
+                <p className="text-xs text-red-400 mt-1">{fieldErrors.displayId}</p>
+              ) : (
+                <p className="text-xs text-white/20 mt-1">
+                  3–30 chars, or leave blank for auto-generated
+                </p>
+              )}
+            </div>
+
+            {/* Password (optional) */}
+            <div>
+              <label className="block text-xs uppercase tracking-wider text-white/50 mb-1.5">
+                Password{" "}
+                <span className="text-white/25 normal-case tracking-normal text-xs">(optional)</span>
+              </label>
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                placeholder="Create a password for easy login"
+                maxLength={50}
+                className={inputClass}
+              />
+              {fieldErrors.password ? (
+                <p className="text-xs text-red-400 mt-1">{fieldErrors.password}</p>
+              ) : (
+                <p className="text-xs text-white/20 mt-1">
+                  Leave blank to use connection token for login
+                </p>
+              )}
+            </div>
+
+            {/* Device info */}
+            {deviceInfo && (
+              <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3">
+                <p className="text-xs uppercase tracking-wider text-white/25 mb-2">
+                  Detected Device
+                </p>
+                <p className="text-xs text-white/40">
+                  Resolution: {deviceInfo.width} &times; {deviceInfo.height}
+                </p>
+                <p className="text-xs text-white/25 truncate mt-0.5">
+                  {deviceInfo.userAgent.substring(0, 60)}...
+                </p>
+              </div>
+            )}
+
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 rounded-xl bg-[#7E3AF0] hover:bg-[#9F67FF] text-white font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150 flex items-center justify-center gap-2"
+            >
+              {loading ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  Registering...
+                </>
+              ) : (
+                "Register Display"
+              )}
+            </button>
+          </form>
+
+          {/* Footer link */}
+          <p className="mt-6 text-center text-white/30 text-xs">
+            Already registered?{" "}
+            <Link
+              href="/display-login"
+              className="text-[#9F67FF] hover:text-white transition-colors duration-150"
+            >
+              Log in to display
+            </Link>
+          </p>
+
         </div>
+      </div>
+
+      {/* Right — gradient bars panel */}
+      <div className="hidden md:block w-1/2 h-full relative">
+        <GradientBarsBackground className="w-full h-full" />
       </div>
     </main>
   );

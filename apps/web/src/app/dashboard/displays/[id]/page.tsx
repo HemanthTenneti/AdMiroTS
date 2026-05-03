@@ -110,11 +110,11 @@ function useDisplayDetail(id: string) {
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
     online: "bg-green-500/15 text-green-400 border border-green-500/20",
-    offline: "bg-white/5 text-white/40 border border-white/8",
+    offline: "bg-white/5 text-white/40 border border-[var(--ds-border)]",
     inactive: "bg-yellow-500/15 text-yellow-400 border border-yellow-500/20",
     pending: "bg-yellow-500/15 text-yellow-400 border border-yellow-500/20",
   };
-  const cls = map[status] ?? "bg-white/5 text-white/40 border border-white/8";
+  const cls = map[status] ?? "bg-white/5 text-white/40 border border-[var(--ds-border)]";
   return (
     <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${cls}`}>
       {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -142,7 +142,7 @@ function DetailRow({ label, children }: { label: string; children: React.ReactNo
 function LoadingSkeleton() {
   return (
     <DashboardLayout>
-      <main className="min-h-screen bg-[#080410] p-8">
+      <main className="min-h-screen bg-[#0a0a0a] p-8">
         <div className="max-w-4xl mx-auto flex items-center justify-center h-64">
           <div className="flex flex-col items-center gap-3">
             <Loader2 size={36} className="text-[#7E3AF0] animate-spin" />
@@ -178,7 +178,7 @@ export default function DisplayDetailPage({ params }: { params: Promise<{ id: st
   if (error || !display) {
     return (
       <DashboardLayout>
-        <main className="min-h-screen bg-[#080410] p-8">
+        <main className="min-h-screen bg-[#0a0a0a] p-8">
           <div className="max-w-4xl mx-auto">
             <Link
               href="/dashboard/displays"
@@ -188,7 +188,7 @@ export default function DisplayDetailPage({ params }: { params: Promise<{ id: st
               <ArrowLeft size={15} className="group-hover:-translate-x-0.5" style={{ transition: "transform 150ms ease" }} />
               Back to Displays
             </Link>
-            <div className="bg-[#111118] border border-red-500/20 rounded-xl p-10 text-center">
+            <div className="bg-[var(--ds-card)] border border-red-500/20 rounded-xl p-10 text-center">
               <p className="text-red-400 font-semibold mb-1">Error</p>
               <p className="text-white/40 text-sm">{error || "Display not found."}</p>
             </div>
@@ -209,7 +209,7 @@ export default function DisplayDetailPage({ params }: { params: Promise<{ id: st
 
   return (
     <DashboardLayout>
-      <main className="min-h-screen bg-[#080410] p-8">
+      <main className="min-h-screen bg-[#0a0a0a] p-8">
         <div className="max-w-4xl mx-auto">
 
           {/* Back nav */}
@@ -230,10 +230,10 @@ export default function DisplayDetailPage({ params }: { params: Promise<{ id: st
           )}
 
           {/* Main detail card */}
-          <div className="bg-[#111118] border border-white/8 rounded-xl overflow-hidden">
+          <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl overflow-hidden">
 
             {/* Card header */}
-            <div className="px-6 py-5 border-b border-white/8 flex items-start justify-between gap-4">
+            <div className="px-6 py-5 border-b border-[var(--ds-border)] flex items-start justify-between gap-4">
               <div>
                 <h1 className="text-xl font-bold text-white tracking-tight mb-1">
                   {display.displayName}
@@ -247,7 +247,7 @@ export default function DisplayDetailPage({ params }: { params: Promise<{ id: st
 
             {/* Detail grid */}
             <div className="px-6 py-2">
-              <dl className="divide-y divide-white/5">
+              <dl className="divide-y divide-[var(--ds-border)]">
                 <DetailRow label="Location">{display.location}</DetailRow>
 
                 <DetailRow label="Resolution">
@@ -260,7 +260,7 @@ export default function DisplayDetailPage({ params }: { params: Promise<{ id: st
 
                 <DetailRow label="Connection Token">
                   <div className="flex items-center gap-2 mt-1">
-                    <code className="flex-1 bg-white/5 border border-white/8 rounded-lg px-3 py-2 text-xs text-white/70 font-mono overflow-x-auto">
+                    <code className="flex-1 bg-white/5 border border-[var(--ds-border)] rounded-lg px-3 py-2 text-xs text-white/70 font-mono overflow-x-auto">
                       {display.connectionToken ?? "—"}
                     </code>
                     <button
@@ -291,7 +291,7 @@ export default function DisplayDetailPage({ params }: { params: Promise<{ id: st
             </div>
 
             {/* Actions footer */}
-            <div className="px-6 py-5 border-t border-white/8 flex flex-wrap items-center gap-3">
+            <div className="px-6 py-5 border-t border-[var(--ds-border)] flex flex-wrap items-center gap-3">
               <Link
                 href={`/dashboard/displays/${display.id}/loops`}
                 className="inline-flex items-center gap-2 bg-green-600/80 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold"
@@ -327,7 +327,7 @@ export default function DisplayDetailPage({ params }: { params: Promise<{ id: st
       {/* Delete confirmation modal */}
       {deleteConfirm && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#111118] border border-white/8 rounded-xl p-6 w-full max-w-sm shadow-2xl">
+          <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-6 w-full max-w-sm shadow-2xl">
             <h3 className="text-white font-semibold text-lg mb-2">Delete Display</h3>
             <p className="text-white/50 text-sm mb-6">
               Are you sure you want to delete <span className="text-white font-medium">{display.displayName}</span>?

@@ -189,7 +189,7 @@ export default function DisplayLoopsPage({
             </div>
           ) : loops.length === 0 ? (
             /* Empty State */
-            <div className="bg-[#111118] border border-white/8 rounded-xl p-16 text-center">
+            <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-16 text-center">
               <ListChecks size={40} className="mx-auto text-white/20 mb-4" />
               <h3 className="text-lg font-semibold text-white/70 mb-2">
                 No playlists yet
@@ -213,7 +213,7 @@ export default function DisplayLoopsPage({
               {loops.map(loop => (
                 <div
                   key={loop.id}
-                  className="bg-[#111118] border border-white/8 rounded-xl p-6 hover:border-white/15"
+                  className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-6 hover:border-white/15"
                 >
                   <div className="flex items-start justify-between gap-4 mb-5">
                     <div className="min-w-0">
@@ -282,7 +282,7 @@ export default function DisplayLoopsPage({
                         {loop.advertisements.map((item, idx) => (
                           <span
                             key={idx}
-                            className="px-2.5 py-1 bg-white/5 border border-white/8 text-white/60 text-xs rounded-full"
+                            className="px-2.5 py-1 bg-white/5 border border-[var(--ds-border)] text-white/60 text-xs rounded-full"
                           >
                             {idx + 1}. {getAdName(item)}
                           </span>
@@ -335,7 +335,7 @@ export default function DisplayLoopsPage({
       {/* Delete Modal */}
       {deleteConfirm && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#111118] border border-white/10 rounded-xl p-6 max-w-sm w-full">
+          <div className="bg-[var(--ds-card)] border border-white/10 rounded-xl p-6 max-w-sm w-full">
             <h3 className="text-lg font-bold text-white mb-2">
               Delete Playlist?
             </h3>

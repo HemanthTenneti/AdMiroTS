@@ -173,7 +173,7 @@ function FormField({
 function LoadingSkeleton() {
   return (
     <DashboardLayout>
-      <main className="min-h-screen bg-[#080410] p-8">
+      <main className="min-h-screen bg-[#0a0a0a] p-8">
         <div className="max-w-2xl mx-auto flex items-center justify-center h-64">
           <div className="flex flex-col items-center gap-3">
             <Loader2 size={36} className="text-[#7E3AF0] animate-spin" />
@@ -216,7 +216,7 @@ export default function EditDisplayPage({ params }: { params: Promise<{ id: stri
   if (!display && serverError) {
     return (
       <DashboardLayout>
-        <main className="min-h-screen bg-[#080410] p-8">
+        <main className="min-h-screen bg-[#0a0a0a] p-8">
           <div className="max-w-2xl mx-auto">
             <Link
               href="/dashboard/displays"
@@ -226,7 +226,7 @@ export default function EditDisplayPage({ params }: { params: Promise<{ id: stri
               <ArrowLeft size={15} className="group-hover:-translate-x-0.5" style={{ transition: "transform 150ms ease" }} />
               Back to Displays
             </Link>
-            <div className="bg-[#111118] border border-red-500/20 rounded-xl p-10 text-center">
+            <div className="bg-[var(--ds-card)] border border-red-500/20 rounded-xl p-10 text-center">
               <p className="text-red-400 font-semibold mb-1">Error</p>
               <p className="text-white/40 text-sm">{serverError || "Display not found."}</p>
             </div>
@@ -238,7 +238,7 @@ export default function EditDisplayPage({ params }: { params: Promise<{ id: stri
 
   return (
     <DashboardLayout>
-      <main className="min-h-screen bg-[#080410] p-8">
+      <main className="min-h-screen bg-[#0a0a0a] p-8">
         <div className="max-w-2xl mx-auto">
 
           {/* Back nav */}
@@ -265,7 +265,7 @@ export default function EditDisplayPage({ params }: { params: Promise<{ id: stri
           )}
 
           {/* Form card */}
-          <div className="bg-[#111118] border border-white/8 rounded-xl p-6">
+          <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-6">
             <form onSubmit={handleSubmit} className="space-y-5">
 
               {/* Display ID — read-only */}
@@ -319,7 +319,7 @@ export default function EditDisplayPage({ params }: { params: Promise<{ id: stri
               </FormField>
 
               {/* Submit */}
-              <div className="border-t border-white/8 pt-5">
+              <div className="border-t border-[var(--ds-border)] pt-5">
                 <button
                   type="submit"
                   disabled={submitting}
@@ -334,7 +334,7 @@ export default function EditDisplayPage({ params }: { params: Promise<{ id: stri
           </div>
 
           {/* Help card */}
-          <div className="mt-6 bg-[#111118] border border-white/8 rounded-xl p-5">
+          <div className="mt-6 bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-5">
             <div className="flex items-center gap-2 mb-3">
               <Info size={15} className="text-[#9F67FF]" />
               <span className="text-white/70 text-sm font-medium">What can you edit?</span>

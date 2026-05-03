@@ -181,7 +181,7 @@ export default function LogsPage() {
         </div>
 
         {/* Search + Filters */}
-        <div className="bg-[#111118] border border-white/8 rounded-xl p-5 mb-6 space-y-5">
+        <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-5 mb-6 space-y-5">
           {/* Search bar */}
           <div className="relative">
             <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30" />
@@ -230,11 +230,11 @@ export default function LogsPage() {
                 onChange={(e) => { setActionFilter(e.target.value); }}
                 className="w-full bg-white/5 border border-white/10 text-white focus:border-[#7E3AF0] focus:outline-none rounded-lg px-3 py-2 text-sm"
               >
-                <option value="" className="bg-[#111118]">All Actions</option>
-                <option value="create" className="bg-[#111118]">Create</option>
-                <option value="update" className="bg-[#111118]">Update</option>
-                <option value="delete" className="bg-[#111118]">Delete</option>
-                <option value="status_change" className="bg-[#111118]">Status Change</option>
+                <option value="" className="bg-[var(--ds-card)]">All Actions</option>
+                <option value="create" className="bg-[var(--ds-card)]">Create</option>
+                <option value="update" className="bg-[var(--ds-card)]">Update</option>
+                <option value="delete" className="bg-[var(--ds-card)]">Delete</option>
+                <option value="status_change" className="bg-[var(--ds-card)]">Status Change</option>
               </select>
             </div>
 
@@ -247,12 +247,12 @@ export default function LogsPage() {
                 onChange={(e) => { setEntityTypeFilter(e.target.value); }}
                 className="w-full bg-white/5 border border-white/10 text-white focus:border-[#7E3AF0] focus:outline-none rounded-lg px-3 py-2 text-sm"
               >
-                <option value="" className="bg-[#111118]">All Types</option>
-                <option value="display" className="bg-[#111118]">Display</option>
-                <option value="advertisement" className="bg-[#111118]">Advertisement</option>
-                <option value="loop" className="bg-[#111118]">Loop</option>
-                <option value="user" className="bg-[#111118]">User</option>
-                <option value="system" className="bg-[#111118]">System</option>
+                <option value="" className="bg-[var(--ds-card)]">All Types</option>
+                <option value="display" className="bg-[var(--ds-card)]">Display</option>
+                <option value="advertisement" className="bg-[var(--ds-card)]">Advertisement</option>
+                <option value="loop" className="bg-[var(--ds-card)]">Loop</option>
+                <option value="user" className="bg-[var(--ds-card)]">User</option>
+                <option value="system" className="bg-[var(--ds-card)]">System</option>
               </select>
             </div>
 
@@ -276,7 +276,7 @@ export default function LogsPage() {
         </div>
 
         {/* Logs table */}
-        <div className="bg-[#111118] border border-white/8 rounded-xl overflow-hidden">
+        <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center py-16">
               <Loader2 size={28} className="text-[#7E3AF0] animate-spin" />
@@ -297,7 +297,7 @@ export default function LogsPage() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="bg-white/5 border-b border-white/8">
+                  <tr className="bg-white/5 border-b border-[var(--ds-border)]">
                     {["Action", "Entity Type", "Description", "User", "Date"].map((h, i) => (
                       <th
                         key={i}
@@ -350,7 +350,7 @@ export default function LogsPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="px-5 py-4 border-t border-white/8 flex items-center justify-between">
+            <div className="px-5 py-4 border-t border-[var(--ds-border)] flex items-center justify-between">
               <p className="text-white/30 text-xs">
                 Page <span className="text-white/60">{currentPage}</span> of{" "}
                 <span className="text-white/60">{totalPages}</span>

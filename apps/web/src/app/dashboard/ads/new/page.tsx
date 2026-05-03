@@ -323,7 +323,7 @@ export default function NewAdvertisementPage() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Ad Name */}
-            <div className="bg-[#111118] border border-white/[0.08] rounded-xl p-5">
+            <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-5">
               <label className="block text-white/60 text-xs font-medium mb-2 uppercase tracking-wide">
                 Advertisement Name{" "}
                 <span className="text-red-400 normal-case">*</span>
@@ -350,7 +350,7 @@ export default function NewAdvertisementPage() {
             </div>
 
             {/* Description */}
-            <div className="bg-[#111118] border border-white/[0.08] rounded-xl p-5">
+            <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-5">
               <label className="block text-white/60 text-xs font-medium mb-2 uppercase tracking-wide">
                 Description{" "}
                 <span className="text-white/30 normal-case text-xs font-normal">
@@ -372,7 +372,7 @@ export default function NewAdvertisementPage() {
             </div>
 
             {/* Media */}
-            <div className="bg-[#111118] border border-white/[0.08] rounded-xl p-5">
+            <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-5">
               <label className="block text-white/60 text-xs font-medium mb-3 uppercase tracking-wide">
                 Media <span className="text-red-400 normal-case">*</span>
               </label>
@@ -420,7 +420,7 @@ export default function NewAdvertisementPage() {
                           ? "border-[#7E3AF0] bg-[#7E3AF0]/5"
                           : errors.media
                           ? "border-red-500/40"
-                          : "border-white/[0.08] hover:border-[#7E3AF0]/40"
+                          : "border-[var(--ds-border)] hover:border-[#7E3AF0]/40"
                       }`}
                     >
                       <div className="w-10 h-10 bg-white/[0.04] rounded-xl flex items-center justify-center mx-auto mb-3">
@@ -434,7 +434,7 @@ export default function NewAdvertisementPage() {
                       </p>
                     </div>
                   ) : (
-                    <div className="border border-white/[0.08] rounded-lg overflow-hidden">
+                    <div className="border border-[var(--ds-border)] rounded-lg overflow-hidden">
                       <div className="bg-white/[0.03] aspect-video flex items-center justify-center relative">
                         {mediaPreview.type === "image" ? (
                           // eslint-disable-next-line @next/next/no-img-element
@@ -522,7 +522,7 @@ export default function NewAdvertisementPage() {
             </div>
 
             {/* Duration */}
-            <div className="bg-[#111118] border border-white/[0.08] rounded-xl p-5">
+            <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-5">
               <label className="block text-white/60 text-xs font-medium mb-2 uppercase tracking-wide">
                 Display Duration (seconds){" "}
                 <span className="text-red-400 normal-case">*</span>

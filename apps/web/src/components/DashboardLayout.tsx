@@ -72,11 +72,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const userName =
     mounted && user
-      ? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || "User"
+      ? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || user.username || "User"
       : "User";
 
   const userInitial =
-    mounted && user?.firstName ? user.firstName.charAt(0).toUpperCase() : "U";
+    mounted && user
+      ? (user.firstName?.charAt(0) ?? user.username?.charAt(0) ?? "U").toUpperCase()
+      : "U";
 
   const isNavActive = (item: NavItem): boolean => {
     if (item.href === "/dashboard") {
@@ -98,75 +100,64 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const isDark = theme === "dark";
 
   // ─── Derived class tokens ────────────────────────────────────────────────────
-  const sidebarBg = isDark
-    ? "bg-[#0C0C0C] border-r border-white/[0.08]"
-    : "bg-white border-r border-gray-200";
+  const sidebarBg = "bg-[var(--ds-surface)] border-r border-[var(--ds-border)]";
 
-  const mainBg = isDark ? "bg-[#080410]" : "bg-gray-50";
+  const mainBg = "bg-[var(--ds-bg)]";
 
-  const topbarBg = isDark
-    ? "bg-[#0C0C0C] border-b border-white/[0.08]"
-    : "bg-white border-b border-gray-200";
+  const topbarBg = "bg-[var(--ds-surface)] border-b border-[var(--ds-border)]";
 
-  const logoText = isDark ? "text-white" : "text-gray-900";
-  const logoBorder = isDark ? "border-b border-white/[0.08]" : "border-b border-gray-200";
+  const logoText = "text-[var(--ds-text)]";
+  const logoBorder = "border-b border-[var(--ds-border)]";
 
-  const activeNav = isDark
-    ? "bg-[#7E3AF0]/15 text-[#9F67FF] border-l-2 border-[#7E3AF0]"
-    : "bg-purple-50 text-purple-700 border-l-2 border-purple-600";
+  const activeNav = "bg-[#7E3AF0]/15 text-[#9F67FF] border-l-2 border-[#7E3AF0]";
 
-  const inactiveNav = isDark
-    ? "text-white/50 hover:text-white/80 hover:bg-white/5 border-l-2 border-transparent"
-    : "text-gray-600 hover:text-gray-900 hover:bg-gray-100 border-l-2 border-transparent";
+  const inactiveNav =
+    "text-[var(--ds-text-2)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-hover)] border-l-2 border-transparent";
 
-  const sidebarFooterBorder = isDark ? "border-t border-white/[0.08]" : "border-t border-gray-200";
+  const sidebarFooterBorder = "border-t border-[var(--ds-border)]";
 
   const logoutStyle = isDark
     ? "text-white/40 hover:text-red-400 hover:bg-red-500/10"
     : "text-gray-500 hover:text-red-600 hover:bg-red-50";
 
-  const mobileToggleStyle = isDark
-    ? "p-2 hover:bg-white/5 rounded-lg text-white/60 hover:text-white/90"
-    : "p-2 hover:bg-gray-100 rounded-lg text-gray-600 hover:text-gray-900";
+  const mobileToggleStyle =
+    "p-2 hover:bg-[var(--ds-hover)] rounded-lg text-[var(--ds-text-2)] hover:text-[var(--ds-text)]";
 
-  const themeToggleStyle = isDark
-    ? "p-2 rounded-lg text-white/50 hover:text-white/90 hover:bg-white/5"
-    : "p-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100";
+  const themeToggleStyle =
+    "p-2 rounded-lg text-[var(--ds-text-2)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-hover)]";
 
-  const profileButtonStyle = isDark
-    ? "flex items-center gap-3 p-2 hover:bg-white/5 rounded-lg"
-    : "flex items-center gap-3 p-2 hover:bg-gray-100 rounded-lg";
+  const profileButtonStyle = "flex items-center gap-3 p-2 hover:bg-[var(--ds-hover)] rounded-lg";
 
-  const profileNameStyle = isDark ? "text-sm font-medium text-white/90" : "text-sm font-medium text-gray-900";
-  const profileRoleStyle = isDark ? "text-xs text-white/40" : "text-xs text-gray-500";
+  const profileNameStyle = "text-sm font-medium text-[var(--ds-text)]";
+  const profileRoleStyle = "text-xs text-[var(--ds-text-2)]";
 
-  const dropdownStyle = isDark
-    ? "absolute right-0 mt-2 w-52 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden"
-    : "absolute right-0 mt-2 w-52 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden";
+  const dropdownStyle =
+    "absolute right-0 mt-2 w-52 bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl shadow-2xl z-50 overflow-hidden";
 
-  const dropdownLinkStyle = isDark
-    ? "block px-4 py-3 text-sm text-white/70 hover:text-white hover:bg-white/5"
-    : "block px-4 py-3 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-50";
+  const dropdownLinkStyle =
+    "block px-4 py-3 text-sm text-[var(--ds-text-2)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-hover)]";
 
-  const dropdownDivider = isDark ? "border-t border-white/[0.08]" : "border-t border-gray-100";
+  const dropdownDivider = "border-t border-[var(--ds-border)]";
 
   const dropdownLogoutStyle = isDark
     ? "w-full text-left px-4 py-3 text-sm text-red-400/80 hover:text-red-400 hover:bg-red-500/10"
     : "w-full text-left px-4 py-3 text-sm text-red-500 hover:text-red-600 hover:bg-red-50";
 
-  const activeIconStyle = isDark ? "text-[#9F67FF]" : "text-purple-700";
-  const inactiveIconStyle = isDark ? "text-white/40 group-hover:text-white/70" : "text-gray-400 group-hover:text-gray-700";
+  const activeIconStyle = "text-[#9F67FF]";
+  const inactiveIconStyle =
+    "text-[var(--ds-text-2)] group-hover:text-[var(--ds-text)]";
 
   // ─── Sidebar inner ───────────────────────────────────────────────────────────
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
       {/* Logo */}
       <div className={`px-5 py-5 ${logoBorder}`}>
-        <Link href="/" className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-gradient-to-br from-[#7E3AF0] to-[#9F67FF] rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-lg shadow-[#7E3AF0]/30 shrink-0">
-            A
-          </div>
-          <span className={`text-lg font-bold tracking-tight ${logoText}`}>AdMiro</span>
+        <Link href="/" className="flex items-center gap-2.5">
+          <img
+            src="/logo.svg"
+            alt="AdMiro"
+            className={`h-7 w-auto${isDark ? " brightness-0 invert" : ""}`}
+          />
         </Link>
       </div>
 
@@ -281,11 +272,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 {profileMenuOpen && (
                   <div className={dropdownStyle} role="menu">
                     {/* User info header */}
-                    <div className={`px-4 py-3 ${isDark ? "border-b border-white/[0.08]" : "border-b border-gray-100"}`}>
-                      <p className={`text-sm font-semibold ${isDark ? "text-white/90" : "text-gray-900"}`}>
+                    <div className={`px-4 py-3 border-b border-[var(--ds-border)]`}>
+                      <p className="text-sm font-semibold text-[var(--ds-text)]">
                         {userName}
                       </p>
-                      <p className={`text-xs mt-0.5 ${isDark ? "text-white/40" : "text-gray-500"}`}>
+                      <p className="text-xs mt-0.5 text-[var(--ds-text-2)]">
                         {mounted && user?.email ? user.email : ""}
                       </p>
                     </div>

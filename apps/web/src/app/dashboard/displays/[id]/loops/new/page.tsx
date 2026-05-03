@@ -235,7 +235,7 @@ export default function CreateDisplayLoopPage({
             <form onSubmit={handleSubmit} className="space-y-6">
 
               {/* Playlist Details */}
-              <div className="bg-[#111118] border border-white/8 rounded-xl p-6">
+              <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-6">
                 <h2 className="text-base font-semibold text-white mb-5">
                   Playlist Details
                 </h2>
@@ -299,7 +299,7 @@ export default function CreateDisplayLoopPage({
               </div>
 
               {/* Add Advertisements */}
-              <div className="bg-[#111118] border border-white/8 rounded-xl p-6">
+              <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-6">
                 <h2 className="text-base font-semibold text-white mb-5">
                   Add Advertisements
                 </h2>
@@ -313,7 +313,7 @@ export default function CreateDisplayLoopPage({
                     {ads.map(ad => (
                       <div
                         key={ad.id}
-                        className="flex items-center justify-between p-3 border border-white/8 rounded-lg hover:border-white/15"
+                        className="flex items-center justify-between p-3 border border-[var(--ds-border)] rounded-lg hover:border-white/15"
                       >
                         <div className="flex items-center gap-3 min-w-0">
                           <div className="text-white/30">
@@ -351,7 +351,7 @@ export default function CreateDisplayLoopPage({
 
               {/* Playlist Order */}
               {selectedAds.length > 0 && (
-                <div className="bg-[#111118] border border-white/8 rounded-xl p-6">
+                <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-6">
                   <h2 className="text-base font-semibold text-white mb-5">
                     Playlist Order{" "}
                     <span className="text-white/30 font-normal text-sm">
@@ -363,7 +363,7 @@ export default function CreateDisplayLoopPage({
                     {selectedAds.map((item, idx) => (
                       <div
                         key={idx}
-                        className="flex items-center gap-3 p-3 bg-white/3 border border-white/8 rounded-lg"
+                        className="flex items-center gap-3 p-3 bg-white/3 border border-[var(--ds-border)] rounded-lg"
                       >
                         <div className="flex flex-col gap-0.5">
                           <button

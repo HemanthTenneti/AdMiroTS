@@ -6,7 +6,9 @@ import { useAuthStore } from "@/features/auth/store/authStore";
 
 export function useDashboardAuth() {
   const router = useRouter();
-  const store = useAuthStore();
+  // Stable selector references — not the whole store object, which changes on every state update
+  const hydrate = useAuthStore((s) => s.hydrate);
+  const user = useAuthStore((s) => s.user);
   const [authReady, setAuthReady] = useState(false);
 
   useEffect(() => {
@@ -15,10 +17,11 @@ export function useDashboardAuth() {
       router.push("/login");
       return;
     }
-
-    store.hydrate();
+    hydrate();
     setAuthReady(true);
-  }, [router, store]);
+  // hydrate is a stable function reference from Zustand; router is stable from Next.js
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  return { authReady, user: store.user };
+  return { authReady, user };
 }

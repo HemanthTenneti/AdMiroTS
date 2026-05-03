@@ -39,7 +39,7 @@ const SOCIAL = [
 
 export function Footer() {
   return (
-    <footer className="bg-[#080410]">
+    <footer className="bg-[#0a0a0a]">
       <div className="max-w-6xl mx-auto px-6 md:px-8">
 
         {/* Main grid */}

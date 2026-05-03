@@ -4,8 +4,9 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import gsap from "gsap";
-import { ArrowLeft, Loader2, Monitor } from "lucide-react";
+import { Loader2, Monitor } from "lucide-react";
 import { displaysApi } from "@/lib/api/displays.api";
+import { GradientBarsBackground } from "@/components/ui/gradient-bars-background";
 
 interface FormData {
   displayId: string;
@@ -113,155 +114,130 @@ export default function DisplayLoginPage() {
 
   if (success) {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-[#faf9f7] to-[#f5f3f0] flex items-center justify-center p-4">
-        <div className="max-w-md w-full text-center">
-          <div className="w-16 h-16 bg-green-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-            <span className="text-white text-2xl font-bold">✓</span>
+      <main className="h-screen overflow-hidden flex bg-[#0a0a0a] items-center justify-center">
+        <div className="text-center max-w-sm px-8">
+          <div className="w-16 h-16 bg-green-500/15 border border-green-500/30 rounded-full mx-auto mb-6 flex items-center justify-center">
+            <span className="text-green-400 text-2xl">✓</span>
           </div>
-          <h1 className="text-3xl font-bold text-black mb-2">Logged In!</h1>
-          <p className="text-gray-600 mb-6">
-            Display authenticated successfully. Entering display mode...
-          </p>
-          <div className="flex items-center justify-center gap-2 text-[#8b6f47]">
-            <Loader2 size={20} className="animate-spin" />
-            <span>Redirecting...</span>
+          <h1 className="text-2xl font-bold text-white mb-2">Logged In!</h1>
+          <p className="text-white/40 text-sm mb-6">Display authenticated. Entering display mode...</p>
+          <div className="flex items-center justify-center gap-2 text-white/30 text-sm">
+            <Loader2 size={16} className="animate-spin" />
+            Redirecting...
           </div>
         </div>
       </main>
     );
   }
 
+  const inputClass =
+    "w-full px-4 py-3 rounded-xl bg-white/[0.06] border border-white/10 text-white placeholder:text-white/25 focus:outline-none focus:border-[#7E3AF0] focus:ring-1 focus:ring-[#7E3AF0]/50 text-sm";
+
   return (
-    <main
-      ref={mainRef}
-      className="min-h-screen bg-gradient-to-br from-[#faf9f7] to-[#f5f3f0] flex items-center justify-center p-4"
-    >
-      <div className="max-w-md w-full">
-        {/* Back button */}
-        <button
-          onClick={() => router.back()}
-          className="flex items-center gap-2 text-gray-600 hover:text-black mb-8"
-        >
-          <ArrowLeft size={20} />
-          Back
-        </button>
+    <main ref={mainRef} className="h-screen overflow-hidden flex bg-[#0a0a0a]">
+      {/* Left — form panel */}
+      <div className="w-full md:w-1/2 h-full flex flex-col items-center justify-center overflow-y-auto px-8 py-12 bg-[#0a0a0a]">
+        <div className="w-full max-w-sm">
 
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-            <Monitor size={32} className="text-white" />
-          </div>
-          <h1 className="text-3xl font-bold text-black mb-2">Display Login</h1>
-          <p className="text-gray-600">Reconnect your previously registered display device</p>
-        </div>
-
-        {/* Error */}
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-            {error}
-          </div>
-        )}
-
-        {/* Form */}
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white rounded-2xl border-2 border-[#e5e5e5] p-8 space-y-6 mb-6"
-        >
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Display ID <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="displayId"
-              value={formData.displayId}
-              onChange={handleInputChange}
-              placeholder="e.g., DISP-LOB123"
-              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm ${
-                fieldErrors.displayId ? "border-red-500" : "border-gray-300"
-              }`}
-            />
-            {fieldErrors.displayId && (
-              <p className="text-sm text-red-500 mt-1">{fieldErrors.displayId}</p>
-            )}
-            <p className="text-xs text-gray-500 mt-2">
-              The Display ID you created during registration
-            </p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Password <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleInputChange}
-              placeholder="Enter your password"
-              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                fieldErrors.password ? "border-red-500" : "border-gray-300"
-              }`}
-            />
-            {fieldErrors.password && (
-              <p className="text-sm text-red-500 mt-1">{fieldErrors.password}</p>
-            )}
-            <p className="text-xs text-gray-500 mt-2">
-              The password you set during display registration
-            </p>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white font-semibold rounded-lg"
-          >
-            {loading ? (
-              <>
-                <Loader2 size={20} className="animate-spin" />
-                Authenticating...
-              </>
-            ) : (
-              "Login to Display"
-            )}
-          </button>
-        </form>
-
-        {/* Divider */}
-        <div className="relative mb-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300" />
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-[#faf9f7] text-gray-600">or</span>
-          </div>
-        </div>
-
-        {/* Register link */}
-        <Link
-          href="/display-register"
-          className="w-full px-6 py-3 border-2 border-[#8b6f47] text-[#8b6f47] font-semibold rounded-lg hover:bg-[#f5f0e8] text-center mb-4 flex items-center justify-center gap-2"
-        >
-          <Monitor size={18} />
-          Register New Display
-        </Link>
-
-        {/* Info */}
-        <div className="bg-blue-50 rounded-2xl border border-blue-200 p-6">
-          <h3 className="font-semibold text-blue-900 mb-3">Easy Password Login</h3>
-          <ul className="space-y-2 text-sm text-blue-800">
-            <li>Use your Display ID and password to log in</li>
-            <li>No need to copy long connection tokens</li>
-            <li>Stay logged in across browser refreshes</li>
-            <li>Display mode persists when you leave and return</li>
-          </ul>
-        </div>
-
-        <div className="mt-8 text-center">
-          <Link href="/login" className="text-gray-600 hover:text-black">
-            Back to Login
+          {/* Logo */}
+          <Link href="/login" className="flex items-center gap-2.5 mb-10">
+            <img src="/logo.svg" alt="AdMiro" className="h-8 w-auto brightness-0 invert" />
           </Link>
+
+          {/* Heading */}
+          <h1 className="text-3xl font-bold text-white tracking-tight">Display Login</h1>
+          <p className="text-white/40 text-sm mt-1 mb-8">
+            Reconnect your previously registered display device
+          </p>
+
+          {/* Error banner */}
+          {error && (
+            <div className="bg-red-500/[0.08] border border-red-500/15 text-red-400 text-sm rounded-xl px-4 py-3 mb-6">
+              {error}
+            </div>
+          )}
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <div>
+              <label className="block text-xs uppercase tracking-wider text-white/50 mb-1.5">
+                Display ID
+              </label>
+              <input
+                type="text"
+                name="displayId"
+                value={formData.displayId}
+                onChange={handleInputChange}
+                placeholder="e.g., DISP-LOB123"
+                className={`${inputClass} font-mono${fieldErrors.displayId ? " border-red-500/60" : ""}`}
+              />
+              {fieldErrors.displayId && (
+                <p className="text-xs text-red-400 mt-1">{fieldErrors.displayId}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-xs uppercase tracking-wider text-white/50 mb-1.5">
+                Password
+              </label>
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                placeholder="Enter your password"
+                className={`${inputClass}${fieldErrors.password ? " border-red-500/60" : ""}`}
+              />
+              {fieldErrors.password && (
+                <p className="text-xs text-red-400 mt-1">{fieldErrors.password}</p>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 rounded-xl bg-[#7E3AF0] hover:bg-[#9F67FF] text-white font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150 flex items-center justify-center gap-2"
+            >
+              {loading ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  Authenticating...
+                </>
+              ) : (
+                "Login to Display"
+              )}
+            </button>
+
+            {/* Divider */}
+            <div className="flex items-center gap-4 py-1">
+              <div className="flex-1 h-px bg-white/[0.08]" />
+              <span className="text-white/25 text-xs">or</span>
+              <div className="flex-1 h-px bg-white/[0.08]" />
+            </div>
+
+            {/* Register link */}
+            <Link
+              href="/display-register"
+              className="w-full py-3 rounded-xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-white/60 hover:text-white text-sm font-medium flex items-center justify-center gap-2 transition-colors duration-150"
+            >
+              <Monitor size={15} />
+              Register New Display
+            </Link>
+          </form>
+
+          {/* Back link */}
+          <p className="mt-8 text-center">
+            <Link href="/login" className="text-white/30 hover:text-white/60 text-sm transition-colors duration-150">
+              Back to Login
+            </Link>
+          </p>
+
         </div>
+      </div>
+
+      {/* Right — gradient bars panel */}
+      <div className="hidden md:block w-1/2 h-full relative">
+        <GradientBarsBackground className="w-full h-full" />
       </div>
     </main>
   );

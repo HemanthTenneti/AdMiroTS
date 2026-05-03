@@ -249,7 +249,7 @@ export default function LoginPage() {
   };
 
   const inputClass =
-    "w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-[#7E3AF0] focus:ring-1 focus:ring-[#7E3AF0]";
+    "w-full px-4 py-3 rounded-xl bg-white/[0.06] border border-white/10 text-white placeholder:text-white/25 focus:outline-none focus:border-[#7E3AF0] focus:ring-1 focus:ring-[#7E3AF0]/50 text-sm";
 
   const GoogleSVG = () => (
     <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
@@ -261,267 +261,266 @@ export default function LoginPage() {
   );
 
   return (
-    <main ref={mainRef} className="min-h-screen flex bg-[#080410]">
+    <main ref={mainRef} className="h-screen overflow-hidden flex bg-[#0a0a0a]">
       {/* Left — form panel */}
-      <div className="w-full md:w-1/2 flex flex-col items-center justify-center px-8 py-12 bg-[#080410]">
-        <div className="w-full max-w-md">
+      <div className="w-full md:w-1/2 h-full flex flex-col items-center justify-center overflow-y-auto px-8 py-12 bg-[#0a0a0a]">
+        {/* Inner form wrapper — cardRef attaches here for GSAP */}
+        <div ref={cardRef} className="w-full max-w-sm">
+
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 mb-8">
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#7E3AF0] to-[#9F67FF] flex items-center justify-center text-white text-sm font-bold shadow-lg shadow-[#7E3AF0]/30">
-              A
-            </div>
-            <span className="text-2xl font-bold text-white tracking-tight">AdMiro</span>
+          <Link href="/" className="flex items-center gap-2.5 mb-10">
+            <img src="/logo.svg" alt="AdMiro" className="h-8 w-auto brightness-0 invert" />
           </Link>
 
-          {/* Card */}
-          <div
-            ref={cardRef}
-            className="w-full bg-[#0C0C0C] rounded-2xl border border-white/8 p-8"
-          >
-            <h1 className="text-2xl font-bold text-white mb-1">
-              {isLogin ? "Welcome back" : "Create account"}
-            </h1>
-            <p className="text-white/50 text-sm mb-8">
-              {isLogin ? "Log in to your AdMiro account" : "Join AdMiro to manage your displays"}
-            </p>
+          {/* Heading */}
+          <h1 className="text-3xl font-bold text-white tracking-tight">
+            {isLogin ? "Welcome back" : "Create account"}
+          </h1>
+          <p className="text-white/40 text-sm mt-1 mb-8">
+            {isLogin ? "Log in to your AdMiro account" : "Join AdMiro to manage your displays"}
+          </p>
 
-            {error && (
-              <div className="mb-6 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-                {error}
+          {/* Error */}
+          {error && (
+            <div className="mb-6 bg-red-500/[0.08] border border-red-500/15 text-red-400 text-sm rounded-xl px-4 py-3">
+              {error}
+            </div>
+          )}
+
+          {isLogin ? (
+            <form onSubmit={handleLogin} className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-white/50 mb-1.5 uppercase tracking-wider">
+                  Username or Email
+                </label>
+                <input
+                  type="text"
+                  name="usernameOrEmail"
+                  value={formData.usernameOrEmail}
+                  onChange={handleInputChange}
+                  placeholder="Enter your username or email"
+                  className={inputClass}
+                  required
+                />
               </div>
-            )}
 
-            {isLogin ? (
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-white/70 mb-2">
-                    Username or Email
-                  </label>
-                  <input
-                    type="text"
-                    name="usernameOrEmail"
-                    value={formData.usernameOrEmail}
-                    onChange={handleInputChange}
-                    placeholder="Enter your username or email"
-                    className={inputClass}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-white/70 mb-2">
-                    Password
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      name="password"
-                      value={formData.password}
-                      onChange={handleInputChange}
-                      placeholder="Enter your password"
-                      className={inputClass}
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((p) => !p)}
-                      className="absolute right-4 top-3.5 text-white/40 hover:text-white/80"
-                    >
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full px-4 py-3 bg-[#7E3AF0] hover:bg-[#9F67FF] text-white font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? "Logging in..." : "Log in"}
-                </button>
-
-                <div className="flex items-center gap-4 my-2">
-                  <div className="flex-1 h-px bg-white/10" />
-                  <span className="text-xs text-white/30">OR</span>
-                  <div className="flex-1 h-px bg-white/10" />
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleGoogleAuth}
-                  disabled={googleLoading}
-                  className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-white/10 bg-white/5 text-white/70 font-medium rounded-lg hover:bg-white/10 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <GoogleSVG />
-                  {googleLoading ? "Opening Google..." : "Continue with Google"}
-                </button>
-              </form>
-            ) : (
-              <form onSubmit={handleRegister} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-white/70 mb-2">First Name</label>
-                    <input
-                      type="text"
-                      name="firstName"
-                      value={formData.firstName}
-                      onChange={handleInputChange}
-                      placeholder="First name"
-                      className={inputClass}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-white/70 mb-2">Last Name</label>
-                    <input
-                      type="text"
-                      name="lastName"
-                      value={formData.lastName}
-                      onChange={handleInputChange}
-                      placeholder="Last name"
-                      className={inputClass}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-white/70 mb-2">Username</label>
-                  <input
-                    type="text"
-                    name="username"
-                    value={formData.username}
-                    onChange={handleInputChange}
-                    placeholder="Choose a username"
-                    className={inputClass}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-white/70 mb-2">Email</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    placeholder="Enter your email"
-                    className={inputClass}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-white/70 mb-2">Password</label>
-                  <div className="relative">
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      name="password"
-                      value={formData.password}
-                      onChange={handleInputChange}
-                      placeholder="Create a password"
-                      className={inputClass}
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((p) => !p)}
-                      className="absolute right-4 top-3.5 text-white/40 hover:text-white/80"
-                    >
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-white/70 mb-2">Confirm Password</label>
+              <div>
+                <label className="block text-xs font-medium text-white/50 mb-1.5 uppercase tracking-wider">
+                  Password
+                </label>
+                <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
+                    name="password"
+                    value={formData.password}
                     onChange={handleInputChange}
-                    placeholder="Confirm your password"
+                    placeholder="Enter your password"
                     className={inputClass}
                     required
                   />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full px-4 py-3 bg-[#7E3AF0] hover:bg-[#9F67FF] text-white font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? "Creating account..." : "Create account"}
-                </button>
-
-                <div className="flex items-center gap-4 my-2">
-                  <div className="flex-1 h-px bg-white/10" />
-                  <span className="text-xs text-white/30">OR</span>
-                  <div className="flex-1 h-px bg-white/10" />
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleGoogleAuth}
-                  disabled={googleLoading}
-                  className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-white/10 bg-white/5 text-white/70 font-medium rounded-lg hover:bg-white/10 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <GoogleSVG />
-                  {googleLoading ? "Opening Google..." : "Sign up with Google"}
-                </button>
-              </form>
-            )}
-
-            {/* Toggle login / register */}
-            <div className="mt-6 border-t border-white/8 pt-6 space-y-4">
-              <p className="text-center text-white/50 text-sm">
-                {isLogin ? "Don't have an account? " : "Already have an account? "}
-                <button
-                  onClick={switchMode}
-                  className="text-[#9F67FF] hover:text-white font-semibold"
-                >
-                  {isLogin ? "Sign up" : "Log in"}
-                </button>
-              </p>
-
-              {/* Display device links */}
-              <div className="pt-2">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="flex-1 h-px bg-white/8" />
-                  <span className="text-xs text-white/30">display device</span>
-                  <div className="flex-1 h-px bg-white/8" />
-                </div>
-                <div className="space-y-2">
-                  <Link
-                    href="/display-register"
-                    className="w-full px-4 py-2.5 border border-[#7E3AF0]/40 text-[#9F67FF] font-medium rounded-lg hover:bg-[#7E3AF0]/10 text-center flex items-center justify-center gap-2 text-sm"
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((p) => !p)}
+                    className="absolute right-4 top-3.5 text-white/40 hover:text-white/80 transition-colors duration-150"
                   >
-                    <Monitor size={16} />
-                    Register Display
-                  </Link>
-                  <Link
-                    href="/display-login"
-                    className="w-full px-4 py-2.5 border border-white/10 text-white/50 font-medium rounded-lg hover:bg-white/5 hover:text-white/70 text-center flex items-center justify-center gap-2 text-sm"
-                  >
-                    <Plug size={16} />
-                    Login to Display
-                  </Link>
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
                 </div>
-                <p className="text-xs text-white/30 mt-3 text-center">
-                  Turn this device into an ad display
-                </p>
               </div>
-            </div>
 
-            <div className="mt-6 text-center">
-              <Link href="/" className="text-white/30 hover:text-white/60 text-sm">
-                Back to home
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3 rounded-xl bg-[#7E3AF0] hover:bg-[#9F67FF] text-white font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+              >
+                {loading ? "Logging in..." : "Log in"}
+              </button>
+
+              {/* Divider */}
+              <div className="flex items-center gap-4 py-1">
+                <div className="flex-1 h-px bg-white/[0.08]" />
+                <span className="text-white/25 text-xs">or</span>
+                <div className="flex-1 h-px bg-white/[0.08]" />
+              </div>
+
+              <button
+                type="button"
+                onClick={handleGoogleAuth}
+                disabled={googleLoading}
+                className="w-full py-3 rounded-xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-white/70 hover:text-white text-sm font-medium flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+              >
+                <GoogleSVG />
+                {googleLoading ? "Opening Google..." : "Continue with Google"}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleRegister} className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-white/50 mb-1.5 uppercase tracking-wider">
+                    First Name
+                  </label>
+                  <input
+                    type="text"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleInputChange}
+                    placeholder="First"
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-white/50 mb-1.5 uppercase tracking-wider">
+                    Last Name
+                  </label>
+                  <input
+                    type="text"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleInputChange}
+                    placeholder="Last"
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-white/50 mb-1.5 uppercase tracking-wider">
+                  Username
+                </label>
+                <input
+                  type="text"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleInputChange}
+                  placeholder="Choose a username"
+                  className={inputClass}
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-white/50 mb-1.5 uppercase tracking-wider">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  placeholder="Enter your email"
+                  className={inputClass}
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-white/50 mb-1.5 uppercase tracking-wider">
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    placeholder="Create a password"
+                    className={inputClass}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((p) => !p)}
+                    className="absolute right-4 top-3.5 text-white/40 hover:text-white/80 transition-colors duration-150"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-white/50 mb-1.5 uppercase tracking-wider">
+                  Confirm Password
+                </label>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
+                  placeholder="Confirm your password"
+                  className={inputClass}
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3 rounded-xl bg-[#7E3AF0] hover:bg-[#9F67FF] text-white font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+              >
+                {loading ? "Creating account..." : "Create account"}
+              </button>
+
+              {/* Divider */}
+              <div className="flex items-center gap-4 py-1">
+                <div className="flex-1 h-px bg-white/[0.08]" />
+                <span className="text-white/25 text-xs">or</span>
+                <div className="flex-1 h-px bg-white/[0.08]" />
+              </div>
+
+              <button
+                type="button"
+                onClick={handleGoogleAuth}
+                disabled={googleLoading}
+                className="w-full py-3 rounded-xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-white/70 hover:text-white text-sm font-medium flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+              >
+                <GoogleSVG />
+                {googleLoading ? "Opening Google..." : "Sign up with Google"}
+              </button>
+            </form>
+          )}
+
+          {/* Switch mode */}
+          <p className="mt-6 text-center text-white/40 text-sm">
+            {isLogin ? "Don't have an account? " : "Already have an account? "}
+            <button
+              onClick={switchMode}
+              className="text-[#9F67FF] hover:text-white font-medium transition-colors duration-150"
+            >
+              {isLogin ? "Sign up" : "Log in"}
+            </button>
+          </p>
+
+          {/* Display device section */}
+          <div className="mt-8">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="flex-1 h-px bg-white/[0.08]" />
+              <span className="text-white/20 text-xs">display device</span>
+              <div className="flex-1 h-px bg-white/[0.08]" />
+            </div>
+            <div className="space-y-2">
+              <Link
+                href="/display-register"
+                className="w-full px-4 py-2.5 border border-white/[0.08] text-white/40 hover:text-white/70 hover:border-white/20 font-medium rounded-xl text-center flex items-center justify-center gap-2 text-xs transition-colors duration-150"
+              >
+                <Monitor size={14} />
+                Register Display
+              </Link>
+              <Link
+                href="/display-login"
+                className="w-full px-4 py-2.5 border border-white/[0.08] text-white/40 hover:text-white/70 hover:border-white/20 font-medium rounded-xl text-center flex items-center justify-center gap-2 text-xs transition-colors duration-150"
+              >
+                <Plug size={14} />
+                Login to Display
               </Link>
             </div>
           </div>
+
         </div>
       </div>
 
       {/* Right — gradient bars panel */}
-      <div className="hidden md:flex w-1/2 h-screen sticky top-0">
+      <div className="hidden md:block w-1/2 h-full relative">
         <GradientBarsBackground className="w-full h-full" />
       </div>
     </main>

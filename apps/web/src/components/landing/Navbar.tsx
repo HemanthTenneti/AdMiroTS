@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import gsap from "gsap";
 import { Menu, X } from "lucide-react";
@@ -52,8 +51,9 @@ export function Navbar() {
         >
           <div className="grid grid-cols-3 items-center">
             {/* Logo — left */}
-            <Link href="/" className="flex items-center" aria-label="AdMiro home">
-              <Image src="/logo.svg" alt="AdMiro" width={96} height={23} priority className="brightness-0 invert" />
+            <Link href="/" className="flex items-center gap-2" aria-label="AdMiro home">
+              <img src="/logo.svg" alt="AdMiro" className="h-8 w-auto brightness-0 invert" />
+              <span className="text-white font-bold text-xl tracking-tight">AdMiro</span>
             </Link>
 
             {/* Center pill links — truly centered */}

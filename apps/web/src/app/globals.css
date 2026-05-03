@@ -13,6 +13,37 @@
   --color-border: #E5E7EB;
 }
 
+html.dark body  { background-color: #080410; color: #ffffff; }
+html.light body { background-color: #FAFAF9; color: #111827; }
+
+/* Dark theme (default) */
+html.dark, :root {
+  --ds-bg: #0a0a0a;
+  --ds-surface: #0C0C0C;
+  --ds-card: #111118;
+  --ds-border: rgba(255,255,255,0.08);
+  --ds-text: #ffffff;
+  --ds-text-2: rgba(255,255,255,0.5);
+  --ds-text-3: rgba(255,255,255,0.3);
+  --ds-hover: rgba(255,255,255,0.05);
+  --ds-input: rgba(255,255,255,0.06);
+  --ds-input-border: rgba(255,255,255,0.10);
+}
+
+/* Light theme */
+html.light {
+  --ds-bg: #f4f4f5;
+  --ds-surface: #ffffff;
+  --ds-card: #ffffff;
+  --ds-border: rgba(0,0,0,0.08);
+  --ds-text: #111827;
+  --ds-text-2: rgba(0,0,0,0.50);
+  --ds-text-3: rgba(0,0,0,0.30);
+  --ds-hover: rgba(0,0,0,0.04);
+  --ds-input: rgba(0,0,0,0.04);
+  --ds-input-border: rgba(0,0,0,0.12);
+}
+
 * {
   box-sizing: border-box;
 }

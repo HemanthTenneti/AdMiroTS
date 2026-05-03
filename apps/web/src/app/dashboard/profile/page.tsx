@@ -338,7 +338,7 @@ function ProfileInfoPanel({
   onSubmit: (e: FormEvent) => void;
 }) {
   return (
-    <form onSubmit={onSubmit} className="bg-[#111118] border border-white/8 rounded-xl p-6 space-y-5">
+    <form onSubmit={onSubmit} className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-6 space-y-5">
       <h2 className="text-white font-semibold mb-4">Personal Information</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormInput
@@ -377,7 +377,7 @@ function EmailPanel({
   onSubmit: (e: FormEvent) => void;
 }) {
   return (
-    <form onSubmit={onSubmit} className="bg-[#111118] border border-white/8 rounded-xl p-6 space-y-5">
+    <form onSubmit={onSubmit} className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-6 space-y-5">
       <h2 className="text-white font-semibold mb-4">Email Address</h2>
       <FormInput
         label="New Email Address"
@@ -426,7 +426,7 @@ function PasswordPanel({
         </div>
       )}
 
-      <div className="bg-[#111118] border border-white/8 rounded-xl p-6 space-y-5">
+      <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-6 space-y-5">
         <h2 className="text-white font-semibold mb-4">Change Password</h2>
 
         {!isGoogleOAuth && (
@@ -460,7 +460,7 @@ function PasswordPanel({
       </div>
 
       {/* Danger zone */}
-      <div className="bg-[#111118] border border-red-500/20 rounded-xl p-6">
+      <div className="bg-[var(--ds-card)] border border-red-500/20 rounded-xl p-6">
         <h3 className="text-red-400 font-semibold text-sm mb-1">Danger Zone</h3>
         <p className="text-white/30 text-xs">
           Password changes are irreversible. Make sure you save your new password in a secure place.
@@ -487,7 +487,7 @@ function PicturePanel({
     "U";
 
   return (
-    <div className="bg-[#111118] border border-white/8 rounded-xl p-6">
+    <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-6">
       <h2 className="text-white font-semibold mb-6">Profile Picture</h2>
       <div className="flex flex-col items-center gap-6">
         <div className="relative group">
@@ -591,7 +591,7 @@ export default function ProfilePage() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Avatar sidebar */}
           <div className="lg:col-span-1">
-            <div className="bg-[#111118] border border-white/8 rounded-xl p-5 sticky top-6">
+            <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-5 sticky top-6">
               <div className="flex flex-col items-center text-center gap-3">
                 {profilePicture ? (
                   <img
@@ -616,7 +616,7 @@ export default function ProfilePage() {
                   </p>
                   <p className="text-white/30 text-xs mt-0.5">{user?.email}</p>
                 </div>
-                <div className="w-full pt-3 border-t border-white/8">
+                <div className="w-full pt-3 border-t border-[var(--ds-border)]">
                   <p className="text-white/30 text-xs uppercase tracking-wide mb-1">Username</p>
                   <p className="text-white text-sm font-medium">@{user?.username}</p>
                   <p className="text-white/20 text-xs mt-0.5">Cannot be changed</p>

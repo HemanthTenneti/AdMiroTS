@@ -36,3 +36,4 @@ pnpm-debug.log*
 .DS_Store
 
 .ai-workflow/diagrams/
+FRONTEND_SYSTEM_DESIGN.md
