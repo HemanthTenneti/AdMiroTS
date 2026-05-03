@@ -2,14 +2,13 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Home,
   Monitor,
   Image,
   Link2,
   TrendingUp,
-  Settings,
   LogOut,
   Menu,
   X,
@@ -18,6 +17,7 @@ import {
   User,
 } from "lucide-react";
 import { useAuthStore } from "@/features/auth/store/authStore";
+import { cn } from "@/lib/utils";
 
 interface NavItem {
   label: string;
@@ -40,11 +40,19 @@ interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
+function isActivePath(pathname: string, href: string): boolean {
+  if (href === "/dashboard") {
+    return pathname === href;
+  }
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
+  const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuthStore();
 
@@ -52,13 +60,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     setMounted(true);
   }, []);
 
-  const userName = mounted && user
-    ? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || "User"
-    : "User";
+  const userName =
+    mounted && user
+      ? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || "User"
+      : "User";
 
-  const userInitial = mounted && user?.firstName
-    ? user.firstName.charAt(0).toUpperCase()
-    : "U";
+  const userInitial = mounted && user?.firstName ? user.firstName.charAt(0).toUpperCase() : "U";
 
   const handleLogout = () => {
     logout();
@@ -71,108 +78,102 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   return (
-    <div className="flex h-screen bg-[#faf9f7]">
-      {/* Sidebar */}
+    <div className="flex h-screen bg-transparent text-[var(--color-text)]">
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-[#e5e5e5] transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 w-72 border-r border-[var(--color-border)] bg-[var(--color-surface)]/95 backdrop-blur-sm transition-transform duration-300 ease-in-out md:relative md:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        )}
       >
-        <div className="flex flex-col h-full">
-          {/* Logo */}
-          <div className="p-6 border-b border-[#e5e5e5]">
+        <div className="flex h-full flex-col">
+          <div className="border-b border-[var(--color-border)] p-6">
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-[#8b6f47] rounded flex items-center justify-center text-white text-sm font-bold">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--color-primary)] text-sm font-bold text-white">
                 A
               </div>
-              <span className="text-xl font-bold text-black">AdMiro</span>
+              <div>
+                <div className="text-lg font-semibold tracking-tight">AdMiro</div>
+                <div className="text-xs text-[var(--color-text-muted)]">Operations Console</div>
+              </div>
             </Link>
           </div>
 
-          {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-1">
+          <nav className="flex-1 space-y-1 overflow-y-auto px-4 py-6">
             {navItems.map((item) => {
               const Icon = item.icon;
+              const active = isActivePath(pathname, item.href);
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={closeSidebar}
-                  className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition group"
+                  className={cn(
+                    "group flex items-center gap-3 rounded-xl px-4 py-3 transition",
+                    active
+                      ? "bg-[var(--color-bg-secondary)] text-[var(--color-primary-darker)]"
+                      : "text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)]"
+                  )}
                 >
                   <Icon
                     size={20}
-                    className="text-gray-600 group-hover:text-[#8b6f47] shrink-0"
+                    className={cn(
+                      "shrink-0",
+                      active ? "text-[var(--color-primary)]" : "text-[var(--color-text-muted)]"
+                    )}
                   />
-                  <span className="font-medium text-gray-600 group-hover:text-[#8b6f47]">
-                    {item.label}
-                  </span>
+                  <span className="font-medium">{item.label}</span>
                 </Link>
               );
             })}
           </nav>
 
-          {/* Sidebar Footer */}
-          <div className="border-t border-[#e5e5e5] p-4">
+          <div className="border-t border-[var(--color-border)] p-4">
             <button
               onClick={handleLogout}
-              className="flex items-center gap-3 w-full px-4 py-3 text-gray-700 hover:bg-red-50 rounded-lg transition"
+              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-[var(--color-text-secondary)] transition hover:bg-[#f3ddda]"
             >
-              <LogOut size={20} className="text-gray-600 shrink-0" />
+              <LogOut size={20} className="shrink-0" />
               <span className="font-medium">Logout</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Topbar */}
-        <header className="bg-white border-b border-[#e5e5e5] sticky top-0 z-40">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <header className="sticky top-0 z-40 border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 backdrop-blur-sm">
           <div className="flex items-center justify-between px-6 py-4">
-            {/* Mobile menu toggle */}
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition"
+              className="rounded-lg p-2 transition hover:bg-[var(--color-bg-secondary)] md:hidden"
               aria-label="Toggle sidebar"
             >
-              {sidebarOpen ? (
-                <X size={24} className="text-gray-700" />
-              ) : (
-                <Menu size={24} className="text-gray-700" />
-              )}
+              {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
 
             <div className="hidden md:block" />
 
-            {/* Profile dropdown */}
             <div className="relative">
               <button
                 onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                className="flex items-center gap-3 p-2 hover:bg-gray-100 rounded-lg transition"
+                className="flex items-center gap-3 rounded-xl p-2 transition hover:bg-[var(--color-bg-secondary)]"
               >
                 <div className="flex flex-col items-end">
-                  <span className="text-sm font-medium text-gray-900">
-                    {userName}
-                  </span>
-                  <span className="text-xs text-gray-500">Admin</span>
+                  <span className="text-sm font-medium">{userName}</span>
+                  <span className="text-xs text-[var(--color-text-muted)]">Admin</span>
                 </div>
-                <div className="w-10 h-10 bg-[#8b6f47] rounded-full flex items-center justify-center text-white font-bold shrink-0">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary)] font-bold text-white">
                   {userInitial}
                 </div>
               </button>
 
               {profileMenuOpen && (
                 <>
-                  <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setProfileMenuOpen(false)}
-                  />
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-[#e5e5e5] z-50">
+                  <div className="fixed inset-0 z-40" onClick={() => setProfileMenuOpen(false)} />
+                  <div className="absolute right-0 z-50 mt-2 w-48 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-lg">
                     <Link
                       href="/dashboard/profile"
                       onClick={() => setProfileMenuOpen(false)}
-                      className="block px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-t-lg transition"
+                      className="block rounded-t-xl px-4 py-3 text-sm transition hover:bg-[var(--color-bg-secondary)]"
                     >
                       View Profile
                     </Link>
@@ -181,7 +182,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         setProfileMenuOpen(false);
                         handleLogout();
                       }}
-                      className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 rounded-b-lg transition border-t border-[#e5e5e5]"
+                      className="w-full rounded-b-xl border-t border-[var(--color-border)] px-4 py-3 text-left text-sm text-[#8a2a2a] transition hover:bg-[#f3ddda]"
                     >
                       Logout
                     </button>
@@ -192,18 +193,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </header>
 
-        {/* Page content */}
         <main className="flex-1 overflow-auto">
-          <div className="p-6 max-w-7xl mx-auto">{children}</div>
+          <div className="mx-auto max-w-7xl p-6">{children}</div>
         </main>
       </div>
 
-      {/* Mobile sidebar overlay */}
       {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 md:hidden z-40"
-          onClick={closeSidebar}
-        />
+        <div className="fixed inset-0 z-40 bg-black/35 md:hidden" onClick={closeSidebar} />
       )}
     </div>
   );

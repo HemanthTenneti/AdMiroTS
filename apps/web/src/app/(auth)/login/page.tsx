@@ -8,7 +8,27 @@ import { Eye, EyeOff, Monitor, Plug } from "lucide-react";
 import { authApi } from "@/lib/api/auth.api";
 import { useAuthStore } from "@/features/auth/store/authStore";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+type GoogleCredentialResponse = {
+  credential?: string;
+};
+
+declare global {
+  interface Window {
+    google?: {
+      accounts?: {
+        id?: {
+          initialize: (config: {
+            client_id: string;
+            callback: (response: GoogleCredentialResponse) => void;
+            ux_mode?: "popup" | "redirect";
+            context?: "signin" | "signup" | "use";
+          }) => void;
+          prompt: () => void;
+        };
+      };
+    };
+  }
+}
 
 interface FormData {
   usernameOrEmail: string;
@@ -39,8 +59,11 @@ export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [googleReady, setGoogleReady] = useState(false);
   const [error, setError] = useState("");
   const [formData, setFormData] = useState<FormData>(emptyForm);
+  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -69,6 +92,26 @@ export default function LoginPage() {
         { opacity: 1, scale: 1, duration: 0.7, ease: "back.out(1.7)", delay: 0.2 }
       );
     }
+  }, []);
+
+  useEffect(() => {
+    const existingScript = document.getElementById("google-gsi-client") as HTMLScriptElement | null;
+    if (existingScript) {
+      if (window.google?.accounts?.id) {
+        setGoogleReady(true);
+      } else {
+        existingScript.addEventListener("load", () => setGoogleReady(true), { once: true });
+      }
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.id = "google-gsi-client";
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    script.onload = () => setGoogleReady(true);
+    document.head.appendChild(script);
   }, []);
 
   // Card flip animation on mode toggle
@@ -115,6 +158,52 @@ export default function LoginPage() {
       setError(axiosErr.response?.data?.message || "Login failed. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleAuth = async () => {
+    if (!googleClientId) {
+      setError("Google sign-in is not configured. Missing NEXT_PUBLIC_GOOGLE_CLIENT_ID.");
+      return;
+    }
+
+    if (!googleReady || !window.google?.accounts?.id) {
+      setError("Google sign-in is still loading. Please try again.");
+      return;
+    }
+
+    setGoogleLoading(true);
+    setError("");
+
+    try {
+      window.google.accounts.id.initialize({
+        client_id: googleClientId,
+        context: isLogin ? "signin" : "signup",
+        callback: async (response: GoogleCredentialResponse) => {
+          try {
+            if (!response.credential) {
+              setError("Google did not return a valid identity token.");
+              return;
+            }
+
+            const apiResponse = await authApi.google(response.credential);
+            const { user, accessToken } = apiResponse.data.data;
+            localStorage.setItem("accessToken", accessToken);
+            localStorage.setItem("user", JSON.stringify(user));
+            store.setAuth(user, accessToken);
+            router.push("/dashboard");
+          } catch (err: unknown) {
+            const axiosErr = err as { response?: { data?: { message?: string } } };
+            setError(axiosErr.response?.data?.message || "Google authentication failed. Please try again.");
+          } finally {
+            setGoogleLoading(false);
+          }
+        },
+      });
+      window.google.accounts.id.prompt();
+    } catch {
+      setError("Unable to open Google sign-in prompt.");
+      setGoogleLoading(false);
     }
   };
 
@@ -253,13 +342,15 @@ export default function LoginPage() {
                   <div className="flex-1 h-px bg-[#e5e5e5]" />
                 </div>
 
-                <a
-                  href={`${API_BASE}/api/auth/google`}
-                  className="w-full flex items-center justify-center gap-3 px-4 py-3 border-2 border-[#e5e5e5] text-black font-semibold rounded-lg hover:bg-gray-50"
+                <button
+                  type="button"
+                  onClick={handleGoogleAuth}
+                  disabled={googleLoading}
+                  className="w-full flex items-center justify-center gap-3 px-4 py-3 border-2 border-[#e5e5e5] text-black font-semibold rounded-lg hover:bg-gray-50 disabled:opacity-50"
                 >
                   <GoogleSVG />
-                  Continue with Google
-                </a>
+                  {googleLoading ? "Opening Google..." : "Continue with Google"}
+                </button>
               </form>
             ) : (
               <form onSubmit={handleRegister} className="space-y-4">
@@ -363,13 +454,15 @@ export default function LoginPage() {
                   <div className="flex-1 h-px bg-[#e5e5e5]" />
                 </div>
 
-                <a
-                  href={`${API_BASE}/api/auth/google`}
-                  className="w-full flex items-center justify-center gap-3 px-4 py-3 border-2 border-[#e5e5e5] text-black font-semibold rounded-lg hover:bg-gray-50"
+                <button
+                  type="button"
+                  onClick={handleGoogleAuth}
+                  disabled={googleLoading}
+                  className="w-full flex items-center justify-center gap-3 px-4 py-3 border-2 border-[#e5e5e5] text-black font-semibold rounded-lg hover:bg-gray-50 disabled:opacity-50"
                 >
                   <GoogleSVG />
-                  Sign up with Google
-                </a>
+                  {googleLoading ? "Opening Google..." : "Sign up with Google"}
+                </button>
               </form>
             )}
 
@@ -424,11 +517,14 @@ export default function LoginPage() {
       </div>
 
       {/* Right — background image */}
-      <div
-        className="hidden lg:flex w-1/2 items-center justify-center bg-cover bg-center bg-no-repeat relative overflow-hidden"
-        style={{ backgroundImage: "url(/admiro.jpg)" }}
-      >
-        <div className="absolute inset-0 bg-black/0" />
+      <div className="hidden lg:flex w-1/2 items-center justify-center relative overflow-hidden bg-[radial-gradient(circle_at_20%_20%,#f2e9d8_0%,#e7d8bf_40%,#dac6a7_100%)]">
+        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.20),rgba(255,255,255,0.0))]" />
+        <div className="relative z-10 max-w-md px-8 text-[#2d2418]">
+          <h2 className="text-4xl font-semibold leading-tight">AdMiro Control Suite</h2>
+          <p className="mt-4 text-base text-[#4b3f2e]">
+            Manage displays, media, and playback loops from one clean dashboard.
+          </p>
+        </div>
       </div>
     </main>
   );

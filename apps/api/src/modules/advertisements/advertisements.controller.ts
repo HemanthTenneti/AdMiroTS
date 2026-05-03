@@ -47,7 +47,16 @@ export class AdvertisementController {
   async createAdvertisement(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const user = this.getUser(req);
-      const { adName, mediaUrl, mediaType, duration, description, targetAudience, fileSize } = req.body;
+      const {
+        adName,
+        mediaUrl,
+        mediaType,
+        duration,
+        description,
+        targetAudience,
+        fileSize,
+        mediaObjectKey,
+      } = req.body;
 
       const ad = await this.adService.createAdvertisement(user.id, {
         adName,
@@ -57,6 +66,7 @@ export class AdvertisementController {
         description,
         targetAudience,
         fileSize,
+        mediaObjectKey,
       });
 
       const response: SuccessResponse<any> = {
@@ -64,6 +74,33 @@ export class AdvertisementController {
         data: ad,
       };
       res.status(201).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * POST /api/advertisements/upload-url
+   * Generates a signed URL for direct upload to Cloudflare R2.
+   */
+  async createUploadUrl(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const user = this.getUser(req);
+      const { mediaType, mimeType, fileName, fileSize } = req.body;
+
+      const upload = await this.adService.createUploadUrl({
+        advertiserId: user.id,
+        mediaType,
+        mimeType,
+        fileName,
+        fileSize,
+      });
+
+      const response: SuccessResponse<any> = {
+        success: true,
+        data: upload,
+      };
+      res.status(200).json(response);
     } catch (error) {
       next(error);
     }

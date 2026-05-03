@@ -11,6 +11,7 @@ export class Advertisement implements IAdvertisement {
   advertiserId: string;
   adName: string;
   mediaUrl: string;
+  mediaObjectKey?: string | undefined;
   mediaType: MediaType;
   thumbnailUrl?: string | undefined;
   duration: number;
@@ -29,6 +30,7 @@ export class Advertisement implements IAdvertisement {
     this.advertiserId = data.advertiserId;
     this.adName = data.adName;
     this.mediaUrl = data.mediaUrl;
+    this.mediaObjectKey = data.mediaObjectKey ?? undefined;
     this.mediaType = data.mediaType;
     this.thumbnailUrl = data.thumbnailUrl ?? undefined;
     this.duration = data.duration;

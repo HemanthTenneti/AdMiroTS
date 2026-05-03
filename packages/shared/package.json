@@ -12,6 +12,7 @@
     "typescript": "^5.9.2"
   },
   "dependencies": {
-    "@admiro/domain": "0.1.0"
+    "@admiro/domain": "0.1.0",
+    "zod": "^4.3.6"
   }
 }

@@ -10,6 +10,7 @@ export interface IAdvertisement {
   advertiserId: string; // FK to User
   adName: string;
   mediaUrl: string; // Base64 data URL or external URL
+  mediaObjectKey?: string | undefined;
   mediaType: MediaType;
   thumbnailUrl?: string | undefined;
   duration: number; // In seconds (1-300)

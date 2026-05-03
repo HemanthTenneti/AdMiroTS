@@ -5,6 +5,7 @@
 
 // Re-export all DTOs from types module
 export * from "./types/index.js";
+export * from "./schemas/index.js";
 
 // Legacy type - kept for backward compatibility
 // Use UserRole from @admiro/domain instead

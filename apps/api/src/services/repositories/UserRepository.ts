@@ -41,7 +41,7 @@ export class UserRepository extends BaseRepository<User> {
     const doc = await this.model.findOneAndUpdate(
       { id },
       { ...userData, updatedAt: new Date() },
-      { new: true }
+      { returnDocument: "after" }
     );
     if (!doc) return null;
     return new User(doc.toObject() as IUser);

@@ -25,7 +25,15 @@ export class DisplayLoop implements IDisplayLoop {
     this.loopId = data.loopId;
     this.loopName = data.loopName;
     this.displayId = data.displayId;
-    this.advertisements = data.advertisements;
+    this.advertisements = data.advertisements.map(
+      (ad: any) =>
+        new LoopAdvertisementEntry(
+          ad.advertisementId,
+          ad.order,
+          ad.duration,
+          ad.weight
+        )
+    );
     this.rotationType = data.rotationType;
     this.displayLayout = data.displayLayout;
     this.totalDuration = data.totalDuration;
@@ -114,7 +122,10 @@ export class DisplayLoop implements IDisplayLoop {
   private reorderAdvertisements(): void {
     this.advertisements = this.advertisements
       .sort((a, b) => a.order - b.order)
-      .map((ad, index) => ad.withOrder(index));
+      .map(
+        (ad, index) =>
+          new LoopAdvertisementEntry(ad.advertisementId, index, ad.duration, ad.weight)
+      );
   }
 
   /**

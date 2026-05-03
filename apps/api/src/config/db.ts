@@ -28,6 +28,7 @@ import {
   DisplayConfiguration,
   LoopAdvertisementEntry,
 } from "@admiro/domain";
+import { getEnv } from "./env.js";
 
 interface IUserDocument extends IUser, Document {}
 interface IAdvertisementDocument extends IAdvertisement, Document {}
@@ -108,6 +109,7 @@ const userSchema = new Schema<IUserDocument>(
   },
   {
     timestamps: false,
+    id: false,
     toJSON: jsonTransform,
   },
 );
@@ -133,6 +135,7 @@ const advertisementSchema = new Schema<IAdvertisementDocument>(
       required: true,
       enum: Object.values(MediaType),
     },
+    mediaObjectKey: String,
     thumbnailUrl: String,
     duration: { type: Number, required: true },
     description: String,
@@ -150,6 +153,7 @@ const advertisementSchema = new Schema<IAdvertisementDocument>(
   },
   {
     timestamps: false,
+    id: false,
     toJSON: jsonTransform,
   },
 );
@@ -181,6 +185,7 @@ const displaySchema = new Schema<IDisplayDocument>(
   },
   {
     timestamps: false,
+    id: false,
     toJSON: jsonTransform,
   },
 );
@@ -210,6 +215,7 @@ const displayLoopSchema = new Schema<IDisplayLoopDocument>(
   },
   {
     timestamps: false,
+    id: false,
     toJSON: jsonTransform,
   },
 );
@@ -238,6 +244,7 @@ const displayConnectionRequestSchema =
     },
     {
       timestamps: false,
+      id: false,
       toJSON: jsonTransform,
     },
   );
@@ -269,6 +276,7 @@ const systemLogSchema = new Schema<ISystemLogDocument>(
   },
   {
     timestamps: false,
+    id: false,
     toJSON: jsonTransform,
   },
 );
@@ -292,6 +300,7 @@ const analyticsSchema = new Schema<IAnalyticsDocument>(
   },
   {
     timestamps: false,
+    id: false,
     toJSON: jsonTransform,
   },
 );
@@ -328,7 +337,14 @@ export const AnalyticsModel = model<IAnalyticsDocument>(
   analyticsSchema,
 );
 
+let connectionPromise: Promise<typeof import("mongoose")> | null = null;
+
 export async function connectDb() {
-  const mongoUri = process.env.MONGODB_URI ?? "mongodb://127.0.0.1:27017/admiro";
-  await mongooseConnect(mongoUri);
+  const env = getEnv();
+
+  if (!connectionPromise) {
+    connectionPromise = mongooseConnect(env.MONGODB_URI);
+  }
+
+  await connectionPromise;
 }

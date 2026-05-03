@@ -1,7 +1,5 @@
 /**
  * Advertisement Service
- * Handles business logic for advertisement operations
- * Implements single responsibility principle - only manages advertisement domain logic
  */
 import { Advertisement, AdStatus, MediaType } from "@admiro/domain";
 import { AdvertisementRepository } from "../../services/repositories/AdvertisementRepository";
@@ -10,88 +8,63 @@ import { ValidationError } from "../../utils/errors/ValidationError";
 import { ForbiddenError } from "../../utils/errors/ForbiddenError";
 import { Logger } from "../../utils/logger";
 import { IdGenerator } from "../../utils/id-generator";
+import { R2StorageService, UploadUrlResult } from "../../services/storage/R2StorageService";
 
-/**
- * Whitelist of allowed sort fields
- * Prevents NoSQL injection attacks through sort parameter
- * Only fields that exist in the database schema are allowed
- */
-const ALLOWED_SORT_FIELDS = [
-  "createdAt",
-  "updatedAt",
-  "adName",
-  "views",
-  "clicks",
-  "duration",
-] as const;
+const ALLOWED_SORT_FIELDS = ["createdAt", "updatedAt", "adName", "views", "clicks", "duration"] as const;
+type AllowedSortField = (typeof ALLOWED_SORT_FIELDS)[number];
 
-type AllowedSortField = typeof ALLOWED_SORT_FIELDS[number];
-
-/**
- * Inbound data transfer object for creating advertisements
- * Separated from domain model to control input surface
- */
 interface CreateAdvertisementInput {
   adName: string;
   mediaUrl: string;
   mediaType: MediaType;
   duration: number;
-  description?: string | undefined;
-  targetAudience?: string | undefined;
-  fileSize?: number | undefined;
+  description?: string;
+  targetAudience?: string;
+  fileSize?: number;
+  mediaObjectKey?: string;
 }
 
-/**
- * Inbound data transfer object for updating advertisements
- * All fields optional - only provided fields are updated
- */
 interface UpdateAdvertisementInput {
-  adName?: string | undefined;
-  mediaUrl?: string | undefined;
-  mediaType?: MediaType | undefined;
-  duration?: number | undefined;
-  description?: string | undefined;
-  targetAudience?: string | undefined;
-  fileSize?: number | undefined;
+  adName?: string;
+  mediaUrl?: string;
+  mediaType?: MediaType;
+  duration?: number;
+  description?: string;
+  targetAudience?: string;
+  fileSize?: number;
+  mediaObjectKey?: string;
 }
 
-/**
- * Query filters for listing advertisements
- * Applied to filter and sort database queries
- */
 interface ListFilters {
-  status?: string | undefined;
-  mediaType?: string | undefined;
-  advertiserId?: string | undefined;
-  sortBy?: string | undefined;
-  sortOrder?: "asc" | "desc" | undefined;
+  status?: string;
+  mediaType?: string;
+  advertiserId?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
 }
 
 export class AdvertisementService {
-  private adRepository: AdvertisementRepository;
+  private readonly adRepository: AdvertisementRepository;
+  private readonly storageService: R2StorageService;
 
   constructor() {
-    // Instantiate repository with dependency injection
-    // Repository pattern isolates database access logic
     this.adRepository = new AdvertisementRepository();
+    this.storageService = new R2StorageService();
   }
 
-  /**
-   * Create a new advertisement
-   * Generates unique IDs, sets initial status to DRAFT, initializes metrics
-   *
-   * @param advertiserId - ID of the user creating the advertisement
-   * @param data - Advertisement input data
-   * @returns Created Advertisement entity
-   * @throws ValidationError if input is invalid
-   */
-  async createAdvertisement(
-    advertiserId: string,
-    data: CreateAdvertisementInput
-  ): Promise<Advertisement> {
+  async createUploadUrl(input: {
+    advertiserId: string;
+    mediaType: "image" | "video";
+    mimeType: string;
+    fileName: string;
+    fileSize: number;
+  }): Promise<UploadUrlResult> {
+    return this.storageService.createUploadUrl(input);
+  }
+
+  async createAdvertisement(advertiserId: string, data: CreateAdvertisementInput): Promise<Advertisement> {
     const id = IdGenerator.adId();
 
-    // Create domain entity with initial values
     const advertisement = new Advertisement({
       id,
       adId: id,
@@ -103,27 +76,22 @@ export class AdvertisementService {
       description: data.description ?? undefined,
       targetAudience: data.targetAudience ?? undefined,
       fileSize: data.fileSize ?? undefined,
-      status: AdStatus.DRAFT, // New ads start in draft status
-      views: 0, // Initialize metrics
+      status: AdStatus.DRAFT,
+      views: 0,
       clicks: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
 
-    // Persist to database and return result
-    const created = await this.adRepository.create(advertisement as any);
+    const created = await this.adRepository.create({
+      ...(advertisement as any),
+      mediaObjectKey: data.mediaObjectKey,
+    });
+
     Logger.info(`Advertisement created: ${id}`, { advertiserId });
     return created;
   }
 
-  /**
-   * Retrieve advertisement by ID
-   * Verifies existence before returning to provide helpful error messages
-   *
-   * @param id - Advertisement ID
-   * @returns Advertisement entity
-   * @throws NotFoundError if advertisement doesn't exist
-   */
   async getAdvertisement(id: string): Promise<Advertisement> {
     const ad = await this.adRepository.findById(id);
     if (!ad) {
@@ -132,81 +100,36 @@ export class AdvertisementService {
     return ad;
   }
 
-  /**
-   * List advertisements with pagination and optional filters
-   * Supports filtering by status, media type, advertiser, and custom sorting
-   * Validates sortBy parameter against whitelist to prevent NoSQL injection
-   *
-   * @param page - Page number (1-indexed)
-   * @param limit - Items per page
-   * @param filters - Optional filters and sort configuration
-   * @returns Paginated results with total count
-   * @throws ValidationError if sortBy is not in whitelist
-   */
-  async listAdvertisements(
-    page: number,
-    limit: number,
-    filters?: ListFilters
-  ): Promise<{ data: Advertisement[]; total: number }> {
-    // Build filter object from provided filters
-    // Only include filters that are explicitly set (not undefined)
+  async listAdvertisements(page: number, limit: number, filters?: ListFilters): Promise<{ data: Advertisement[]; total: number }> {
     const filterObj: Record<string, any> = {};
 
     if (filters?.status) filterObj.status = filters.status;
     if (filters?.mediaType) filterObj.mediaType = filters.mediaType;
     if (filters?.advertiserId) filterObj.advertiserId = filters.advertiserId;
 
-    // Validate sortBy field against whitelist
-    // This prevents NoSQL injection attacks through the sort parameter
     let validSortBy: AllowedSortField = "createdAt";
     if (filters?.sortBy && ALLOWED_SORT_FIELDS.includes(filters.sortBy as any)) {
       validSortBy = filters.sortBy as AllowedSortField;
     } else if (filters?.sortBy) {
-      // Reject invalid sort fields to prevent injection
-      throw new ValidationError(
-        `Invalid sortBy field. Allowed fields: ${ALLOWED_SORT_FIELDS.join(", ")}`
-      );
+      throw new ValidationError(`Invalid sortBy field. Allowed fields: ${ALLOWED_SORT_FIELDS.join(", ")}`);
     }
 
-    // Delegate pagination logic to repository
-    // Repository handles skip/limit calculation and sorting
-    const result = await this.adRepository.findWithPagination(
+    return this.adRepository.findWithPagination(
       filterObj,
       page,
       limit,
       validSortBy,
       filters?.sortOrder ?? "desc"
     );
-
-    return result;
   }
 
-  /**
-   * Update an advertisement's mutable fields
-   * Verifies user ownership before allowing updates
-   * Prevents updates to system fields like status (use dedicated methods instead)
-   *
-   * @param id - Advertisement ID
-   * @param advertiserId - ID of the user making the update (for ownership validation)
-   * @param data - Partial update data
-   * @returns Updated Advertisement entity
-   * @throws NotFoundError if advertisement doesn't exist
-   * @throws ForbiddenError if user is not the owner
-   */
-  async updateAdvertisement(
-    id: string,
-    advertiserId: string,
-    data: UpdateAdvertisementInput
-  ): Promise<Advertisement> {
-    // Verify advertisement exists before attempting update
+  async updateAdvertisement(id: string, advertiserId: string, data: UpdateAdvertisementInput): Promise<Advertisement> {
     const ad = await this.getAdvertisement(id);
 
-    // Verify user ownership
     if (ad.advertiserId !== advertiserId) {
       throw new ForbiddenError("You do not have permission to update this advertisement");
     }
 
-    // Build update object with only changed fields
     const updateData: Record<string, any> = {
       updatedAt: new Date(),
     };
@@ -218,8 +141,8 @@ export class AdvertisementService {
     if (data.description !== undefined) updateData.description = data.description;
     if (data.targetAudience !== undefined) updateData.targetAudience = data.targetAudience;
     if (data.fileSize !== undefined) updateData.fileSize = data.fileSize;
+    if (data.mediaObjectKey !== undefined) updateData.mediaObjectKey = data.mediaObjectKey;
 
-    // Persist changes
     const updated = await this.adRepository.updateById(id, updateData);
     if (!updated) {
       throw new NotFoundError(`Advertisement with ID ${id} not found`);
@@ -229,27 +152,13 @@ export class AdvertisementService {
     return updated;
   }
 
-  /**
-   * Soft delete an advertisement
-   * Verifies user ownership before allowing deletion
-   * Sets status to EXPIRED instead of removing record
-   * Preserves historical data while removing from active lists
-   *
-   * @param id - Advertisement ID
-   * @param advertiserId - ID of the user making the deletion (for ownership validation)
-   * @throws NotFoundError if advertisement doesn't exist
-   * @throws ForbiddenError if user is not the owner
-   */
   async deleteAdvertisement(id: string, advertiserId: string): Promise<void> {
-    // Verify exists before attempting delete
     const ad = await this.getAdvertisement(id);
 
-    // Verify user ownership
     if (ad.advertiserId !== advertiserId) {
       throw new ForbiddenError("You do not have permission to delete this advertisement");
     }
 
-    // Soft delete - preserve data by marking as expired
     await this.adRepository.updateById(id, {
       status: AdStatus.EXPIRED,
       updatedAt: new Date(),
@@ -258,22 +167,9 @@ export class AdvertisementService {
     Logger.info(`Advertisement soft-deleted: ${id}`, { deletedBy: advertiserId });
   }
 
-  /**
-   * Activate an advertisement
-   * Verifies user ownership before allowing status change
-   * Changes status to ACTIVE, making it available for display
-   *
-   * @param id - Advertisement ID
-   * @param advertiserId - ID of the user making the change (for ownership validation)
-   * @returns Updated Advertisement entity
-   * @throws NotFoundError if advertisement doesn't exist
-   * @throws ForbiddenError if user is not the owner
-   */
   async activateAdvertisement(id: string, advertiserId: string): Promise<Advertisement> {
-    // Verify exists before attempting status change
     const ad = await this.getAdvertisement(id);
 
-    // Verify user ownership
     if (ad.advertiserId !== advertiserId) {
       throw new ForbiddenError("You do not have permission to activate this advertisement");
     }
@@ -291,22 +187,9 @@ export class AdvertisementService {
     return updated;
   }
 
-  /**
-   * Deactivate an advertisement
-   * Verifies user ownership before allowing status change
-   * Changes status to PAUSED, preventing display without deletion
-   *
-   * @param id - Advertisement ID
-   * @param advertiserId - ID of the user making the change (for ownership validation)
-   * @returns Updated Advertisement entity
-   * @throws NotFoundError if advertisement doesn't exist
-   * @throws ForbiddenError if user is not the owner
-   */
   async deactivateAdvertisement(id: string, advertiserId: string): Promise<Advertisement> {
-    // Verify exists before attempting status change
     const ad = await this.getAdvertisement(id);
 
-    // Verify user ownership
     if (ad.advertiserId !== advertiserId) {
       throw new ForbiddenError("You do not have permission to deactivate this advertisement");
     }
@@ -324,14 +207,6 @@ export class AdvertisementService {
     return updated;
   }
 
-  /**
-   * Get engagement statistics for an advertisement
-   * Calculates derived metrics like CTR (click-through rate)
-   *
-   * @param id - Advertisement ID
-   * @returns Statistics object with views, clicks, CTR percentage
-   * @throws NotFoundError if advertisement doesn't exist
-   */
   async getAdvertisementStats(id: string): Promise<{
     id: string;
     adName: string;
@@ -342,7 +217,6 @@ export class AdvertisementService {
   }> {
     const ad = await this.getAdvertisement(id);
 
-    // Calculate CTR as percentage (safe division when views = 0)
     const ctr = ad.views > 0 ? (ad.clicks / ad.views) * 100 : 0;
 
     return {
@@ -350,38 +224,18 @@ export class AdvertisementService {
       adName: ad.adName,
       views: ad.views,
       clicks: ad.clicks,
-      clickThroughRate: parseFloat(ctr.toFixed(2)), // Round to 2 decimal places
-      displayCount: 0, // TODO: Calculate from display loop entries
+      clickThroughRate: Number(ctr.toFixed(2)),
+      displayCount: 0,
     };
   }
 
-  /**
-   * Get all advertisements created by a specific user
-   * Used to show user's own advertisement portfolio
-   *
-   * @param userId - User/advertiser ID
-   * @returns Array of advertisements created by this user
-   */
   async getAdvertisementsByUser(userId: string): Promise<Advertisement[]> {
     return this.adRepository.findByAdvertiserId(userId);
   }
 
-  /**
-   * Bulk create multiple advertisements in a single request
-   * Iteratively creates each advertisement to ensure proper error handling
-   *
-   * @param advertiserId - ID of the user creating advertisements
-   * @param advertisements - Array of advertisement input data
-   * @returns Array of created Advertisement entities
-   */
-  async bulkCreateAdvertisements(
-    advertiserId: string,
-    advertisements: CreateAdvertisementInput[]
-  ): Promise<Advertisement[]> {
+  async bulkCreateAdvertisements(advertiserId: string, advertisements: CreateAdvertisementInput[]): Promise<Advertisement[]> {
     const created: Advertisement[] = [];
 
-    // Create each advertisement sequentially
-    // This ensures proper error handling per item
     for (const ad of advertisements) {
       const createdAd = await this.createAdvertisement(advertiserId, ad);
       created.push(createdAd);

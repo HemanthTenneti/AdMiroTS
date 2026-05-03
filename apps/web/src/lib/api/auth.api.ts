@@ -1,47 +1,56 @@
 import client from "./client";
+import { z } from "zod";
+import {
+  AuthResponse,
+  LoginPayload,
+  LoginPayloadSchema,
+  LoginResponseSchema,
+  MeResponseSchema,
+  RefreshResponseSchema,
+  RegisterPayload,
+  RegisterPayloadSchema,
+  RegisterResponseSchema,
+} from "@admiro/shared";
 
-export interface LoginPayload {
-  usernameOrEmail: string;
-  password: string;
-}
+export type { LoginPayload, RegisterPayload, AuthResponse };
 
-export interface RegisterPayload {
-  email: string;
-  password: string;
-  confirmPassword: string;
-  username?: string;
-  firstName?: string;
-  lastName?: string;
-}
-
-export interface AuthResponse {
-  user: {
-    id: string;
-    username: string;
-    email: string;
-    firstName?: string;
-    lastName?: string;
-    role: string;
-    profilePicture?: string;
-    isActive: boolean;
-    lastLogin?: string;
-  };
-  accessToken: string;
-}
+const GoogleLoginPayloadSchema = z.object({
+  token: z.string().min(1),
+});
 
 export const authApi = {
-  login: (payload: LoginPayload) =>
-    client.post<{ success: boolean; data: AuthResponse }>("/api/auth/login", payload),
+  login: async (payload: LoginPayload) => {
+    const parsedPayload = LoginPayloadSchema.parse(payload);
+    const response = await client.post("/api/auth/login", parsedPayload);
+    const parsedResponse = LoginResponseSchema.parse(response.data);
+    return { ...response, data: parsedResponse };
+  },
 
-  register: (payload: RegisterPayload) =>
-    client.post<{ success: boolean; data: AuthResponse }>("/api/auth/register", payload),
+  register: async (payload: RegisterPayload) => {
+    const parsedPayload = RegisterPayloadSchema.parse(payload);
+    const response = await client.post("/api/auth/register", parsedPayload);
+    const parsedResponse = RegisterResponseSchema.parse(response.data);
+    return { ...response, data: parsedResponse };
+  },
 
-  me: () =>
-    client.get<{ success: boolean; data: { user: AuthResponse["user"] } }>("/api/auth/me"),
+  google: async (token: string) => {
+    const parsedPayload = GoogleLoginPayloadSchema.parse({ token });
+    const response = await client.post("/api/auth/google", parsedPayload);
+    const parsedResponse = LoginResponseSchema.parse(response.data);
+    return { ...response, data: parsedResponse };
+  },
 
-  refresh: () =>
-    client.post<{ success: boolean; data: { accessToken: string } }>("/api/auth/refresh"),
+  me: async () => {
+    const response = await client.get("/api/auth/me");
+    const parsedResponse = MeResponseSchema.parse(response.data);
+    return { ...response, data: parsedResponse };
+  },
 
-  logout: () =>
-    client.post("/api/auth/logout"),
+  refresh: async () => {
+    const response = await client.post("/api/auth/refresh");
+    const parsedResponse = RefreshResponseSchema.parse(response.data);
+    return { ...response, data: parsedResponse };
+  },
+
+  logout: () => client.post("/api/auth/logout"),
 };

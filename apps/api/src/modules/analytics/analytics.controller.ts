@@ -1,6 +1,5 @@
 /**
  * Analytics Controller
- * Handles HTTP requests for analytics operations
  */
 import { Request, Response, NextFunction } from "express";
 import { AnalyticsService } from "./analytics.service";
@@ -9,7 +8,7 @@ import { AuthenticatedRequest } from "../../types/auth.types";
 import { UnauthorizedError } from "../../utils/errors/UnauthorizedError";
 
 export class AnalyticsController {
-  private analyticsService: AnalyticsService;
+  private readonly analyticsService: AnalyticsService;
 
   constructor() {
     this.analyticsService = new AnalyticsService();
@@ -23,13 +22,8 @@ export class AnalyticsController {
     return authReq.user;
   }
 
-  /**
-   * Record a new analytics event
-   */
   async recordEvent(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // In this system, displays might record events without a full user context,
-      // but for this implementation, we'll keep it simple
       const event = await this.analyticsService.recordEvent(req.body);
       const response: SuccessResponse<any> = {
         success: true,
@@ -41,107 +35,74 @@ export class AnalyticsController {
     }
   }
 
-   /**
-    * List analytics records with pagination and filtering
-    */
-   async listAnalytics(req: Request, res: Response, next: NextFunction): Promise<void> {
-     try {
-       this.getUser(req);
-       const page = req.query.page as string | undefined;
-       const limit = req.query.limit as string | undefined;
-       const displayId = req.query.displayId as string | undefined;
-       const adId = req.query.adId as string | undefined;
-       const loopId = req.query.loopId as string | undefined;
-       const startDate = req.query.startDate as string | undefined;
-       const endDate = req.query.endDate as string | undefined;
-       const sortBy = req.query.sortBy as string | undefined;
-       const sortOrder = req.query.sortOrder as "asc" | "desc" | undefined;
+  async listAnalytics(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      this.getUser(req);
+      const page = req.query.page as string | undefined;
+      const limit = req.query.limit as string | undefined;
+      const displayId = req.query.displayId as string | undefined;
+      const adId = req.query.adId as string | undefined;
+      const loopId = req.query.loopId as string | undefined;
+      const startDate = req.query.startDate as string | undefined;
+      const endDate = req.query.endDate as string | undefined;
+      const sortBy = req.query.sortBy as string | undefined;
+      const sortOrder = req.query.sortOrder as "asc" | "desc" | undefined;
 
-       // Build filter object with only defined values
-       const filters: {
-         displayId?: string;
-         adId?: string;
-         loopId?: string;
-         startDate?: string;
-         endDate?: string;
-         sortBy?: string;
-         sortOrder?: "asc" | "desc";
-       } = {};
+      const result = await this.analyticsService.listAnalytics(Number(page) || 1, Number(limit) || 10, {
+        displayId,
+        adId,
+        loopId,
+        startDate,
+        endDate,
+        sortBy,
+        sortOrder,
+      });
 
-       if (displayId !== undefined) filters.displayId = displayId;
-       if (adId !== undefined) filters.adId = adId;
-       if (loopId !== undefined) filters.loopId = loopId;
-       if (startDate !== undefined) filters.startDate = startDate;
-       if (endDate !== undefined) filters.endDate = endDate;
-       if (sortBy !== undefined) filters.sortBy = sortBy;
-       if (sortOrder !== undefined) filters.sortOrder = sortOrder;
+      const response: SuccessResponse<any> = {
+        success: true,
+        data: {
+          data: result.data,
+          pagination: {
+            page: Number(page) || 1,
+            limit: Number(limit) || 10,
+            total: result.total,
+            hasMore: (Number(page) || 1) * (Number(limit) || 10) < result.total,
+          },
+        },
+      };
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
 
-       const result = await this.analyticsService.listAnalytics(
-         Number(page) || 1,
-         Number(limit) || 10,
-         filters
-       );
+  async getAggregatedStats(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      this.getUser(req);
+      const displayId = req.query.displayId as string | undefined;
+      const adId = req.query.adId as string | undefined;
+      const loopId = req.query.loopId as string | undefined;
+      const startDate = req.query.startDate as string | undefined;
+      const endDate = req.query.endDate as string | undefined;
 
-       const response: SuccessResponse<any> = {
-         success: true,
-         data: {
-           data: result.data,
-           pagination: {
-             page: Number(page) || 1,
-             limit: Number(limit) || 10,
-             total: result.total,
-             hasMore: (Number(page) || 1) * (Number(limit) || 10) < result.total,
-           },
-         },
-       };
-       res.status(200).json(response);
-     } catch (error) {
-       next(error);
-     }
-   }
+      const stats = await this.analyticsService.getAggregatedAnalytics({
+        displayId,
+        adId,
+        loopId,
+        startDate,
+        endDate,
+      });
 
-   /**
-    * Get aggregated statistics
-    */
-   async getAggregatedStats(req: Request, res: Response, next: NextFunction): Promise<void> {
-     try {
-       this.getUser(req);
-       const displayId = req.query.displayId as string | undefined;
-       const adId = req.query.adId as string | undefined;
-       const loopId = req.query.loopId as string | undefined;
-       const startDate = req.query.startDate as string | undefined;
-       const endDate = req.query.endDate as string | undefined;
+      const response: SuccessResponse<any> = {
+        success: true,
+        data: stats,
+      };
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
 
-       // Build filter object with only defined values
-       const filters: {
-         displayId?: string;
-         adId?: string;
-         loopId?: string;
-         startDate?: string;
-         endDate?: string;
-       } = {};
-
-       if (displayId !== undefined) filters.displayId = displayId;
-       if (adId !== undefined) filters.adId = adId;
-       if (loopId !== undefined) filters.loopId = loopId;
-       if (startDate !== undefined) filters.startDate = startDate;
-       if (endDate !== undefined) filters.endDate = endDate;
-
-       const stats = await this.analyticsService.getAggregatedAnalytics(filters);
-
-       const response: SuccessResponse<any> = {
-         success: true,
-         data: stats,
-       };
-       res.status(200).json(response);
-     } catch (error) {
-       next(error);
-     }
-   }
-
-  /**
-   * Get single analytics record
-   */
   async getAnalytics(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       this.getUser(req);
@@ -152,6 +113,51 @@ export class AnalyticsController {
         data: analytics,
       };
       res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getOverview(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      this.getUser(req);
+      const overview = await this.analyticsService.getOverviewStats();
+      res.status(200).json({ success: true, data: overview });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getDisplayStats(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      this.getUser(req);
+      const displayId = req.params.id as string;
+      const stats = await this.analyticsService.getDisplayStats(displayId);
+      res.status(200).json({ success: true, data: stats });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getAdvertisementStats(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      this.getUser(req);
+      const adId = req.params.id as string;
+      const stats = await this.analyticsService.getAdvertisementStats(adId);
+      res.status(200).json({ success: true, data: stats });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getTimeline(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      this.getUser(req);
+      const from = req.query.from as string | undefined;
+      const to = req.query.to as string | undefined;
+      const interval = req.query.interval as "hour" | "day" | undefined;
+      const timeline = await this.analyticsService.getTimeline({ from, to, interval });
+      res.status(200).json({ success: true, data: timeline });
     } catch (error) {
       next(error);
     }

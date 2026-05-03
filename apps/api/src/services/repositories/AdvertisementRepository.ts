@@ -33,6 +33,14 @@ export class AdvertisementRepository extends BaseRepository<Advertisement> {
   async incrementClicks(id: string): Promise<void> {
     await this.model.findOneAndUpdate({ id }, { $inc: { clicks: 1 } });
   }
+
+  async findByAnyIds(ids: string[]): Promise<Advertisement[]> {
+    if (ids.length === 0) return [];
+    const docs = await this.model.find({
+      $or: [{ id: { $in: ids } }, { adId: { $in: ids } }],
+    });
+    return docs.map((doc: any) => new Advertisement(doc.toObject() as IAdvertisement));
+  }
 }
 
 export default AdvertisementRepository;

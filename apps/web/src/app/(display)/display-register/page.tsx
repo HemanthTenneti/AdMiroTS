@@ -76,8 +76,8 @@ export default function DisplayRegisterPage() {
       try {
         const response = await displaysApi.getByConnectionToken(connectionToken);
         const displayData = response.data.data;
-        const requestStatus = (displayData as unknown as Record<string, string>).connectionRequestStatus;
-        const reason = (displayData as unknown as Record<string, string>).rejectionReason;
+        const requestStatus = displayData.connectionRequestStatus;
+        const reason = displayData.rejectionReason;
 
         if (requestStatus === "rejected") {
           setWaitingForApproval(false);
@@ -87,7 +87,7 @@ export default function DisplayRegisterPage() {
           return;
         }
 
-        const assignedAdmin = (displayData as unknown as Record<string, unknown>).assignedAdmin;
+        const assignedAdmin = displayData.assignedAdmin;
         if (requestStatus === "approved" && assignedAdmin) {
           setSuccess(true);
           setWaitingForApproval(false);

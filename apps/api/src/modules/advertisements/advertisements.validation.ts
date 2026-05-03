@@ -1,7 +1,5 @@
 /**
- * Advertisement validation schemas using Zod
- * Validates all advertisement operations with strict type safety
- * Includes length limits to prevent buffer overflows and large payload attacks
+ * Advertisement validation schemas using Zod.
  */
 import { z } from "zod";
 
@@ -24,6 +22,7 @@ export const CreateAdvertisementSchema = z.object({
     .positive("File size must be positive")
     .max(500 * 1024 * 1024, "File size cannot exceed 500MB")
     .optional(),
+  mediaObjectKey: z.string().max(1024).optional(),
 });
 
 export const UpdateAdvertisementSchema = z.object({
@@ -51,22 +50,12 @@ export const UpdateAdvertisementSchema = z.object({
     .positive("File size must be positive")
     .max(500 * 1024 * 1024, "File size cannot exceed 500MB")
     .optional(),
+  mediaObjectKey: z.string().max(1024).optional(),
 });
 
 export const AdvertisementListQuerySchema = z.object({
-  page: z
-    .coerce
-    .number()
-    .int("Page must be an integer")
-    .min(1, "Page must be at least 1")
-    .default(1),
-  limit: z
-    .coerce
-    .number()
-    .int("Limit must be an integer")
-    .min(1, "Limit must be at least 1")
-    .max(100, "Limit cannot exceed 100")
-    .default(10),
+  page: z.coerce.number().int("Page must be an integer").min(1, "Page must be at least 1").default(1),
+  limit: z.coerce.number().int("Limit must be an integer").min(1, "Limit must be at least 1").max(100, "Limit cannot exceed 100").default(10),
   status: z.string().optional(),
   mediaType: z.string().optional(),
   advertiserId: z.string().optional(),
@@ -81,9 +70,17 @@ export const BulkUploadAdvertisementsSchema = z.object({
     .max(100, "Cannot bulk upload more than 100 advertisements at once"),
 });
 
+export const CreateUploadUrlSchema = z.object({
+  mediaType: z.enum(["image", "video"]),
+  mimeType: z.string().min(1),
+  fileName: z.string().min(1).max(255),
+  fileSize: z.number().int().positive(),
+});
+
 export const AdvertisementValidationSchemas = {
   create: CreateAdvertisementSchema,
   update: UpdateAdvertisementSchema,
   listQuery: AdvertisementListQuerySchema,
   bulkUpload: BulkUploadAdvertisementsSchema,
+  createUploadUrl: CreateUploadUrlSchema,
 };

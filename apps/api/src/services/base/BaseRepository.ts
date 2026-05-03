@@ -50,13 +50,14 @@ export abstract class BaseRepository<T = Record<string, any>> {
   }
 
   async create(data: Record<string, any>): Promise<T> {
-    // Mongoose create returns the persisted document; we convert to domain entity
-    // at the repository level if needed, or leave as-is if DB model matches domain
-    return this.model.create(data);
+    // Use document.save() to avoid collisions when a loaded domain class defines
+    // a static `create()` method, which would otherwise shadow Mongoose Model.create().
+    const doc = new this.model(data);
+    return doc.save();
   }
 
   async updateById(id: string, data: Record<string, any>): Promise<T | null> {
-    return this.model.findOneAndUpdate({ id }, data, { new: true });
+    return this.model.findOneAndUpdate({ id }, data, { returnDocument: "after" });
   }
 
   async deleteById(id: string): Promise<T | null> {

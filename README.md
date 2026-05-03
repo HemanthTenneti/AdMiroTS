@@ -155,10 +155,10 @@ This separation keeps controllers thin, services testable, and repository/data a
 The platform exposes REST APIs grouped by domain:
 
 - /api/auth
-- /api/ads
+- /api/advertisements
 - /api/displays
-- /api/loops
-- /api/logs
+- /api/display-loops
+- /api/system-logs
 - /api/profile
 - /api/analytics
 
@@ -189,7 +189,7 @@ Frontend uses Next.js App Router with feature-first organization:
 - Helmet and CORS hardening
 - Rate limiting for general and auth-sensitive routes
 - JWT verification middleware and role checks
-- File upload constraints (size/type)
+- File upload constraints (size/type) and Cloudflare R2 signed URLs
 - Global error handling with normalized error payloads
 - Structured logging for traceability and operations
 
@@ -223,6 +223,22 @@ npm run build
 ```bash
 npm run typecheck
 ```
+
+### API Tests (Mocha + Chai)
+
+```bash
+npm run test -w @admiro/api
+```
+
+## Deployment Notes
+
+- Deploy `apps/web` as a Vercel Next.js project.
+- Deploy `apps/api` as a separate Vercel project using [`apps/api/vercel.json`](apps/api/vercel.json).
+- Configure API env vars:
+  - `MONGODB_URI`, `JWT_SECRET`, `GOOGLE_CLIENT_ID`, `CORS_ORIGINS`
+  - `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_PUBLIC_BASE_URL`
+- Configure web env var:
+  - `NEXT_PUBLIC_API_BASE_URL` pointing to the deployed API URL.
 
 ## Example End-to-End Flow
 

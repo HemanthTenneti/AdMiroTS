@@ -41,14 +41,14 @@ export function createAdvertisementRoutes(jwtSecret: string): Router {
     adController.getAdvertisementsByUser(req, res, next).catch(next);
   });
 
-  // GET /api/advertisements/:id - Get single advertisement by ID
-  router.get("/:id", (req: Request, res: Response, next: NextFunction) => {
-    adController.getAdvertisement(req, res, next).catch(next);
-  });
-
   // GET /api/advertisements/:id/stats - Get advertisement statistics (views, clicks, CTR)
   router.get("/:id/stats", (req: Request, res: Response, next: NextFunction) => {
     adController.getAdvertisementStats(req, res, next).catch(next);
+  });
+
+  // GET /api/advertisements/:id - Get single advertisement by ID
+  router.get("/:id", (req: Request, res: Response, next: NextFunction) => {
+    adController.getAdvertisement(req, res, next).catch(next);
   });
 
   /**
@@ -63,6 +63,16 @@ export function createAdvertisementRoutes(jwtSecret: string): Router {
     validateRequest(AdvertisementValidationSchemas.create),
     (req: Request, res: Response, next: NextFunction) => {
       adController.createAdvertisement(req, res, next).catch(next);
+    }
+  );
+
+  // POST /api/advertisements/upload-url - Generate signed upload URL for R2
+  router.post(
+    "/upload-url",
+    authMiddleware,
+    validateRequest(AdvertisementValidationSchemas.createUploadUrl),
+    (req: Request, res: Response, next: NextFunction) => {
+      adController.createUploadUrl(req, res, next).catch(next);
     }
   );
 

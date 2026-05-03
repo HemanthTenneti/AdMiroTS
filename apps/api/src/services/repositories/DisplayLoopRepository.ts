@@ -31,6 +31,12 @@ export class DisplayLoopRepository extends BaseRepository<DisplayLoop> {
       $pull: { "advertisements.advertisementId": adId },
     });
   }
+
+  async findByDisplayId(displayId: string): Promise<DisplayLoop | null> {
+    const doc = await this.model.findOne({ displayId, isActive: true }).sort({ updatedAt: -1 });
+    if (!doc) return null;
+    return new DisplayLoop(doc.toObject() as IDisplayLoop);
+  }
 }
 
 export default DisplayLoopRepository;

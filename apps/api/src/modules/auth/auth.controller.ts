@@ -117,7 +117,7 @@ export class AuthController {
 
   async googleAuth(req: Request, res: Response): Promise<void> {
     try {
-      const { token } = req.body;
+      const token = req.body?.token || req.body?.idToken;
 
       if (!token) {
         res.status(400).json({ success: false, message: "Google token is required" });

@@ -47,6 +47,12 @@ export class DisplayRepository extends BaseRepository<Display> {
     if (!doc) return null;
     return new Display(doc.toObject() as IDisplay);
   }
+
+  async findByDisplayIds(displayIds: string[]): Promise<Display[]> {
+    if (displayIds.length === 0) return [];
+    const docs = await this.model.find({ id: { $in: displayIds } });
+    return docs.map((doc: any) => new Display(doc.toObject() as IDisplay));
+  }
 }
 
 export default DisplayRepository;

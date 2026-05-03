@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import gsap from "gsap";
 import { ArrowLeft, Loader2, Monitor } from "lucide-react";
-import client from "@/lib/api/client";
+import { displaysApi } from "@/lib/api/displays.api";
 
 interface FormData {
   displayId: string;
@@ -79,7 +79,7 @@ export default function DisplayLoginPage() {
       setLoading(true);
       setError("");
 
-      const response = await client.post("/api/displays/login-display", {
+      const response = await displaysApi.loginDisplay({
         displayId: formData.displayId.trim(),
         password: formData.password.trim(),
       });

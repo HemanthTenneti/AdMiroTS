@@ -1,213 +1,184 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Monitor, FileImage, PlaySquare, ScrollText, Plus, ArrowRight } from "lucide-react";
-import DashboardLayout from "@/components/DashboardLayout";
-import { displaysApi } from "@/lib/api/displays.api";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowRight, BarChart3, Clock3, Image, Monitor, Play } from "lucide-react";
 import { advertisementsApi } from "@/lib/api/advertisements.api";
-import { useAuthStore } from "@/features/auth/store/authStore";
+import { displaysApi } from "@/lib/api/displays.api";
+import { displayLoopsApi } from "@/lib/api/display-loops.api";
+import { systemLogsApi } from "@/lib/api/system-logs.api";
+import { useDashboardAuth } from "@/hooks/useDashboardAuth";
+import { DataTable, PageTitle, Panel, StatusPill } from "@/components/dashboard/ui";
+import { formatDateTime } from "@/lib/utils";
 
-interface StatCard {
+interface MetricCard {
   label: string;
   value: string;
-  loading: boolean;
-  bgColor: string;
-  iconColor: string;
-  Icon: React.ElementType;
-}
-
-interface QuickAction {
-  label: string;
-  href: string;
-  Icon: React.ElementType;
+  icon: React.ElementType;
+  hint: string;
 }
 
 export default function DashboardPage() {
-  const router = useRouter();
-  const store = useAuthStore();
+  const { authReady, user } = useDashboardAuth();
+  const [loading, setLoading] = useState(true);
+  const [displayCount, setDisplayCount] = useState(0);
+  const [adCount, setAdCount] = useState(0);
+  const [loopCount, setLoopCount] = useState(0);
+  const [recentLogs, setRecentLogs] = useState<any[]>([]);
 
-  const [authLoading, setAuthLoading] = useState(true);
-  const [user, setUser] = useState<{ firstName?: string } | null>(null);
-
-  const [totalDisplays, setTotalDisplays] = useState(0);
-  const [displaysLoading, setDisplaysLoading] = useState(true);
-
-  const [totalAds, setTotalAds] = useState(0);
-  const [adsLoading, setAdsLoading] = useState(true);
-
-  // Loops API not yet implemented — hardcoded to 0
-  const totalLoops = 0;
-  const loopsLoading = false;
-
-  // Auth guard
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) {
-      router.push("/login");
-      return;
-    }
+    if (!authReady) return;
 
-    try {
-      const raw = localStorage.getItem("user");
-      if (raw) setUser(JSON.parse(raw));
-    } catch {
-      // ignore
-    }
-
-    store.hydrate();
-    setAuthLoading(false);
-  }, [router, store]);
-
-  // Fetch counts in parallel once auth is confirmed
-  useEffect(() => {
-    if (authLoading) return;
-
-    const fetchDisplays = async () => {
+    const load = async () => {
+      setLoading(true);
       try {
-        setDisplaysLoading(true);
-        const res = await displaysApi.list({ limit: 1 });
-        setTotalDisplays(res.data.data.pagination.total);
+        const [displays, ads, loops, logs] = await Promise.all([
+          displaysApi.list({ page: 1, limit: 1 }),
+          advertisementsApi.list({ page: 1, limit: 1 }),
+          displayLoopsApi.list({ page: 1, limit: 1 }),
+          systemLogsApi.list({ page: 1, limit: 5 }),
+        ]);
+
+        setDisplayCount(displays.data.data.pagination.total);
+        setAdCount(ads.data.data.pagination.total);
+        setLoopCount(loops.data.data.pagination.total);
+        setRecentLogs(logs.data.data.data);
       } catch {
-        setTotalDisplays(0);
+        // 401 redirects are handled by the Axios interceptor; avoid unhandled promise rejections.
+        setRecentLogs([]);
       } finally {
-        setDisplaysLoading(false);
+        setLoading(false);
       }
     };
 
-    const fetchAds = async () => {
-      try {
-        setAdsLoading(true);
-        const res = await advertisementsApi.list({ limit: 1 });
-        setTotalAds(res.data.data.pagination.total);
-      } catch {
-        setTotalAds(0);
-      } finally {
-        setAdsLoading(false);
-      }
-    };
+    void load();
+  }, [authReady]);
 
-    fetchDisplays();
-    fetchAds();
-  }, [authLoading]);
+  const metrics = useMemo<MetricCard[]>(
+    () => [
+      {
+        label: "Displays",
+        value: String(displayCount),
+        icon: Monitor,
+        hint: "Connected and managed screens",
+      },
+      {
+        label: "Advertisements",
+        value: String(adCount),
+        icon: Image,
+        hint: "Media assets available for loops",
+      },
+      {
+        label: "Display Loops",
+        value: String(loopCount),
+        icon: Play,
+        hint: "Scheduled playback loops",
+      },
+      {
+        label: "Recent Logs",
+        value: String(recentLogs.length),
+        icon: Clock3,
+        hint: "Latest system activity records",
+      },
+    ],
+    [adCount, displayCount, loopCount, recentLogs.length]
+  );
 
-  if (authLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-[#faf9f7]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#8b6f47]" />
-      </div>
-    );
+  if (!authReady) {
+    return <div className="p-6 text-sm text-[var(--color-text-secondary)]">Checking session...</div>;
   }
 
-  const firstName = store.user?.firstName ?? user?.firstName ?? "User";
-
-  const stats: StatCard[] = [
-    {
-      label: "Total Displays",
-      value: displaysLoading ? "..." : String(totalDisplays),
-      loading: displaysLoading,
-      bgColor: "#dbeafe",
-      iconColor: "#3b82f6",
-      Icon: Monitor,
-    },
-    {
-      label: "Advertisements",
-      value: adsLoading ? "..." : String(totalAds),
-      loading: adsLoading,
-      bgColor: "#e9d5ff",
-      iconColor: "#a855f7",
-      Icon: FileImage,
-    },
-    {
-      label: "Display Loops",
-      value: loopsLoading ? "..." : String(totalLoops),
-      loading: loopsLoading,
-      bgColor: "#fef3c7",
-      iconColor: "#f59e0b",
-      Icon: PlaySquare,
-    },
-    {
-      label: "System Logs",
-      value: "—",
-      loading: false,
-      bgColor: "#dcfce7",
-      iconColor: "#22c55e",
-      Icon: ScrollText,
-    },
-  ];
-
-  const quickActions: QuickAction[] = [
-    { label: "Add Display", href: "/dashboard/displays", Icon: Monitor },
-    { label: "Upload Ad", href: "/dashboard/ads", Icon: Plus },
-    { label: "Create Loop", href: "/dashboard/loops", Icon: PlaySquare },
-  ];
-
   return (
-    <DashboardLayout>
-      {/* Welcome */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2 text-gray-900">
-          Welcome back, {firstName}!
-        </h1>
-        <p className="text-gray-600">
-          Here&apos;s what&apos;s happening with your displays today.
-        </p>
-      </div>
+    <div className="space-y-6">
+      <PageTitle
+        title={`Welcome${user?.firstName ? `, ${user.firstName}` : ""}`}
+        subtitle="Control displays, approve devices, and publish campaigns from one place."
+      />
 
-      {/* Stats grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {stats.map((stat) => {
-          const Icon = stat.Icon;
-          return (
-            <div
-              key={stat.label}
-              className="rounded-lg border border-[#e5e5e5] bg-white p-6 shadow-sm"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className="rounded-lg p-3" style={{ backgroundColor: stat.bgColor }}>
-                  <Icon size={24} style={{ color: stat.iconColor }} />
-                </div>
+      <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {metrics.map(({ label, value, icon: Icon, hint }) => (
+          <Panel key={label}>
+            <div className="mb-4 flex items-center justify-between">
+              <div className="rounded-xl bg-[var(--color-bg-secondary)] p-2.5">
+                <Icon className="h-5 w-5 text-[var(--color-primary)]" />
               </div>
-              <p className="text-sm mb-2 text-gray-600">{stat.label}</p>
-              <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
+              {loading ? <span className="text-xs text-[var(--color-text-muted)]">syncing...</span> : null}
             </div>
-          );
-        })}
-      </div>
+            <div className="text-3xl font-semibold tracking-tight">{loading ? "..." : value}</div>
+            <div className="mt-1 text-sm text-[var(--color-text-secondary)]">{label}</div>
+            <div className="mt-2 text-xs text-[var(--color-text-muted)]">{hint}</div>
+          </Panel>
+        ))}
+      </section>
 
-      {/* Quick actions */}
-      <div className="rounded-lg border border-[#e5e5e5] bg-white p-6 mb-8 shadow-sm">
-        <h2 className="text-xl font-bold mb-4 text-gray-900">Quick Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {quickActions.map((action) => {
-            const Icon = action.Icon;
-            return (
-              <Link
-                key={action.label}
-                href={action.href}
-                className="flex items-center justify-between p-4 border border-[#e5e5e5] rounded-lg hover:bg-gray-50"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="rounded-lg p-2 bg-blue-100">
-                    <Icon size={20} className="text-[#8b6f47]" />
-                  </div>
-                  <span className="font-medium text-gray-900">{action.label}</span>
-                </div>
-                <ArrowRight size={16} className="text-gray-400" />
-              </Link>
-            );
-          })}
-        </div>
-      </div>
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <Link
+          href="/dashboard/displays"
+          className="group rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 transition hover:border-[var(--color-primary)]"
+        >
+          <div className="mb-3 text-sm font-medium text-[var(--color-text-secondary)]">Devices</div>
+          <div className="text-xl font-semibold">Manage Displays</div>
+          <div className="mt-2 text-sm text-[var(--color-text-muted)]">Create displays, update config, and check live status.</div>
+          <div className="mt-4 flex items-center gap-2 text-sm font-medium text-[var(--color-primary)]">
+            Open <ArrowRight className="h-4 w-4" />
+          </div>
+        </Link>
 
-      {/* System logs placeholder */}
-      <div className="rounded-lg border border-[#e5e5e5] bg-white p-6 shadow-sm">
-        <h2 className="text-xl font-bold mb-4 text-gray-900">System Logs</h2>
-        <div className="text-center py-8">
-          <p className="text-gray-500">No activity yet</p>
+        <Link
+          href="/dashboard/ads"
+          className="group rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 transition hover:border-[var(--color-primary)]"
+        >
+          <div className="mb-3 text-sm font-medium text-[var(--color-text-secondary)]">Media</div>
+          <div className="text-xl font-semibold">Upload Advertisements</div>
+          <div className="mt-2 text-sm text-[var(--color-text-muted)]">Use signed R2 uploads and publish instantly.</div>
+          <div className="mt-4 flex items-center gap-2 text-sm font-medium text-[var(--color-primary)]">
+            Open <ArrowRight className="h-4 w-4" />
+          </div>
+        </Link>
+
+        <Link
+          href="/dashboard/analytics"
+          className="group rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 transition hover:border-[var(--color-primary)]"
+        >
+          <div className="mb-3 text-sm font-medium text-[var(--color-text-secondary)]">Insights</div>
+          <div className="text-xl font-semibold">Review Analytics</div>
+          <div className="mt-2 text-sm text-[var(--color-text-muted)]">Track delivery, impressions, and click-through trends.</div>
+          <div className="mt-4 flex items-center gap-2 text-sm font-medium text-[var(--color-primary)]">
+            Open <ArrowRight className="h-4 w-4" />
+          </div>
+        </Link>
+      </section>
+
+      <Panel>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-xl font-semibold">Recent System Activity</h2>
+          <Link
+            href="/dashboard/logs"
+            className="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-primary)] hover:underline"
+          >
+            View all <BarChart3 className="h-4 w-4" />
+          </Link>
         </div>
-      </div>
-    </DashboardLayout>
+
+        {recentLogs.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-[var(--color-border)] bg-white p-8 text-center text-sm text-[var(--color-text-muted)]">
+            No log records yet.
+          </div>
+        ) : (
+          <DataTable headers={["Action", "Entity", "Description", "Time"]}>
+            {recentLogs.map((log) => (
+              <tr key={log.id} className="bg-white">
+                <td className="px-4 py-3">
+                  <StatusPill label={log.action} tone="info" />
+                </td>
+                <td className="px-4 py-3 capitalize text-[var(--color-text-secondary)]">{log.entityType}</td>
+                <td className="px-4 py-3 text-[var(--color-text)]">{log.description}</td>
+                <td className="px-4 py-3 text-[var(--color-text-muted)]">{formatDateTime(log.createdAt)}</td>
+              </tr>
+            ))}
+          </DataTable>
+        )}
+      </Panel>
+    </div>
   );
 }

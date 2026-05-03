@@ -11,11 +11,10 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import client from "@/lib/api/client";
 import { displaysApi } from "@/lib/api/displays.api";
 
 interface AdItem {
-  _id: string;
+  id: string;
   adId: string;
   adName: string;
   mediaUrl: string;
@@ -89,9 +88,9 @@ export default function DisplayPage() {
         return;
       }
 
-      const response = await client.get(`/api/displays/loop/${connectionToken}`);
-      const loop: LoopData = response.data.data.loop;
-      const advertisements: AdItem[] = response.data.data.advertisements || [];
+      const response = await displaysApi.getLoopByToken(connectionToken);
+      const loop = response.data.data.loop as LoopData;
+      const advertisements = response.data.data.advertisements as AdItem[];
 
       if (advertisements.length === 0) {
         setError("No advertisements assigned to this display");
@@ -249,7 +248,7 @@ export default function DisplayPage() {
     setLoginError("");
 
     try {
-      const response = await client.post("/api/displays/login", {
+      const response = await displaysApi.loginDisplay({
         displayId: loginData.displayId,
         password: loginData.password,
       });
@@ -475,7 +474,7 @@ export default function DisplayPage() {
         >
           {ads.map((ad) => (
             <div
-              key={ad._id}
+              key={ad.id}
               className="relative bg-black overflow-hidden flex items-center justify-center rounded-lg"
               style={{ aspectRatio: "1" }}
             >

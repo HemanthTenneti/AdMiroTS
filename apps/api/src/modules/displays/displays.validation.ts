@@ -1,7 +1,5 @@
 /**
  * Display validation schemas using Zod
- * Validates all display operations with strict type safety
- * Enforces constraints on configuration, resolution, and metadata
  */
 import { z } from "zod";
 
@@ -57,6 +55,41 @@ export const PairDisplaySchema = z.object({
   serialNumber: z.string().min(1, "Serial number is required").max(100, "Serial number cannot exceed 100 characters"),
 });
 
+export const RegisterSelfSchema = z.object({
+  displayName: z.string().min(2).max(50),
+  location: z.string().min(2).max(50),
+  displayId: z.string().min(3).max(30).optional(),
+  password: z.string().min(4).max(50).optional(),
+  resolution: z.object({
+    width: z.number().int().positive(),
+    height: z.number().int().positive(),
+  }),
+  browserInfo: z.object({
+    browserVersion: z.string().optional(),
+  }).passthrough().optional(),
+});
+
+export const DisplayLoginSchema = z.object({
+  displayId: z.string().min(1, "Display ID is required"),
+  password: z.string().min(1, "Password is required"),
+});
+
+export const ReportDisplayStatusSchema = z.object({
+  connectionToken: z.string().min(1, "connectionToken is required"),
+  status: z.string().default("online"),
+  currentAdPlaying: z.string().optional(),
+});
+
+export const ConnectionRequestListQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(10),
+  status: z.enum(["pending", "approved", "rejected"]).optional(),
+});
+
+export const RejectConnectionRequestSchema = z.object({
+  rejectionReason: z.string().max(500).optional(),
+});
+
 export const DisplayValidationSchemas = {
   create: CreateDisplaySchema,
   update: UpdateDisplaySchema,
@@ -64,4 +97,9 @@ export const DisplayValidationSchemas = {
   assignLoops: DisplayLoopSchema,
   config: DisplayConfigSchema,
   pair: PairDisplaySchema,
+  registerSelf: RegisterSelfSchema,
+  loginDisplay: DisplayLoginSchema,
+  reportStatus: ReportDisplayStatusSchema,
+  connectionRequestListQuery: ConnectionRequestListQuerySchema,
+  rejectConnectionRequest: RejectConnectionRequestSchema,
 };

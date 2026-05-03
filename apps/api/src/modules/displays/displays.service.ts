@@ -1,85 +1,71 @@
 /**
  * Display Service
- * Handles business logic for display operations
- * Implements single responsibility principle - only manages display domain logic
+ * Handles business logic for display operations and display-device workflows.
  */
-import { Display, DisplayStatus } from "@admiro/domain";
+import bcrypt from "bcrypt";
+import {
+  Display,
+  DisplayStatus,
+  ConnectionRequestStatus,
+  DisplayConnectionRequest,
+  DisplayLoop,
+} from "@admiro/domain";
 import { DisplayRepository } from "../../services/repositories/DisplayRepository";
+import { DisplayConnectionRequestRepository } from "../../services/repositories/DisplayConnectionRequestRepository";
+import { DisplayLoopRepository } from "../../services/repositories/DisplayLoopRepository";
+import { AdvertisementRepository } from "../../services/repositories/AdvertisementRepository";
 import { NotFoundError, ValidationError, ForbiddenError } from "../../utils/errors/index";
 import { Logger } from "../../utils/logger";
 import { IdGenerator } from "../../utils/id-generator";
 
-/**
- * Whitelist of allowed sort fields
- * Prevents NoSQL injection attacks through sort parameter
- * Only fields that exist in the database schema are allowed
- */
-const ALLOWED_SORT_FIELDS = [
-  "createdAt",
-  "updatedAt",
-  "displayId",
-  "location",
-  "status",
-] as const;
+const ALLOWED_SORT_FIELDS = ["createdAt", "updatedAt", "displayId", "location", "status"] as const;
+type AllowedSortField = (typeof ALLOWED_SORT_FIELDS)[number];
 
-type AllowedSortField = typeof ALLOWED_SORT_FIELDS[number];
-
-/**
- * Inbound data transfer object for creating displays
- * Separated from domain model to control input surface
- */
 interface CreateDisplayInput {
   displayId: string;
   location: string;
   layout: string;
   resolution: { width: number; height: number };
-  configuration?: any;
+  configuration?: unknown;
   serialNumber?: string;
 }
 
-/**
- * Inbound data transfer object for updating displays
- * All fields optional - only provided fields are updated
- */
 interface UpdateDisplayInput {
   location?: string;
-  configuration?: any;
+  configuration?: unknown;
 }
 
-/**
- * Query filters for listing displays
- * Applied to filter and sort database queries
- */
 interface ListFilters {
-  status?: string | undefined;
-  location?: string | undefined;
-  layout?: string | undefined;
-  sortBy?: string | undefined;
-  sortOrder?: "asc" | "desc" | undefined;
+  status?: string;
+  location?: string;
+  layout?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+}
+
+interface ListConnectionRequestFilters {
+  status?: ConnectionRequestStatus;
+  sortOrder?: "asc" | "desc";
 }
 
 export class DisplayService {
-  private displayRepository: DisplayRepository;
+  private readonly displayRepository: DisplayRepository;
+  private readonly connectionRequestRepository: DisplayConnectionRequestRepository;
+  private readonly displayLoopRepository: DisplayLoopRepository;
+  private readonly advertisementRepository: AdvertisementRepository;
+  private readonly bcryptSaltRounds: number;
 
   constructor() {
-    // Instantiate repository with dependency injection
-    // Repository pattern isolates database access logic
     this.displayRepository = new DisplayRepository();
+    this.connectionRequestRepository = new DisplayConnectionRequestRepository();
+    this.displayLoopRepository = new DisplayLoopRepository();
+    this.advertisementRepository = new AdvertisementRepository();
+    this.bcryptSaltRounds = Number(process.env.BCRYPT_SALT_ROUNDS ?? "12");
   }
 
-  /**
-   * Create a new display
-   * Generates unique IDs, verifies serial number uniqueness, sets initial status to OFFLINE
-   *
-   * @param data - Display input data
-   * @returns Created Display entity
-   * @throws ValidationError if serial number already exists
-   * @throws NotFoundError if display creation fails
-   */
   async createDisplay(data: CreateDisplayInput): Promise<Display> {
     const id = IdGenerator.displayId();
 
-    // Check if serial number already exists (prevent duplicates)
     if (data.serialNumber) {
       const existingDisplay = await this.displayRepository.findByDisplayId(data.displayId);
       if (existingDisplay) {
@@ -87,20 +73,20 @@ export class DisplayService {
       }
     }
 
-    // Create domain entity with initial values
     const display = new Display({
       id,
       displayId: data.displayId,
-      displayName: data.displayId, // Use displayId as displayName for now
+      displayName: data.displayId,
       location: data.location,
       resolution: data.resolution as any,
-      configuration: data.configuration || {
-        brightness: 100,
-        volume: 50,
-        refreshRate: 60,
-        orientation: "LANDSCAPE",
-      } as any,
-      status: DisplayStatus.OFFLINE, // New displays start offline until paired
+      configuration:
+        (data.configuration as any) ?? {
+          brightness: 100,
+          volume: 50,
+          refreshRate: 60,
+          orientation: "LANDSCAPE",
+        },
+      status: DisplayStatus.OFFLINE,
       currentLoopId: undefined,
       lastSeen: undefined,
       isConnected: false,
@@ -111,113 +97,65 @@ export class DisplayService {
       updatedAt: new Date(),
     });
 
-    // Persist to database and return result
     const created = await this.displayRepository.create(display as any);
     Logger.info(`Display created: ${id}`, { displayId: data.displayId, location: data.location });
     return created;
   }
 
-  /**
-   * Retrieve display by ID
-   * Verifies existence before returning to provide helpful error messages
-   *
-   * @param id - Display ID
-   * @returns Display entity
-   * @throws NotFoundError if display doesn't exist
-   */
   async getDisplay(id: string): Promise<Display> {
     if (!id) {
       throw new NotFoundError("Display ID is required");
     }
+
     const display = await this.displayRepository.findById(id);
     if (!display) {
       throw new NotFoundError(`Display with ID ${id} not found`);
     }
+
     return display;
   }
 
-  /**
-   * List displays with pagination and optional filters
-   * Supports filtering by status, location, layout, and custom sorting
-   * Validates sortBy parameter against whitelist to prevent NoSQL injection
-   *
-   * @param page - Page number (1-indexed)
-   * @param limit - Items per page
-   * @param filters - Optional filters and sort configuration
-   * @returns Paginated results with total count
-   * @throws ValidationError if sortBy is not in whitelist
-   */
-  async listDisplays(
-    page: number,
-    limit: number,
-    filters?: ListFilters
-  ): Promise<{ data: Display[]; total: number }> {
-    // Build filter object from provided filters
-    // Only include filters that are explicitly set (not undefined)
-    const filterObj: Record<string, any> = {};
+  async listDisplays(page: number, limit: number, filters?: ListFilters): Promise<{ data: Display[]; total: number }> {
+    const filterObj: Record<string, unknown> = {};
 
     if (filters?.status) filterObj.status = filters.status;
     if (filters?.location) filterObj.location = filters.location;
     if (filters?.layout) filterObj.layout = filters.layout;
 
-    // Validate sortBy field against whitelist
-    // This prevents NoSQL injection attacks through the sort parameter
     let validSortBy: AllowedSortField = "createdAt";
-    if (filters?.sortBy && ALLOWED_SORT_FIELDS.includes(filters.sortBy as any)) {
+    if (filters?.sortBy && ALLOWED_SORT_FIELDS.includes(filters.sortBy as AllowedSortField)) {
       validSortBy = filters.sortBy as AllowedSortField;
     } else if (filters?.sortBy) {
-      // Reject invalid sort fields to prevent injection
-      throw new ValidationError(
-        `Invalid sortBy field. Allowed fields: ${ALLOWED_SORT_FIELDS.join(", ")}`
-      );
+      throw new ValidationError(`Invalid sortBy field. Allowed fields: ${ALLOWED_SORT_FIELDS.join(", ")}`);
     }
 
-    // Delegate pagination logic to repository
-    // Repository handles skip/limit calculation and sorting
-    const result = await this.displayRepository.findWithPagination(
+    return this.displayRepository.findWithPagination(
       filterObj,
       page,
       limit,
       validSortBy,
       filters?.sortOrder ?? "desc"
     );
-
-    return result;
   }
 
-  /**
-   * Update a display's mutable fields
-   * Verifies user ownership before allowing updates
-   * Prevents updates to system fields like status (use dedicated methods instead)
-   *
-   * @param id - Display ID
-   * @param adminId - ID of the user making the update (for ownership validation)
-   * @param data - Partial update data
-   * @returns Updated Display entity
-   * @throws NotFoundError if display doesn't exist
-   * @throws ForbiddenError if user is not the owner
-   */
   async updateDisplay(id: string, adminId: string, data: UpdateDisplayInput): Promise<Display> {
     if (!id) {
       throw new NotFoundError("Display ID is required");
     }
-    // Verify display exists before attempting update
+
     const display = await this.getDisplay(id);
 
-    // Verify user ownership
     if (display.assignedAdminId && display.assignedAdminId !== adminId) {
       throw new ForbiddenError("You do not have permission to update this display");
     }
 
-    // Build update object with only changed fields
-    const updateData: Record<string, any> = {
+    const updateData: Record<string, unknown> = {
       updatedAt: new Date(),
     };
 
     if (data.location !== undefined) updateData.location = data.location;
     if (data.configuration !== undefined) updateData.configuration = data.configuration;
 
-    // Persist changes
     const updated = await this.displayRepository.updateById(id, updateData);
     if (!updated) {
       throw new NotFoundError(`Display with ID ${id} not found`);
@@ -227,30 +165,17 @@ export class DisplayService {
     return updated;
   }
 
-  /**
-   * Soft delete a display
-   * Verifies user ownership before allowing deletion
-   * Sets status to OFFLINE instead of removing record
-   * Preserves historical data while removing from active lists
-   *
-   * @param id - Display ID
-   * @param adminId - ID of the user making the deletion (for ownership validation)
-   * @throws NotFoundError if display doesn't exist
-   * @throws ForbiddenError if user is not the owner
-   */
   async deleteDisplay(id: string, adminId: string): Promise<void> {
     if (!id) {
       throw new NotFoundError("Display ID is required");
     }
-    // Verify exists before attempting delete
+
     const display = await this.getDisplay(id);
 
-    // Verify user ownership
     if (display.assignedAdminId && display.assignedAdminId !== adminId) {
       throw new ForbiddenError("You do not have permission to delete this display");
     }
 
-    // Soft delete - preserve data by marking as offline
     await this.displayRepository.updateById(id, {
       status: DisplayStatus.OFFLINE,
       updatedAt: new Date(),
@@ -259,18 +184,17 @@ export class DisplayService {
     Logger.info(`Display deleted: ${id}`, { deletedBy: adminId });
   }
 
-  /**
-   * Get display status and online/offline information
-   * A display is considered online if it was seen within the last 5 minutes
-   *
-   * @param id - Display ID
-   * @returns Status object with online flag and last seen time
-   * @throws NotFoundError if display doesn't exist
-   */
-  async getDisplayStatus(id: string): Promise<any> {
+  async getDisplayStatus(id: string): Promise<{
+    id: string;
+    displayId: string;
+    status: string;
+    lastSeen: Date | undefined;
+    isOnline: boolean;
+  }> {
     const display = await this.getDisplay(id);
-    // A display is online if it has been seen within the last 5 minutes (300000ms)
-    const isOnline = display.lastSeen ? (new Date().getTime() - display.lastSeen.getTime()) < 5 * 60 * 1000 : false;
+    const isOnline = display.lastSeen
+      ? new Date().getTime() - display.lastSeen.getTime() < 5 * 60 * 1000
+      : false;
 
     return {
       id: display.id,
@@ -281,33 +205,18 @@ export class DisplayService {
     };
   }
 
-  /**
-   * Record a ping/heartbeat from a display
-   * Updates lastSeen timestamp to track when display last communicated with server
-   *
-   * @param id - Display ID
-   * @throws NotFoundError if display doesn't exist
-   */
   async pingDisplay(id: string): Promise<void> {
     if (!id) {
       throw new NotFoundError("Display ID is required");
     }
-    // Verify exists before recording ping
+
     await this.getDisplay(id);
 
-    // Update last seen timestamp
     await this.displayRepository.updateLastPing(id);
     Logger.info(`Display pinged: ${id}`);
   }
 
-  /**
-   * Get loops assigned to this display
-   *
-   * @param id - Display ID
-   * @returns Object with display ID and assigned loop ID
-   * @throws NotFoundError if display doesn't exist
-   */
-  async getAssignedLoops(id: string): Promise<any> {
+  async getAssignedLoops(id: string): Promise<{ displayId: string; currentLoopId: string | undefined; hasAssignedLoop: boolean }> {
     const display = await this.getDisplay(id);
     return {
       displayId: display.displayId,
@@ -316,20 +225,11 @@ export class DisplayService {
     };
   }
 
-  /**
-   * Update display configuration
-   * Configuration includes brightness, volume, refresh rate, orientation
-   *
-   * @param id - Display ID
-   * @param config - Configuration object
-   * @returns Updated Display entity
-   * @throws NotFoundError if display doesn't exist
-   */
-  async updateDisplayConfig(id: string, config: any): Promise<Display> {
+  async updateDisplayConfig(id: string, config: unknown): Promise<Display> {
     if (!id) {
       throw new NotFoundError("Display ID is required");
     }
-    // Verify exists before updating config
+
     await this.getDisplay(id);
 
     const updated = await this.displayRepository.updateById(id, {
@@ -345,21 +245,15 @@ export class DisplayService {
     return updated;
   }
 
-  /**
-   * Get all displays at a specific location
-   *
-   * @param location - Location string to search for
-   * @returns Array of displays at that location
-   */
   async getDisplaysByLocation(location: string): Promise<Display[]> {
     if (!location) {
       return [];
     }
+
     return this.displayRepository.findByLocation(location);
   }
 
   async pairDisplay(serialNumber: string): Promise<Display> {
-    // Find display by serial number
     const existing = await this.displayRepository.findByDisplayId(serialNumber);
     if (!existing) {
       throw new NotFoundError("Display not found");
@@ -376,7 +270,6 @@ export class DisplayService {
     return updated;
   }
 
-  // Self-registration: a physical display device registers itself and waits for admin approval
   async registerSelf(data: {
     displayName: string;
     location: string;
@@ -389,10 +282,14 @@ export class DisplayService {
     const connectionToken = `ct-${id}-${Date.now()}`;
     const displayId = data.displayId || id;
 
-    // Check if a display with this ID already exists
     const existing = await this.displayRepository.findByDisplayId(displayId);
     if (existing) {
       throw new ValidationError(`Display with ID "${displayId}" already exists`);
+    }
+
+    let hashedPassword: string | undefined;
+    if (data.password) {
+      hashedPassword = await bcrypt.hash(data.password, this.bcryptSaltRounds);
     }
 
     const display = new Display({
@@ -409,30 +306,57 @@ export class DisplayService {
       } as any,
       status: DisplayStatus.INACTIVE,
       connectionToken,
-      password: data.password,
+      password: hashedPassword,
       isConnected: false,
       needsRefresh: false,
-      firmwareVersion: "1.0.0",
+      firmwareVersion: data.browserInfo?.browserVersion ?? "Web",
       createdAt: new Date(),
       updatedAt: new Date(),
     });
 
     const created = await this.displayRepository.create(display as any);
+
+    // Use the pre-generated domain ID rather than relying on Mongoose document accessors.
+    // Mongoose `doc.id` may resolve to the Mongo ObjectId virtual in some contexts.
+    const request = DisplayConnectionRequest.create({
+      displayId: display.id,
+      displayName: display.displayName,
+      displayLocation: display.location,
+      firmwareVersion: display.firmwareVersion,
+    });
+
+    await this.connectionRequestRepository.create(request as any);
+
     Logger.info(`Display self-registered: ${displayId} (pending approval)`);
 
     return { display: created, connectionToken, isPendingApproval: true };
   }
 
-  // Look up a display by its connection token — used by display devices polling for approval
-  async getByConnectionToken(token: string): Promise<Display> {
+  async getByConnectionToken(token: string): Promise<{
+    display: Display;
+    connectionRequestStatus: ConnectionRequestStatus;
+    connectionRequestId?: string;
+    rejectionReason?: string;
+  }> {
     const display = await this.displayRepository.findByConnectionToken(token);
     if (!display) {
       throw new NotFoundError("Display not found for this connection token");
     }
-    return display;
+
+    const connectionRequest = await this.connectionRequestRepository.findByDisplayId(display.id);
+
+    const inferredStatus =
+      connectionRequest?.status ??
+      (display.assignedAdminId ? ConnectionRequestStatus.APPROVED : ConnectionRequestStatus.PENDING);
+
+    return {
+      display,
+      connectionRequestStatus: inferredStatus,
+      connectionRequestId: connectionRequest?.requestId ?? display.id,
+      rejectionReason: connectionRequest?.rejectionReason,
+    };
   }
 
-  // Report status from a display device (heartbeat + current ad being played)
   async reportStatus(data: {
     connectionToken: string;
     status: string;
@@ -443,13 +367,292 @@ export class DisplayService {
       throw new NotFoundError("Display not found for this connection token");
     }
 
+    const normalizedStatus = data.status?.toLowerCase();
+    const status =
+      normalizedStatus === DisplayStatus.ONLINE || normalizedStatus === DisplayStatus.OFFLINE
+        ? normalizedStatus
+        : DisplayStatus.ONLINE;
+
     await this.displayRepository.updateById(display.id, {
+      status,
       lastSeen: new Date(),
       isConnected: true,
       updatedAt: new Date(),
     });
 
-    Logger.info(`Display status reported: ${display.displayId} — ${data.status}`);
+    Logger.info(`Display status reported: ${display.displayId} - ${status}`, {
+      currentAdPlaying: data.currentAdPlaying,
+    });
+  }
+
+  async loginDisplay(data: { displayId: string; password: string }): Promise<Display> {
+    const display = await this.displayRepository.findByDisplayId(data.displayId);
+    if (!display) {
+      throw new NotFoundError("Display not found. Invalid Display ID.");
+    }
+
+    if (!display.password) {
+      throw new ValidationError(
+        "This display does not have password authentication enabled. Please use your connection token instead."
+      );
+    }
+
+    const isPasswordValid = await bcrypt.compare(data.password, display.password);
+    if (!isPasswordValid) {
+      throw new ForbiddenError("Invalid password.");
+    }
+
+    return display;
+  }
+
+  async getDisplayLoopByToken(token: string): Promise<{ loop: DisplayLoop | null; advertisements: any[] }> {
+    const display = await this.displayRepository.findByConnectionToken(token);
+    if (!display) {
+      throw new NotFoundError("Display not found.");
+    }
+
+    let loop: DisplayLoop | null = null;
+
+    if (display.currentLoopId) {
+      loop = await this.displayLoopRepository.findById(display.currentLoopId);
+    }
+
+    if (!loop) {
+      loop = await this.displayLoopRepository.findByDisplayId(display.id);
+    }
+
+    if (!loop) {
+      return { loop: null, advertisements: [] };
+    }
+
+    const adIds = loop.advertisements.map((entry) => entry.advertisementId);
+    const ads = await this.advertisementRepository.findByAnyIds(adIds);
+
+    const advertisementMap = new Map<string, any>();
+    for (const ad of ads) {
+      advertisementMap.set(ad.id, ad);
+      advertisementMap.set(ad.adId, ad);
+    }
+
+    const sortedEntries = [...loop.advertisements].sort((a, b) => a.order - b.order);
+    const advertisements = sortedEntries
+      .map((entry) => {
+        const ad = advertisementMap.get(entry.advertisementId);
+        if (!ad) return null;
+        return {
+          id: ad.id,
+          adId: ad.adId,
+          adName: ad.adName,
+          mediaUrl: ad.mediaUrl,
+          mediaType: ad.mediaType,
+          duration: entry.duration ?? ad.duration,
+          order: entry.order,
+        };
+      })
+      .filter((item): item is NonNullable<typeof item> => Boolean(item));
+
+    return { loop, advertisements };
+  }
+
+  async listConnectionRequests(
+    page: number,
+    limit: number,
+    filters?: ListConnectionRequestFilters
+  ): Promise<{ data: Array<Record<string, unknown>>; total: number }> {
+    const filterObj: Record<string, unknown> = {};
+
+    if (filters?.status) {
+      filterObj.status = filters.status;
+    }
+
+    const { data, total } = await this.connectionRequestRepository.findWithPagination(
+      filterObj,
+      page,
+      limit,
+      "createdAt",
+      filters?.sortOrder ?? "desc"
+    );
+
+    const displayIds = data.map((request: any) => request.displayId).filter(Boolean) as string[];
+    const displays = await this.displayRepository.findByDisplayIds(displayIds);
+    const displayMap = new Map(displays.map((display) => [display.id, display]));
+
+    const hydrated = data.map((request: any) => {
+      const display = displayMap.get(request.displayId);
+      return {
+        ...request,
+        display: display
+          ? {
+              id: display.id,
+              displayId: display.displayId,
+              displayName: display.displayName,
+              location: display.location,
+              status: display.status,
+              assignedAdminId: display.assignedAdminId,
+            }
+          : null,
+      };
+    });
+
+    const hydratedDisplayIds = new Set(
+      hydrated.map((request: any) => String(request.displayId))
+    );
+
+    // Compatibility fallback for legacy records:
+    // if a self-registered display has no persisted request row, expose a synthetic pending item.
+    if (!filters?.status || filters.status === ConnectionRequestStatus.PENDING) {
+      const { data: allDisplays } = await this.displayRepository.findWithPagination(
+        {},
+        1,
+        5000,
+        "createdAt",
+        "desc"
+      );
+      for (const display of allDisplays) {
+        if (!display.connectionToken.startsWith("ct-")) continue;
+        if (display.assignedAdminId) continue;
+        if (hydratedDisplayIds.has(display.id)) continue;
+
+        hydrated.push({
+          id: display.id,
+          requestId: display.id,
+          displayId: display.id,
+          displayName: display.displayName,
+          displayLocation: display.location,
+          firmwareVersion: display.firmwareVersion,
+          status: ConnectionRequestStatus.PENDING,
+          requestedAt: display.createdAt,
+          respondedAt: null,
+          respondedById: null,
+          rejectionReason: null,
+          createdAt: display.createdAt,
+          updatedAt: display.updatedAt,
+          display: {
+            id: display.id,
+            displayId: display.displayId,
+            displayName: display.displayName,
+            location: display.location,
+            status: display.status,
+            assignedAdminId: display.assignedAdminId,
+          },
+        });
+      }
+    }
+
+    return { data: hydrated, total: Math.max(total, hydrated.length) };
+  }
+
+  async approveConnectionRequest(requestId: string, adminId: string): Promise<{ request: DisplayConnectionRequest; display: Display }> {
+    let request = await this.connectionRequestRepository.findByRequestId(requestId);
+    const fallbackDisplay = !request
+      ? await this.displayRepository.findById(requestId)
+      : null;
+
+    if (!request && !fallbackDisplay) {
+      throw new NotFoundError("Connection request not found");
+    }
+
+    if (request && !request.isPending()) {
+      throw new ValidationError(`Cannot approve a ${request.status} request`);
+    }
+
+    const display = request
+      ? await this.displayRepository.findById(request.displayId)
+      : fallbackDisplay;
+
+    if (!display) {
+      throw new NotFoundError("Associated display not found");
+    }
+
+    if (request) {
+      request.approve(adminId);
+      await this.connectionRequestRepository.updateById(request.id, {
+        status: request.status,
+        respondedAt: request.respondedAt,
+        respondedById: request.respondedById,
+        updatedAt: request.updatedAt,
+      });
+    } else {
+      request = DisplayConnectionRequest.create({
+        displayId: display.id,
+        displayName: display.displayName,
+        displayLocation: display.location,
+        firmwareVersion: display.firmwareVersion,
+      });
+      request.approve(adminId);
+    }
+
+    const updatedDisplay = await this.displayRepository.updateById(display.id, {
+      assignedAdminId: adminId,
+      status: DisplayStatus.OFFLINE,
+      updatedAt: new Date(),
+    });
+
+    if (!updatedDisplay) {
+      throw new NotFoundError("Associated display not found");
+    }
+
+    Logger.info(`Connection request approved: ${request.requestId}`, {
+      adminId,
+      displayId: updatedDisplay.displayId,
+    });
+
+    return {
+      request,
+      display: updatedDisplay,
+    };
+  }
+
+  async rejectConnectionRequest(requestId: string, adminId: string, rejectionReason?: string): Promise<DisplayConnectionRequest> {
+    const persistedRequest = await this.connectionRequestRepository.findByRequestId(requestId);
+    const fallbackDisplay = !persistedRequest
+      ? await this.displayRepository.findById(requestId)
+      : null;
+
+    if (!persistedRequest && !fallbackDisplay) {
+      throw new NotFoundError("Connection request not found");
+    }
+
+    if (persistedRequest && !persistedRequest.isPending()) {
+      throw new ValidationError(`Cannot reject a ${persistedRequest.status} request`);
+    }
+
+    let request: DisplayConnectionRequest;
+
+    if (persistedRequest) {
+      request = persistedRequest;
+      request.reject(adminId, rejectionReason);
+
+      await this.connectionRequestRepository.updateById(request.id, {
+        status: request.status,
+        respondedAt: request.respondedAt,
+        respondedById: request.respondedById,
+        rejectionReason: request.rejectionReason,
+        updatedAt: request.updatedAt,
+      });
+    } else if (fallbackDisplay) {
+      request = DisplayConnectionRequest.create({
+        displayId: fallbackDisplay.id,
+        displayName: fallbackDisplay.displayName,
+        displayLocation: fallbackDisplay.location,
+        firmwareVersion: fallbackDisplay.firmwareVersion,
+      });
+      request.reject(adminId, rejectionReason);
+    } else {
+      throw new NotFoundError("Connection request not found");
+    }
+
+    await this.displayRepository.updateById(request.displayId, {
+      status: DisplayStatus.INACTIVE,
+      updatedAt: new Date(),
+    });
+
+    Logger.info(`Connection request rejected: ${request.requestId}`, {
+      adminId,
+      rejectionReason,
+    });
+
+    return request;
   }
 }
 

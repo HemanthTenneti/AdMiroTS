@@ -5,7 +5,7 @@
     "target": "ES2022",
     "outDir": "dist",
     "rootDir": "src",
-    "types": ["node", "jest"],
+    "types": ["node", "mocha"],
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "skipLibCheck": true,

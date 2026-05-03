@@ -1,16 +1,15 @@
 import "dotenv/config";
 import app from "./app.js";
 import { connectDb } from "./config/db.js";
+import { getEnv } from "./config/env.js";
 
-const port = Number(process.env.PORT ?? 8000);
+const env = getEnv();
 
-// Connect to database before starting server
-// This ensures all database models are ready before accepting requests
 connectDb()
   .then(() => {
     console.log("✓ Connected to MongoDB");
-    app.listen(port, () => {
-      console.log(`✓ AdMiro API running on http://localhost:${port}`);
+    app.listen(env.PORT, () => {
+      console.log(`✓ AdMiro API running on http://localhost:${env.PORT}`);
     });
   })
   .catch((error) => {

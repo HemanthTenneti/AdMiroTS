@@ -1,6 +1,5 @@
 /**
  * Analytics Routes
- * Defines all endpoints for analytics operations
  */
 import { Router, Request, Response, NextFunction } from "express";
 import { AnalyticsController } from "./analytics.controller";
@@ -15,10 +14,6 @@ export function createAnalyticsRoutes(jwtSecret: string): Router {
   const jwtAuth = new JWTAuthMiddleware(jwtSecret);
   const authMiddleware = jwtAuth.authenticate();
 
-  /**
-   * PUBLIC/DISPLAY ROUTES
-   * Displays record analytics without full user authentication usually
-   */
   router.post(
     "/record",
     validateRequest(AnalyticsValidationSchemas.record),
@@ -26,11 +21,6 @@ export function createAnalyticsRoutes(jwtSecret: string): Router {
       analyticsController.recordEvent(req, res, next).catch(next);
     }
   );
-
-  /**
-   * PROTECTED ROUTES
-   * Management/Reporting access
-   */
 
   router.get(
     "/",
@@ -42,13 +32,29 @@ export function createAnalyticsRoutes(jwtSecret: string): Router {
     }
   );
 
+  router.get("/overview", authMiddleware, (req: Request, res: Response, next: NextFunction) => {
+    analyticsController.getOverview(req, res, next).catch(next);
+  });
+
+  router.get("/timeline", authMiddleware, (req: Request, res: Response, next: NextFunction) => {
+    analyticsController.getTimeline(req, res, next).catch(next);
+  });
+
+  router.get("/displays/:id", authMiddleware, (req: Request, res: Response, next: NextFunction) => {
+    analyticsController.getDisplayStats(req, res, next).catch(next);
+  });
+
   router.get(
-    "/stats",
+    "/advertisements/:id",
     authMiddleware,
     (req: Request, res: Response, next: NextFunction) => {
-      analyticsController.getAggregatedStats(req, res, next).catch(next);
+      analyticsController.getAdvertisementStats(req, res, next).catch(next);
     }
   );
+
+  router.get("/stats", authMiddleware, (req: Request, res: Response, next: NextFunction) => {
+    analyticsController.getAggregatedStats(req, res, next).catch(next);
+  });
 
   router.get("/:id", authMiddleware, (req: Request, res: Response, next: NextFunction) => {
     analyticsController.getAnalytics(req, res, next).catch(next);

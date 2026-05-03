@@ -1,7 +1,5 @@
 /**
  * Display Routes
- * Defines all endpoints for display operations
- * Routes are organized with public endpoints first, then protected endpoints
  */
 import { Router, Request, Response, NextFunction } from "express";
 import DisplayController from "./displays.controller";
@@ -15,29 +13,78 @@ export function createDisplayRoutes(jwtSecret: string): Router {
   const displayController = new DisplayController();
   const jwtAuth = new JWTAuthMiddleware(jwtSecret);
 
-  // Auth middleware for protected routes
   const authMiddleware = jwtAuth.authenticate();
 
-  // --- Display device endpoints (no auth — device doesn't have user token) ---
+  // Device/public endpoints
+  router.post(
+    "/register-self",
+    validateRequest(DisplayValidationSchemas.registerSelf),
+    (req: Request, res: Response, next: NextFunction) => {
+      displayController.registerSelf(req, res).catch(next);
+    }
+  );
 
-  // POST /api/displays/register-self — display device self-registers
-  router.post("/register-self", (req: Request, res: Response, next: NextFunction) => {
-    displayController.registerSelf(req, res).catch(next);
-  });
+  router.post(
+    "/login-display",
+    validateRequest(DisplayValidationSchemas.loginDisplay),
+    (req: Request, res: Response, next: NextFunction) => {
+      displayController.loginDisplay(req, res).catch(next);
+    }
+  );
 
-  // GET /api/displays/by-token/:token — poll for approval status
+  // Backward-compatible alias for existing display page flow
+  router.post(
+    "/login",
+    validateRequest(DisplayValidationSchemas.loginDisplay),
+    (req: Request, res: Response, next: NextFunction) => {
+      displayController.loginDisplay(req, res).catch(next);
+    }
+  );
+
   router.get("/by-token/:token", (req: Request, res: Response, next: NextFunction) => {
     displayController.getByConnectionToken(req, res).catch(next);
   });
 
-  // POST /api/displays/report-status — heartbeat from display device
-  router.post("/report-status", (req: Request, res: Response, next: NextFunction) => {
-    displayController.reportStatus(req, res).catch(next);
+  router.get("/loop/:token", (req: Request, res: Response, next: NextFunction) => {
+    displayController.getDisplayLoop(req, res).catch(next);
   });
 
-  // --- Standard public/protected routes ---
+  router.post(
+    "/report-status",
+    validateRequest(DisplayValidationSchemas.reportStatus),
+    (req: Request, res: Response, next: NextFunction) => {
+      displayController.reportStatus(req, res).catch(next);
+    }
+  );
 
-  // GET /api/displays - List all displays with pagination
+  // Connection request workflow (protected)
+  router.get(
+    "/connection-requests/all",
+    authMiddleware,
+    validateQuery(DisplayValidationSchemas.connectionRequestListQuery),
+    (req: Request, res: Response, next: NextFunction) => {
+      displayController.getConnectionRequests(req, res).catch(next);
+    }
+  );
+
+  router.post(
+    "/connection-requests/:requestId/approve",
+    authMiddleware,
+    (req: Request, res: Response, next: NextFunction) => {
+      displayController.approveConnectionRequest(req, res).catch(next);
+    }
+  );
+
+  router.post(
+    "/connection-requests/:requestId/reject",
+    authMiddleware,
+    validateRequest(DisplayValidationSchemas.rejectConnectionRequest),
+    (req: Request, res: Response, next: NextFunction) => {
+      displayController.rejectConnectionRequest(req, res).catch(next);
+    }
+  );
+
+  // Existing API endpoints
   router.get(
     "/",
     publicDataRateLimiter,
@@ -47,33 +94,22 @@ export function createDisplayRoutes(jwtSecret: string): Router {
     }
   );
 
-  // GET /api/displays/location/:location - Get displays at specific location
-  // MUST be before /:id to prevent Express from matching "location" as an ID
   router.get("/location/:location", (req: Request, res: Response, next: NextFunction) => {
     displayController.getDisplaysByLocation(req, res).catch(next);
   });
 
-  // GET /api/displays/:id - Get single display by ID
-  router.get("/:id", (req: Request, res: Response, next: NextFunction) => {
-    displayController.getDisplay(req, res).catch(next);
-  });
-
-  // GET /api/displays/:id/status - Get display status (online/offline)
   router.get("/:id/status", (req: Request, res: Response, next: NextFunction) => {
     displayController.getDisplayStatus(req, res).catch(next);
   });
 
-  // GET /api/displays/:id/loops - Get loops assigned to a display
   router.get("/:id/loops", (req: Request, res: Response, next: NextFunction) => {
     displayController.getAssignedLoops(req, res).catch(next);
   });
 
-  /**
-   * PROTECTED ROUTES (authentication required)
-   * These endpoints require valid JWT token
-   */
+  router.get("/:id", (req: Request, res: Response, next: NextFunction) => {
+    displayController.getDisplay(req, res).catch(next);
+  });
 
-  // POST /api/displays - Create new display
   router.post(
     "/",
     authMiddleware,
@@ -83,7 +119,6 @@ export function createDisplayRoutes(jwtSecret: string): Router {
     }
   );
 
-  // PUT /api/displays/:id - Update display properties
   router.put(
     "/:id",
     authMiddleware,
@@ -93,12 +128,10 @@ export function createDisplayRoutes(jwtSecret: string): Router {
     }
   );
 
-  // DELETE /api/displays/:id - Soft delete display
   router.delete("/:id", authMiddleware, (req: Request, res: Response, next: NextFunction) => {
     displayController.deleteDisplay(req, res).catch(next);
   });
 
-  // POST /api/displays/pair - Pair/activate a display
   router.post(
     "/pair",
     validateRequest(DisplayValidationSchemas.pair),
@@ -107,12 +140,10 @@ export function createDisplayRoutes(jwtSecret: string): Router {
     }
   );
 
-  // POST /api/displays/:id/ping - Record display heartbeat
   router.post("/:id/ping", (req: Request, res: Response, next: NextFunction) => {
     displayController.pingDisplay(req, res).catch(next);
   });
 
-  // POST /api/displays/:id/config - Update display configuration
   router.post(
     "/:id/config",
     authMiddleware,

@@ -6,10 +6,10 @@ interface AuthUser {
   id: string;
   username: string;
   email: string;
-  firstName?: string;
-  lastName?: string;
+  firstName?: string | undefined;
+  lastName?: string | undefined;
   role: string;
-  profilePicture?: string;
+  profilePicture?: string | undefined;
   isActive: boolean;
 }
 
