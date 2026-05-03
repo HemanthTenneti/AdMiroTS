@@ -2,14 +2,15 @@
   "name": "admirots",
   "private": true,
   "version": "0.1.0",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
   "scripts": {
-    "dev": "concurrently \"npm run dev -w @admiro/api\" \"npm run dev -w @admiro/web\"",
-    "build": "npm run build -w @admiro/domain && npm run build -w @admiro/shared && npm run build -w @admiro/api && npm run build -w @admiro/web",
-    "typecheck": "npm run typecheck --workspaces"
+    "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "build": "npm run build --prefix backend && npm run build --prefix frontend",
+    "build:backend": "npm run build --prefix backend",
+    "build:frontend": "npm run build --prefix frontend",
+    "typecheck": "npm run typecheck --prefix backend && npm run typecheck --prefix frontend",
+    "test:backend": "npm run test --prefix backend"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",

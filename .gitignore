@@ -18,6 +18,9 @@ coverage/
 src/**/*.js
 packages/*/src/**/*.js
 apps/*/src/**/*.js
+backend/packages/*/src/**/*.js
+backend/src/**/*.js
+frontend/src/**/*.js
 
 # Logs
 *.log

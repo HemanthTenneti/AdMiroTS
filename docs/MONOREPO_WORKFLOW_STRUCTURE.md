@@ -4,12 +4,17 @@ This repository intentionally starts with a light structure to avoid overwhelmin
 
 ## Runtime Apps
 
-- `apps/web`: Next.js 16 frontend (App Router)
-- `apps/api`: Express 5 backend with TypeScript
+- `frontend`: Next.js 16 frontend (App Router)
+- `backend`: Express 5 backend with TypeScript
 
-## Shared Package
+## Backend Internal Packages
 
-- `packages/shared`: shared types and workflow constants
+- `backend/packages/domain`: domain entities/enums/interfaces
+- `backend/packages/shared`: backend DTOs/types/schemas
+
+## Frontend Contracts
+
+- `frontend/src/lib/contracts`: frontend-local contracts copied from shared definitions for standalone deployability
 
 ## Backend Workflow Modules
 

@@ -12,8 +12,8 @@
     "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
-      "@admiro/domain": ["packages/domain/src/index.ts"],
-      "@admiro/shared": ["packages/shared/src/index.ts"]
+      "@admiro/domain": ["backend/packages/domain/src/index.ts"],
+      "@admiro/shared": ["backend/packages/shared/src/index.ts"]
     }
   }
 }

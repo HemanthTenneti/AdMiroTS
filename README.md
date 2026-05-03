@@ -16,7 +16,7 @@ The system provides:
 - complete activity logging for auditability
 - role-based access control for multi-user operations
 
-This repository contains the monorepo architecture for the full production system with strict TypeScript modeling, domain-driven structure, and shared contracts between frontend and backend.
+This repository contains a split monorepo architecture for the full production system with strict TypeScript modeling and domain-driven structure. `frontend/` and `backend/` are independently hostable units.
 
 ## What AdMiro Achieves
 
@@ -47,10 +47,10 @@ AdMiro solves end-to-end digital signage operations:
 Browser / Display Client
             |
             v
-Next.js Frontend (apps/web)
+Next.js Frontend (frontend)
             |
             v
-Express API (apps/api)
+Express API (backend)
    - Auth + RBAC
    - Domain Controllers/Services
    - Validation + Middleware
@@ -60,36 +60,26 @@ Express API (apps/api)
 MongoDB (7 primary collections)
 ```
 
-## Monorepo Structure
+## Repository Structure
 
 ```text
 .
-├── apps/
-│   ├── api/
-│   │   └── src/
-│   │       ├── config/               # env + app configuration
-│   │       ├── middleware/           # auth, error, upload, rate limit, etc.
-│   │       ├── modules/              # domain modules
-│   │       │   ├── auth/
-│   │       │   ├── advertisements/
-│   │       │   ├── displays/
-│   │       │   ├── display-loops/
-│   │       │   ├── analytics/
-│   │       │   ├── system-logs/
-│   │       │   └── profile/
-│   │       ├── types/                # API-only TypeScript types
-│   │       ├── app.ts                # express composition
-│   │       └── index.ts              # server bootstrap
-│   └── web/
-│       └── src/
-│           ├── app/                  # Next.js App Router pages
-│           ├── features/             # feature-first UI domain code
-│           ├── components/           # reusable UI pieces
-│           ├── context/              # auth/session state management
-│           └── lib/                  # API client, utilities, constants
-├── packages/
-│   └── shared/
-│       └── src/                      # shared contracts, enums, interfaces
+├── backend/
+│   ├── src/                          # Express API source
+│   ├── api/index.ts                  # Vercel API entrypoint
+│   └── packages/
+│       ├── domain/                   # backend domain entities/enums/interfaces
+│       └── shared/                   # backend DTOs/types/schemas
+├── frontend/
+│   ├── src/
+│   │   ├── app/                      # Next.js App Router pages
+│   │   ├── features/                 # feature-first UI domain code
+│   │   ├── components/               # reusable UI pieces
+│   │   ├── context/                  # auth/session state management
+│   │   └── lib/
+│   │       ├── api/                  # API client modules
+│   │       └── contracts/            # frontend-local copied contracts (Zod/types)
+│   └── public/
 └── docs/
       ├── PROJECT_DESCRIPTION.md
       └── MONOREPO_WORKFLOW_STRUCTURE.md
@@ -200,25 +190,25 @@ Frontend uses Next.js App Router with feature-first organization:
 - Node.js 20+
 - npm 10+
 
-### Install dependencies
+### Install dependencies (root wrappers)
 
 ```bash
 npm install
 ```
 
-### Run all workspaces
+### Run both apps locally
 
 ```bash
 npm run dev
 ```
 
-### Build
+### Build both apps
 
 ```bash
 npm run build
 ```
 
-### Type-check
+### Type-check both apps
 
 ```bash
 npm run typecheck
@@ -227,18 +217,42 @@ npm run typecheck
 ### API Tests (Mocha + Chai)
 
 ```bash
-npm run test -w @admiro/api
+npm run test:backend
+```
+
+### Standalone backend
+
+```bash
+cd backend
+npm install
+npm run dev
+npm run build
+npm run typecheck
+npm run test
+```
+
+### Standalone frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+npm run build
+npm run typecheck
 ```
 
 ## Deployment Notes
 
-- Deploy `apps/web` as a Vercel Next.js project.
-- Deploy `apps/api` as a separate Vercel project using [`apps/api/vercel.json`](apps/api/vercel.json).
-- Configure API env vars:
-  - `MONGODB_URI`, `JWT_SECRET`, `GOOGLE_CLIENT_ID`, `CORS_ORIGINS`
-  - `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_PUBLIC_BASE_URL`
-- Configure web env var:
-  - `NEXT_PUBLIC_API_BASE_URL` pointing to the deployed API URL.
+- Deploy `frontend` as a Vercel Next.js project (root directory: `frontend`).
+- Deploy `backend` as a separate Vercel project (root directory: `backend`) using [`backend/vercel.json`](backend/vercel.json).
+- Root `.env` is a convenience template only; runtime apps read `backend/.env` and `frontend/.env.local`.
+- Frontend env file: `frontend/.env.local`
+  - `NEXT_PUBLIC_API_BASE_URL`
+  - `NEXT_PUBLIC_GOOGLE_CLIENT_ID`
+- Backend env file: `backend/.env`
+  - `MONGODB_URI`, `JWT_SECRET`, `JWT_EXPIRES_IN`
+  - `GOOGLE_CLIENT_ID`, `CORS_ORIGINS`
+  - `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_PUBLIC_BASE_URL`, `R2_UPLOAD_URL_TTL_SECONDS`
 
 ## Example End-to-End Flow
 
