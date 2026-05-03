@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { ConnectionRequestListResponseSchema } from "../src/lib/contracts/schemas/connection-requests.ts";
 import { DisplayLoginResponseSchema, RegisterSelfResponseSchema } from "../src/lib/contracts/schemas/displays.ts";
+import { ProfileResponseSchema, UploadAvatarPayloadSchema } from "../src/lib/contracts/schemas/profile.ts";
 
 const pendingConnectionResponse = {
   success: true,
@@ -99,5 +100,25 @@ const displayLoginResponse = {
   },
 };
 assert.equal(DisplayLoginResponseSchema.parse(displayLoginResponse).success, true);
+
+const profileResponse = {
+  success: true,
+  data: {
+    id: "user_123",
+    username: "aalok",
+    email: "aalok@example.com",
+    firstName: "Aalok",
+    lastName: "P",
+    role: "admin",
+    profilePicture: "data:image/png;base64,iVBORw0KGgo=",
+    googleId: "google_123",
+    isActive: true,
+  },
+};
+assert.equal(ProfileResponseSchema.parse(profileResponse).success, true);
+assert.equal(
+  UploadAvatarPayloadSchema.parse({ avatarUrl: "data:image/webp;base64,UklGRg==" }).avatarUrl,
+  "data:image/webp;base64,UklGRg=="
+);
 
 console.log("Frontend contract smoke checks passed.");

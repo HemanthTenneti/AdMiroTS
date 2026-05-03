@@ -49,14 +49,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const router = useRouter();
   const pathname = usePathname();
-  const { user, logout } = useAuthStore();
+  const { user, logout, hydrate } = useAuthStore();
   const { theme, toggle } = useThemeStore();
   const profileRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    hydrate();
     hydrateTheme();
     setMounted(true);
-  }, []);
+  }, [hydrate]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -74,6 +75,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     mounted && user
       ? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || user.username || "User"
       : "User";
+  const userRole =
+    mounted && user?.role
+      ? user.role.charAt(0).toUpperCase() + user.role.slice(1).toLowerCase()
+      : "";
 
   const userInitial =
     mounted && user
@@ -117,7 +122,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const sidebarFooterBorder = "border-t border-[var(--ds-border)]";
 
   const logoutStyle = isDark
-    ? "text-white/40 hover:text-red-400 hover:bg-red-500/10"
+    ? "text-[var(--ds-text-2)] hover:text-red-400 hover:bg-red-500/10"
     : "text-gray-500 hover:text-red-600 hover:bg-red-50";
 
   const mobileToggleStyle =
@@ -128,8 +133,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const profileButtonStyle = "flex items-center gap-3 p-2 hover:bg-[var(--ds-hover)] rounded-lg";
 
-  const profileNameStyle = "text-sm font-medium text-[var(--ds-text)]";
-  const profileRoleStyle = "text-xs text-[var(--ds-text-2)]";
+  const profileNameStyle = "max-w-[11rem] truncate text-sm font-medium text-[var(--ds-text)]";
+  const profileRoleStyle = "max-w-[11rem] truncate text-xs text-[var(--ds-text-2)]";
 
   const dropdownStyle =
     "absolute right-0 mt-2 w-52 bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl shadow-2xl z-50 overflow-hidden";
@@ -199,7 +204,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   );
 
   return (
-    <div className={`flex h-screen ${mainBg}`}>
+    <div data-dashboard-shell className={`flex h-screen ${mainBg}`}>
       {/* ── Desktop Sidebar ──────────────────────────────────────────────────── */}
       <aside className={`hidden md:flex flex-col w-60 shrink-0 ${sidebarBg}`}>
         <SidebarContent />
@@ -260,23 +265,34 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   aria-haspopup="true"
                   aria-expanded={profileMenuOpen}
                 >
-                  <div className="flex flex-col items-end">
-                    <span className={profileNameStyle}>{userName}</span>
-                    <span className={profileRoleStyle}>Admin</span>
+                  <div className="flex min-w-0 flex-col items-end">
+                    <span className={profileNameStyle} title={userName}>{userName}</span>
+                    <span className={profileRoleStyle}>{userRole}</span>
                   </div>
-                  <div className="w-9 h-9 bg-gradient-to-br from-[#7E3AF0] to-[#9F67FF] rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0 shadow-md shadow-[#7E3AF0]/25">
-                    {userInitial}
-                  </div>
+                  {mounted && user?.profilePicture ? (
+                    <img
+                      src={user.profilePicture}
+                      alt={userName}
+                      className="h-9 w-9 shrink-0 rounded-full border border-[#7E3AF0]/30 object-cover shadow-md shadow-[#7E3AF0]/20"
+                    />
+                  ) : (
+                    <div className="w-9 h-9 bg-gradient-to-br from-[#7E3AF0] to-[#9F67FF] rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0 shadow-md shadow-[#7E3AF0]/25">
+                      {userInitial}
+                    </div>
+                  )}
                 </button>
 
                 {profileMenuOpen && (
                   <div className={dropdownStyle} role="menu">
                     {/* User info header */}
                     <div className={`px-4 py-3 border-b border-[var(--ds-border)]`}>
-                      <p className="text-sm font-semibold text-[var(--ds-text)]">
+                      <p className="truncate text-sm font-semibold text-[var(--ds-text)]" title={userName}>
                         {userName}
                       </p>
-                      <p className="text-xs mt-0.5 text-[var(--ds-text-2)]">
+                      <p
+                        className="mt-0.5 max-w-full truncate text-xs text-[var(--ds-text-2)]"
+                        title={mounted && user?.email ? user.email : undefined}
+                      >
                         {mounted && user?.email ? user.email : ""}
                       </p>
                     </div>

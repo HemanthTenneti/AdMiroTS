@@ -64,8 +64,8 @@ export class SystemLogController {
    async listLogs(req: Request, res: Response, next: NextFunction): Promise<void> {
      try {
        this.getUser(req);
-       const page = req.query.page as string | undefined;
-       const limit = req.query.limit as string | undefined;
+       const page = Number(req.query.page ?? 1);
+       const limit = Number(req.query.limit ?? 10);
        const action = req.query.action as LogAction | undefined;
        const entityType = req.query.entityType as EntityType | undefined;
        const entityId = req.query.entityId as string | undefined;
@@ -98,8 +98,8 @@ export class SystemLogController {
        if (sortOrder !== undefined) filters.sortOrder = sortOrder;
 
        const result = await this.logService.listLogs(
-         Number(page) || 1,
-         Number(limit) || 10,
+         page,
+         limit,
          filters
        );
 
@@ -108,10 +108,10 @@ export class SystemLogController {
          data: {
            data: result.data,
            pagination: {
-             page: Number(page) || 1,
-             limit: Number(limit) || 10,
+             page,
+             limit,
              total: result.total,
-             hasMore: (Number(page) || 1) * (Number(limit) || 10) < result.total,
+             hasMore: page * limit < result.total,
            },
          },
        };

@@ -197,6 +197,7 @@ const displayLoopSchema = new Schema<IDisplayLoopDocument>(
     loopName: { type: String, required: true },
     displayId: { type: String, default: "" },
     displayIds: { type: [String], required: true, default: [] },
+    createdById: String,
     advertisements: { type: [loopAdvertisementEntrySchema], required: true },
     rotationType: {
       type: String,

@@ -55,7 +55,7 @@ function useEditLoop(displayId: string, loopId: string) {
       const [displayRes, loopRes, adsRes] = await Promise.all([
         displaysApi.get(displayId),
         displayLoopsApi.get(loopId),
-        advertisementsApi.list({ limit: 1000 }),
+        advertisementsApi.list({ limit: 100 }),
       ]);
 
       setDisplayName(displayRes.data.data.displayName);
@@ -220,10 +220,10 @@ export default function EditLoopPage({
   } = useEditLoop(displayId, loopId);
 
   const inputClass =
-    "w-full bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:border-[#7E3AF0] focus:outline-none rounded-lg px-3 py-2.5 text-sm";
+    "w-full bg-[var(--ds-input)] border border-[var(--ds-input-border)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-3)] focus:border-[#7E3AF0] focus:outline-none rounded-lg px-3 py-2.5 text-sm";
 
   const selectClass =
-    "w-full bg-[#0d0d14] border border-white/10 text-white focus:border-[#7E3AF0] focus:outline-none rounded-lg px-3 py-2.5 text-sm";
+    "w-full bg-[var(--ds-input)] border border-[var(--ds-input-border)] text-[var(--ds-text)] focus:border-[#7E3AF0] focus:outline-none rounded-lg px-3 py-2.5 text-sm";
 
   if (loading) {
     return (
@@ -244,16 +244,16 @@ export default function EditLoopPage({
           <div className="mb-8 flex items-center gap-4">
             <button
               onClick={() => router.back()}
-              className="p-2 rounded-lg text-white/40 hover:text-white hover:bg-white/5"
+              className="p-2 rounded-lg text-[var(--ds-text-2)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-input)]"
             >
               <ArrowLeft size={20} />
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-white tracking-tight">
+              <h1 className="text-2xl font-bold text-[var(--ds-text)] tracking-tight">
                 Edit Playlist
               </h1>
               {displayName && (
-                <p className="text-white/40 text-sm mt-0.5">
+                <p className="text-[var(--ds-text-2)] text-sm mt-0.5">
                   For: {displayName}
                 </p>
               )}
@@ -264,12 +264,12 @@ export default function EditLoopPage({
 
             {/* Playlist Details */}
             <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-6">
-              <h2 className="text-base font-semibold text-white mb-5">
+              <h2 className="text-base font-semibold text-[var(--ds-text)] mb-5">
                 Playlist Details
               </h2>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-white/70 text-sm mb-1.5">
+                  <label className="block text-[var(--ds-text)] text-sm mb-1.5">
                     Playlist Name <span className="text-[#7E3AF0]">*</span>
                   </label>
                   <input
@@ -282,7 +282,7 @@ export default function EditLoopPage({
                 </div>
 
                 <div>
-                  <label className="block text-white/70 text-sm mb-1.5">
+                  <label className="block text-[var(--ds-text)] text-sm mb-1.5">
                     Description
                   </label>
                   <textarea
@@ -295,7 +295,7 @@ export default function EditLoopPage({
                 </div>
 
                 <div>
-                  <label className="block text-white/70 text-sm mb-1.5">
+                  <label className="block text-[var(--ds-text)] text-sm mb-1.5">
                     Display Layout
                   </label>
                   <select
@@ -310,7 +310,7 @@ export default function EditLoopPage({
 
                 {displayLayout === "fullscreen" && (
                   <div>
-                    <label className="block text-white/70 text-sm mb-1.5">
+                    <label className="block text-[var(--ds-text)] text-sm mb-1.5">
                       Rotation Type
                     </label>
                     <select
@@ -328,12 +328,12 @@ export default function EditLoopPage({
 
             {/* Add Advertisements */}
             <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-6">
-              <h2 className="text-base font-semibold text-white mb-5">
+              <h2 className="text-base font-semibold text-[var(--ds-text)] mb-5">
                 Add Advertisements
               </h2>
 
               {ads.length === 0 ? (
-                <p className="text-white/30 text-sm py-6 text-center">
+                <p className="text-[var(--ds-text-3)] text-sm py-6 text-center">
                   No active advertisements available. Create some ads first.
                 </p>
               ) : (
@@ -341,10 +341,10 @@ export default function EditLoopPage({
                   {ads.map(ad => (
                     <div
                       key={ad.id}
-                      className="flex items-center justify-between p-3 border border-[var(--ds-border)] rounded-lg hover:border-white/15"
+                      className="flex items-center justify-between p-3 border border-[var(--ds-border)] rounded-lg hover:border-[var(--ds-border)]"
                     >
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className="text-white/30">
+                        <div className="text-[var(--ds-text-3)]">
                           {ad.mediaType === "image" ? (
                             <Image size={16} />
                           ) : (
@@ -352,10 +352,10 @@ export default function EditLoopPage({
                           )}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-white text-sm font-medium truncate">
+                          <p className="text-[var(--ds-text)] text-sm font-medium truncate">
                             {ad.adName}
                           </p>
-                          <p className="text-white/30 text-xs mt-0.5">
+                          <p className="text-[var(--ds-text-3)] text-xs mt-0.5">
                             {ad.mediaType} · {ad.duration}s
                           </p>
                         </div>
@@ -378,9 +378,9 @@ export default function EditLoopPage({
             {/* Playlist Order */}
             {selectedAds.length > 0 && (
               <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-6">
-                <h2 className="text-base font-semibold text-white mb-5">
+                <h2 className="text-base font-semibold text-[var(--ds-text)] mb-5">
                   Playlist Order{" "}
-                  <span className="text-white/30 font-normal text-sm">
+                  <span className="text-[var(--ds-text-3)] font-normal text-sm">
                     ({selectedAds.length} ads)
                   </span>
                 </h2>
@@ -389,14 +389,14 @@ export default function EditLoopPage({
                   {selectedAds.map((item, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center gap-3 p-3 bg-white/3 border border-[var(--ds-border)] rounded-lg"
+                      className="flex items-center gap-3 p-3 bg-[var(--ds-hover)] border border-[var(--ds-border)] rounded-lg"
                     >
                       <div className="flex flex-col gap-0.5">
                         <button
                           type="button"
                           onClick={() => handleMoveAd(idx, "up")}
                           disabled={idx === 0}
-                          className="p-0.5 text-white/30 hover:text-white disabled:opacity-20 disabled:cursor-not-allowed"
+                          className="p-0.5 text-[var(--ds-text-3)] hover:text-[var(--ds-text)] disabled:opacity-20 disabled:cursor-not-allowed"
                         >
                           <ChevronUp size={14} />
                         </button>
@@ -404,17 +404,17 @@ export default function EditLoopPage({
                           type="button"
                           onClick={() => handleMoveAd(idx, "down")}
                           disabled={idx === selectedAds.length - 1}
-                          className="p-0.5 text-white/30 hover:text-white disabled:opacity-20 disabled:cursor-not-allowed"
+                          className="p-0.5 text-[var(--ds-text-3)] hover:text-[var(--ds-text)] disabled:opacity-20 disabled:cursor-not-allowed"
                         >
                           <ChevronDown size={14} />
                         </button>
                       </div>
 
-                      <span className="text-white/20 text-xs font-mono w-5 shrink-0 text-center">
+                      <span className="text-[var(--ds-text-3)] text-xs font-mono w-5 shrink-0 text-center">
                         {idx + 1}
                       </span>
 
-                      <p className="flex-1 text-white text-sm font-medium truncate">
+                      <p className="flex-1 text-[var(--ds-text)] text-sm font-medium truncate">
                         {item.adName}
                       </p>
 
@@ -436,7 +436,7 @@ export default function EditLoopPage({
               <button
                 type="button"
                 onClick={() => router.back()}
-                className="flex-1 px-4 py-2.5 border border-white/10 text-white/60 hover:text-white hover:bg-white/5 rounded-lg text-sm font-medium"
+                className="flex-1 px-4 py-2.5 border border-[var(--ds-input-border)] text-[var(--ds-text-2)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-input)] rounded-lg text-sm font-medium"
               >
                 Cancel
               </button>

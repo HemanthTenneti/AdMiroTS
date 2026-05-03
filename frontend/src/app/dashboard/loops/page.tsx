@@ -173,7 +173,7 @@ export default function LoopsPage() {
   };
 
   if (!authReady) {
-    return <div className="p-6 text-sm text-white/50">Checking session...</div>;
+    return <div className="p-6 text-sm text-[var(--ds-text-2)]">Checking session...</div>;
   }
 
   return (
@@ -291,11 +291,11 @@ export default function LoopsPage() {
       <Panel>
         <h2 className="mb-4 text-lg font-semibold">Existing Loops</h2>
         {loading ? (
-          <div className="rounded-xl border border-dashed border-[var(--color-border)] bg-white/5 p-8 text-center text-sm text-white/40">
+          <div className="rounded-xl border border-dashed border-[var(--color-border)] bg-[var(--ds-input)] p-8 text-center text-sm text-[var(--ds-text-2)]">
             Loading loops...
           </div>
         ) : loops.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-[var(--color-border)] bg-white/5 p-8 text-center text-sm text-white/40">
+          <div className="rounded-xl border border-dashed border-[var(--color-border)] bg-[var(--ds-input)] p-8 text-center text-sm text-[var(--ds-text-2)]">
             No loops found.
           </div>
         ) : (
@@ -309,21 +309,21 @@ export default function LoopsPage() {
                     : [];
 
               return (
-              <tr key={loop.id} className="hover:bg-white/[0.03]">
+              <tr key={loop.id} className="hover:bg-[var(--ds-hover)]">
                 <td className="px-4 py-3">
                   <div className="font-medium">{loop.loopName}</div>
-                  <div className="text-xs text-white/40">{loop.loopId}</div>
+                  <div className="text-xs text-[var(--ds-text-2)]">{loop.loopId}</div>
                 </td>
                 <td className="px-4 py-3">
                   <div className="space-y-2">
-                    <div className="text-xs text-white/60">
+                    <div className="text-xs text-[var(--ds-text-2)]">
                       {assignedDisplayIds.length > 0
                         ? `${assignedDisplayIds.length} assigned`
                         : "Unassigned"}
                     </div>
                     <div className="max-h-16 overflow-auto space-y-1">
                       {assignedDisplayIds.map((id: string) => (
-                        <div key={id} className="font-mono text-[11px] text-white/40">
+                        <div key={id} className="font-mono text-[11px] text-[var(--ds-text-2)]">
                           {id}
                         </div>
                       ))}
@@ -353,12 +353,12 @@ export default function LoopsPage() {
                     </div>
                   </div>
                 </td>
-                <td className="px-4 py-3 capitalize text-white/50">{loop.rotationType}</td>
+                <td className="px-4 py-3 capitalize text-[var(--ds-text-2)]">{loop.rotationType}</td>
                 <td className="px-4 py-3">
                   <StatusPill label={loop.displayLayout} tone="info" />
                 </td>
-                <td className="px-4 py-3 text-white/50">{loop.advertisements?.length ?? 0}</td>
-                <td className="px-4 py-3 text-white/40">{formatDateTime(loop.updatedAt)}</td>
+                <td className="px-4 py-3 text-[var(--ds-text-2)]">{loop.advertisements?.length ?? 0}</td>
+                <td className="px-4 py-3 text-[var(--ds-text-2)]">{formatDateTime(loop.updatedAt)}</td>
                 <td className="px-4 py-3">
                   <SecondaryButton
                     className="border-red-500/20 bg-red-500/15 text-red-400 hover:bg-red-500/25"

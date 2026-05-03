@@ -178,7 +178,7 @@ function StatusBadge({ status }: { status: string }) {
       </span>
     );
   return (
-    <span className="bg-white/[0.08] text-white/40 text-xs px-2.5 py-1 rounded-full font-medium">
+    <span className="bg-[var(--ds-hover)] text-[var(--ds-text-2)] text-xs px-2.5 py-1 rounded-full font-medium">
       {status?.charAt(0).toUpperCase() + status?.slice(1).toLowerCase()}
     </span>
   );
@@ -201,16 +201,16 @@ function CopyField({
 }) {
   return (
     <div>
-      <p className="text-white/40 text-xs mb-1.5">{label}</p>
-      <div className="flex items-center gap-2 bg-white/[0.04] border border-white/[0.06] rounded-lg px-3 py-2.5 overflow-hidden">
+      <p className="text-[var(--ds-text-2)] text-xs mb-1.5">{label}</p>
+      <div className="flex items-center gap-2 bg-[var(--ds-hover)] border border-[var(--ds-border)] rounded-lg px-3 py-2.5 overflow-hidden">
         <span
-          className={`flex-1 text-white/70 text-xs truncate ${mono ? "font-mono" : ""}`}
+          className={`flex-1 text-[var(--ds-text)] text-xs truncate ${mono ? "font-mono" : ""}`}
         >
           {value}
         </span>
         <button
           onClick={() => onCopy(value, fieldKey)}
-          className="shrink-0 p-1 text-white/30 hover:text-white/70 rounded transition-colors"
+          className="shrink-0 p-1 text-[var(--ds-text-3)] hover:text-[var(--ds-text)] rounded transition-colors"
         >
           {copiedField === fieldKey ? (
             <Check size={13} className="text-green-400" />
@@ -241,8 +241,8 @@ function StatCard({
       >
         <Icon size={16} />
       </div>
-      <p className="text-white/40 text-xs mb-1">{label}</p>
-      <p className="text-white text-2xl font-bold">
+      <p className="text-[var(--ds-text-2)] text-xs mb-1">{label}</p>
+      <p className="text-[var(--ds-text)] text-2xl font-bold">
         {typeof value === "number" ? value.toLocaleString() : value}
       </p>
     </div>
@@ -280,13 +280,13 @@ export default function AdvertisementDetailPage({
   if (loading) {
     return (
       <DashboardLayout>
-        <main className="min-h-screen bg-[#0A0A0F] flex items-center justify-center">
+        <main className="min-h-screen bg-[var(--ds-bg)] flex items-center justify-center">
           <div className="text-center">
             <Loader2
               size={36}
               className="text-[#7E3AF0] animate-spin mx-auto mb-3"
             />
-            <p className="text-white/40 text-sm">Loading advertisement...</p>
+            <p className="text-[var(--ds-text-2)] text-sm">Loading advertisement...</p>
           </div>
         </main>
       </DashboardLayout>
@@ -296,11 +296,11 @@ export default function AdvertisementDetailPage({
   if (error || !ad) {
     return (
       <DashboardLayout>
-        <main className="min-h-screen bg-[#0A0A0F] p-6 lg:p-8">
+        <main className="min-h-screen bg-[var(--ds-bg)] p-6 lg:p-8">
           <div className="max-w-3xl mx-auto">
             <Link
               href="/dashboard/ads"
-              className="inline-flex items-center gap-2 text-white/40 hover:text-white text-sm mb-6 transition-colors"
+              className="inline-flex items-center gap-2 text-[var(--ds-text-2)] hover:text-[var(--ds-text)] text-sm mb-6 transition-colors"
             >
               <ArrowLeft size={16} />
               Back to Advertisements
@@ -309,7 +309,7 @@ export default function AdvertisementDetailPage({
               <p className="text-red-400 font-medium mb-2">
                 Unable to Load Advertisement
               </p>
-              <p className="text-white/40 text-sm mb-6">
+              <p className="text-[var(--ds-text-2)] text-sm mb-6">
                 {error || "Advertisement not found."}
               </p>
               <Link
@@ -331,24 +331,24 @@ export default function AdvertisementDetailPage({
 
   return (
     <DashboardLayout>
-      <main className="min-h-screen bg-[#0A0A0F] p-6 lg:p-8">
+      <main className="min-h-screen bg-[var(--ds-bg)] p-6 lg:p-8">
         <div className="max-w-5xl mx-auto">
           {/* Header */}
           <div className="flex items-start gap-3 mb-6">
             <button
               onClick={() => router.back()}
-              className="p-2 rounded-lg text-white/40 hover:text-white hover:bg-white/[0.06] transition-colors mt-0.5 shrink-0"
+              className="p-2 rounded-lg text-[var(--ds-text-2)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-input)] transition-colors mt-0.5 shrink-0"
             >
               <ArrowLeft size={18} />
             </button>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-xl font-bold text-white truncate">
+                <h1 className="text-xl font-bold text-[var(--ds-text)] truncate">
                   {ad.adName}
                 </h1>
                 <StatusBadge status={ad.status} />
               </div>
-              <p className="text-white/40 text-sm mt-0.5">
+              <p className="text-[var(--ds-text-2)] text-sm mt-0.5">
                 Advertisement Details
               </p>
             </div>
@@ -357,7 +357,7 @@ export default function AdvertisementDetailPage({
           {/* Media Preview */}
           {ad.mediaUrl && (
             <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl overflow-hidden mb-6">
-              <div className="aspect-video bg-white/[0.03] flex items-center justify-center">
+              <div className="aspect-video bg-[var(--ds-hover)] flex items-center justify-center">
                 {ad.mediaType?.toUpperCase() === "VIDEO" ? (
                   <video
                     src={ad.mediaUrl}
@@ -381,7 +381,7 @@ export default function AdvertisementDetailPage({
             <div className="lg:col-span-2 space-y-5">
               {/* Info card */}
               <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-5 space-y-4">
-                <h2 className="text-white font-semibold text-sm">
+                <h2 className="text-[var(--ds-text)] font-semibold text-sm">
                   Information
                 </h2>
 
@@ -396,8 +396,8 @@ export default function AdvertisementDetailPage({
 
                 {ad.description && (
                   <div>
-                    <p className="text-white/40 text-xs mb-1.5">Description</p>
-                    <p className="text-white/70 text-sm bg-white/[0.04] border border-white/[0.06] rounded-lg px-3 py-2.5">
+                    <p className="text-[var(--ds-text-2)] text-xs mb-1.5">Description</p>
+                    <p className="text-[var(--ds-text)] text-sm bg-[var(--ds-hover)] border border-[var(--ds-border)] rounded-lg px-3 py-2.5">
                       {ad.description}
                     </p>
                   </div>
@@ -405,23 +405,23 @@ export default function AdvertisementDetailPage({
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-white/40 text-xs mb-1.5">Duration</p>
-                    <p className="text-white font-semibold">
+                    <p className="text-[var(--ds-text-2)] text-xs mb-1.5">Duration</p>
+                    <p className="text-[var(--ds-text)] font-semibold">
                       {ad.duration}
-                      <span className="text-white/40 font-normal text-xs ml-1">
+                      <span className="text-[var(--ds-text-2)] font-normal text-xs ml-1">
                         seconds
                       </span>
                     </p>
                   </div>
                   <div>
-                    <p className="text-white/40 text-xs mb-1.5">Media Type</p>
+                    <p className="text-[var(--ds-text-2)] text-xs mb-1.5">Media Type</p>
                     <div className="flex items-center gap-2">
                       {ad.mediaType?.toUpperCase() === "VIDEO" ? (
                         <Video size={14} className="text-[#7E3AF0]" />
                       ) : (
                         <ImageIcon size={14} className="text-[#7E3AF0]" />
                       )}
-                      <p className="text-white/70 text-sm capitalize">
+                      <p className="text-[var(--ds-text)] text-sm capitalize">
                         {ad.mediaType?.toLowerCase()}
                       </p>
                     </div>
@@ -442,19 +442,19 @@ export default function AdvertisementDetailPage({
 
               {/* Timestamps */}
               <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-5">
-                <h2 className="text-white/60 text-xs font-medium uppercase tracking-wide mb-4">
+                <h2 className="text-[var(--ds-text-2)] text-xs font-medium uppercase tracking-wide mb-4">
                   Timestamps
                 </h2>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-white/30 text-xs mb-1">Created</p>
-                    <p className="text-white/60 text-sm">
+                    <p className="text-[var(--ds-text-3)] text-xs mb-1">Created</p>
+                    <p className="text-[var(--ds-text-2)] text-sm">
                       {new Date(ad.createdAt).toLocaleString()}
                     </p>
                   </div>
                   <div>
-                    <p className="text-white/30 text-xs mb-1">Last Updated</p>
-                    <p className="text-white/60 text-sm">
+                    <p className="text-[var(--ds-text-3)] text-xs mb-1">Last Updated</p>
+                    <p className="text-[var(--ds-text-2)] text-sm">
                       {new Date(ad.updatedAt).toLocaleString()}
                     </p>
                   </div>
@@ -488,7 +488,7 @@ export default function AdvertisementDetailPage({
 
               {/* Actions */}
               <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-4 space-y-2">
-                <h2 className="text-white/60 text-xs font-medium uppercase tracking-wide mb-3">
+                <h2 className="text-[var(--ds-text-2)] text-xs font-medium uppercase tracking-wide mb-3">
                   Actions
                 </h2>
 
@@ -527,7 +527,7 @@ export default function AdvertisementDetailPage({
                 <button
                   onClick={() => setDeleteConfirm(true)}
                   disabled={deleteLoading}
-                  className="w-full flex items-center justify-center gap-2 bg-white/[0.04] hover:bg-red-500/10 text-white/40 hover:text-red-400 disabled:opacity-50 text-sm font-medium rounded-lg px-4 py-2.5 transition-colors"
+                  className="w-full flex items-center justify-center gap-2 bg-[var(--ds-hover)] hover:bg-red-500/10 text-[var(--ds-text-2)] hover:text-red-400 disabled:opacity-50 text-sm font-medium rounded-lg px-4 py-2.5 transition-colors"
                 >
                   {deleteLoading ? (
                     <Loader2 size={14} className="animate-spin" />
@@ -546,17 +546,17 @@ export default function AdvertisementDetailPage({
       {deleteConfirm && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-6 max-w-sm w-full">
-            <h3 className="text-white font-semibold text-base mb-2">
+            <h3 className="text-[var(--ds-text)] font-semibold text-base mb-2">
               Delete Advertisement
             </h3>
-            <p className="text-white/40 text-sm mb-6">
+            <p className="text-[var(--ds-text-2)] text-sm mb-6">
               This action is permanent and cannot be undone.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setDeleteConfirm(false)}
                 disabled={deleteLoading}
-                className="flex-1 bg-white/[0.06] hover:bg-white/[0.10] text-white/70 text-sm font-medium rounded-lg px-4 py-2.5 transition-colors disabled:opacity-50"
+                className="flex-1 bg-[var(--ds-input)] hover:bg-[var(--ds-input)] text-[var(--ds-text)] text-sm font-medium rounded-lg px-4 py-2.5 transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>

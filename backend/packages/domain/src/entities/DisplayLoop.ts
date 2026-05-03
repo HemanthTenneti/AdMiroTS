@@ -12,6 +12,7 @@ export class DisplayLoop implements IDisplayLoop {
   loopName: string;
   displayId: string;
   displayIds: string[];
+  createdById?: string | undefined;
   advertisements: LoopAdvertisementEntry[];
   rotationType: RotationType;
   displayLayout: DisplayLayout;
@@ -33,6 +34,7 @@ export class DisplayLoop implements IDisplayLoop {
           ? [data.displayId]
           : [];
     this.displayId = this.displayIds[0] ?? data.displayId ?? "";
+    this.createdById = data.createdById ?? undefined;
     this.advertisements = data.advertisements.map(
       (ad: any) =>
         new LoopAdvertisementEntry(

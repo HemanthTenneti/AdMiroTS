@@ -214,7 +214,7 @@ function StatusBadge({ status }: { status: string }) {
       </span>
     );
   return (
-    <span className="bg-white/[0.08] text-white/40 text-xs px-2 py-0.5 rounded-full font-medium">
+    <span className="bg-[var(--ds-hover)] text-[var(--ds-text-2)] text-xs px-2 py-0.5 rounded-full font-medium">
       {status?.charAt(0).toUpperCase() + status?.slice(1).toLowerCase()}
     </span>
   );
@@ -222,8 +222,8 @@ function StatusBadge({ status }: { status: string }) {
 
 function MediaIcon({ mediaType }: { mediaType: string }) {
   if (mediaType?.toUpperCase() === "VIDEO")
-    return <Video size={28} className="text-white/20" />;
-  return <ImageIcon size={28} className="text-white/20" />;
+    return <Video size={28} className="text-[var(--ds-text-3)]" />;
+  return <ImageIcon size={28} className="text-[var(--ds-text-3)]" />;
 }
 
 interface AdCardProps {
@@ -237,7 +237,7 @@ function AdCard({ ad, deleteLoading, onEdit, onDeleteRequest }: AdCardProps) {
   return (
     <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl overflow-hidden hover:border-[#7E3AF0]/40 transition-colors flex flex-col">
       {/* Media preview */}
-      <div className="bg-white/5 aspect-video flex items-center justify-center relative overflow-hidden">
+      <div className="bg-[var(--ds-input)] aspect-video flex items-center justify-center relative overflow-hidden">
         {ad.mediaUrl ? (
           ad.mediaType?.toUpperCase() === "VIDEO" ? (
             <video
@@ -262,31 +262,31 @@ function AdCard({ ad, deleteLoading, onEdit, onDeleteRequest }: AdCardProps) {
       {/* Body */}
       <div className="p-4 flex flex-col flex-1">
         <div className="flex items-start justify-between gap-2 mb-2">
-          <h3 className="text-white font-medium text-sm leading-snug line-clamp-2 flex-1">
+          <h3 className="text-[var(--ds-text)] font-medium text-sm leading-snug line-clamp-2 flex-1">
             {ad.adName}
           </h3>
           <StatusBadge status={ad.status} />
         </div>
 
         <div className="flex items-center gap-3 mb-3">
-          <span className="text-white/40 text-xs capitalize">
+          <span className="text-[var(--ds-text-2)] text-xs capitalize">
             {ad.mediaType?.toLowerCase()}
           </span>
-          <span className="text-white/20 text-xs">·</span>
-          <span className="text-white/40 text-xs">{ad.duration}s</span>
+          <span className="text-[var(--ds-text-3)] text-xs">·</span>
+          <span className="text-[var(--ds-text-2)] text-xs">{ad.duration}s</span>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-2 gap-2 mb-4">
-          <div className="bg-white/[0.04] rounded-lg px-3 py-2">
-            <p className="text-white/40 text-xs mb-0.5">Views</p>
-            <p className="text-white font-semibold text-sm">
+          <div className="bg-[var(--ds-hover)] rounded-lg px-3 py-2">
+            <p className="text-[var(--ds-text-2)] text-xs mb-0.5">Views</p>
+            <p className="text-[var(--ds-text)] font-semibold text-sm">
               {(ad.views ?? 0).toLocaleString()}
             </p>
           </div>
-          <div className="bg-white/[0.04] rounded-lg px-3 py-2">
-            <p className="text-white/40 text-xs mb-0.5">Clicks</p>
-            <p className="text-white font-semibold text-sm">
+          <div className="bg-[var(--ds-hover)] rounded-lg px-3 py-2">
+            <p className="text-[var(--ds-text-2)] text-xs mb-0.5">Clicks</p>
+            <p className="text-[var(--ds-text)] font-semibold text-sm">
               {(ad.clicks ?? 0).toLocaleString()}
             </p>
           </div>
@@ -359,15 +359,15 @@ export default function AdvertisementsPage() {
 
   return (
     <DashboardLayout>
-      <main className="min-h-screen bg-[#0A0A0F] p-6 lg:p-8">
+      <main className="min-h-screen bg-[var(--ds-bg)] p-6 lg:p-8">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-2xl font-bold text-white mb-1">
+              <h1 className="text-2xl font-bold text-[var(--ds-text)] mb-1">
                 Advertisements
               </h1>
-              <p className="text-white/40 text-sm">
+              <p className="text-[var(--ds-text-2)] text-sm">
                 Create and manage your advertisement campaigns
               </p>
             </div>
@@ -386,7 +386,7 @@ export default function AdvertisementsPage() {
             <div className="relative">
               <Search
                 size={16}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--ds-text-3)] pointer-events-none"
               />
               <input
                 type="text"
@@ -394,13 +394,13 @@ export default function AdvertisementsPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && commitSearch()}
                 placeholder="Search by name, status, type..."
-                className="w-full bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:border-[#7E3AF0] focus:outline-none rounded-lg pl-9 pr-24 py-2 text-sm transition-colors"
+                className="w-full bg-[var(--ds-input)] border border-[var(--ds-input-border)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-3)] focus:border-[#7E3AF0] focus:outline-none rounded-lg pl-9 pr-24 py-2 text-sm transition-colors"
               />
               <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
                 {searchTerm && (
                   <button
                     onClick={clearSearch}
-                    className="p-1.5 text-white/30 hover:text-white/60 rounded-md transition-colors"
+                    className="p-1.5 text-[var(--ds-text-3)] hover:text-[var(--ds-text-2)] rounded-md transition-colors"
                   >
                     <X size={14} />
                   </button>
@@ -415,8 +415,8 @@ export default function AdvertisementsPage() {
             </div>
 
             {activeSearchTerm && (
-              <p className="text-white/40 text-xs">
-                <span className="text-white/70 font-medium">{totalItems}</span>{" "}
+              <p className="text-[var(--ds-text-2)] text-xs">
+                <span className="text-[var(--ds-text)] font-medium">{totalItems}</span>{" "}
                 result{totalItems !== 1 ? "s" : ""} for &ldquo;
                 {activeSearchTerm}&rdquo;
               </p>
@@ -432,7 +432,7 @@ export default function AdvertisementsPage() {
                     className={`text-xs font-medium rounded-full px-3 py-1 transition-colors ${
                       statusFilter === tab.value
                         ? "bg-[#7E3AF0] text-white"
-                        : "bg-white/[0.08] text-white/50 hover:bg-white/[0.12]"
+                        : "bg-[var(--ds-hover)] text-[var(--ds-text-2)] hover:bg-[var(--ds-input)]"
                     }`}
                   >
                     {tab.label}
@@ -444,7 +444,7 @@ export default function AdvertisementsPage() {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as SortBy)}
-                  className="bg-[var(--ds-card)] border border-white/10 text-white text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#7E3AF0] transition-colors"
+                  className="bg-[var(--ds-card)] border border-[var(--ds-input-border)] text-[var(--ds-text)] text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#7E3AF0] transition-colors"
                 >
                   <option value="createdAt">Created Date</option>
                   <option value="adName">Name</option>
@@ -454,7 +454,7 @@ export default function AdvertisementsPage() {
                 <select
                   value={order}
                   onChange={(e) => setOrder(e.target.value as Order)}
-                  className="bg-[var(--ds-card)] border border-white/10 text-white text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#7E3AF0] transition-colors"
+                  className="bg-[var(--ds-card)] border border-[var(--ds-input-border)] text-[var(--ds-text)] text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#7E3AF0] transition-colors"
                 >
                   <option value="desc">Newest First</option>
                   <option value="asc">Oldest First</option>
@@ -471,22 +471,22 @@ export default function AdvertisementsPage() {
                   size={36}
                   className="text-[#7E3AF0] animate-spin mx-auto mb-3"
                 />
-                <p className="text-white/40 text-sm">
+                <p className="text-[var(--ds-text-2)] text-sm">
                   Loading advertisements...
                 </p>
               </div>
             </div>
           ) : advertisements.length === 0 ? (
             <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-12 text-center">
-              <div className="w-12 h-12 bg-white/[0.04] rounded-xl flex items-center justify-center mx-auto mb-4">
-                <LayoutGrid size={22} className="text-white/20" />
+              <div className="w-12 h-12 bg-[var(--ds-hover)] rounded-xl flex items-center justify-center mx-auto mb-4">
+                <LayoutGrid size={22} className="text-[var(--ds-text-3)]" />
               </div>
-              <h2 className="text-white font-semibold mb-2">
+              <h2 className="text-[var(--ds-text)] font-semibold mb-2">
                 {activeSearchTerm
                   ? "No advertisements found"
                   : "No advertisements yet"}
               </h2>
-              <p className="text-white/40 text-sm mb-6">
+              <p className="text-[var(--ds-text-2)] text-sm mb-6">
                 {activeSearchTerm
                   ? "Try adjusting your search or filters."
                   : "Create your first advertisement to start managing campaigns."}
@@ -522,7 +522,7 @@ export default function AdvertisementsPage() {
                 <button
                   onClick={() => setPage(Math.max(1, page - 1))}
                   disabled={page === 1}
-                  className="p-2 rounded-lg text-white/40 hover:text-white hover:bg-white/[0.06] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  className="p-2 rounded-lg text-[var(--ds-text-2)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-input)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 >
                   <ChevronLeft size={18} />
                 </button>
@@ -540,7 +540,7 @@ export default function AdvertisementsPage() {
                     className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
                       page === pageNum
                         ? "bg-[#7E3AF0] text-white"
-                        : "text-white/40 hover:text-white hover:bg-white/[0.06]"
+                        : "text-[var(--ds-text-2)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-input)]"
                     }`}
                   >
                     {pageNum}
@@ -550,26 +550,26 @@ export default function AdvertisementsPage() {
                 <button
                   onClick={() => setPage(Math.min(totalPages, page + 1))}
                   disabled={page === totalPages}
-                  className="p-2 rounded-lg text-white/40 hover:text-white hover:bg-white/[0.06] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  className="p-2 rounded-lg text-[var(--ds-text-2)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-input)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 >
                   <ChevronRight size={18} />
                 </button>
               </div>
 
-              <p className="text-white/30 text-xs">
+              <p className="text-[var(--ds-text-3)] text-xs">
                 Page{" "}
-                <span className="text-white/60 font-medium">{page}</span> of{" "}
-                <span className="text-white/60 font-medium">{totalPages}</span>
+                <span className="text-[var(--ds-text-2)] font-medium">{page}</span> of{" "}
+                <span className="text-[var(--ds-text-2)] font-medium">{totalPages}</span>
                 {advertisements.length > 0 && (
                   <>
                     {" "}
                     &middot; Showing{" "}
-                    <span className="text-white/60 font-medium">
+                    <span className="text-[var(--ds-text-2)] font-medium">
                       {(page - 1) * itemsPerPage + 1}–
                       {(page - 1) * itemsPerPage + advertisements.length}
                     </span>{" "}
                     of{" "}
-                    <span className="text-white/60 font-medium">
+                    <span className="text-[var(--ds-text-2)] font-medium">
                       {totalItems}
                     </span>
                   </>
@@ -584,10 +584,10 @@ export default function AdvertisementsPage() {
       {deleteConfirmId && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-6 max-w-sm w-full">
-            <h3 className="text-white font-semibold text-base mb-2">
+            <h3 className="text-[var(--ds-text)] font-semibold text-base mb-2">
               Delete Advertisement
             </h3>
-            <p className="text-white/40 text-sm mb-6">
+            <p className="text-[var(--ds-text-2)] text-sm mb-6">
               Are you sure you want to delete this advertisement? This action
               cannot be undone.
             </p>
@@ -595,7 +595,7 @@ export default function AdvertisementsPage() {
               <button
                 onClick={() => setDeleteConfirmId(null)}
                 disabled={deleteLoading === deleteConfirmId}
-                className="flex-1 bg-white/[0.06] hover:bg-white/[0.10] text-white/70 text-sm font-medium rounded-lg px-4 py-2.5 transition-colors disabled:opacity-50"
+                className="flex-1 bg-[var(--ds-input)] hover:bg-[var(--ds-input)] text-[var(--ds-text)] text-sm font-medium rounded-lg px-4 py-2.5 transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>

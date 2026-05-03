@@ -74,15 +74,17 @@ function useAnalytics() {
   const [overview, setOverview] = useState<OverviewStats | null>(null);
   const [displaysData, setDisplaysData] = useState<DisplaysSummary | null>(null);
   const [adsData, setAdsData] = useState<AdsSummary | null>(null);
+  const [errors, setErrors] = useState<{ overview?: string; displays?: string; ads?: string }>({});
 
   const fetchAnalytics = useCallback(async () => {
     try {
       setLoading(true);
+      setErrors({});
 
       const [overviewRes, displaysRes, adsRes] = await Promise.allSettled([
         analyticsApi.overview(),
-        displaysApi.list({ limit: 200 }),
-        advertisementsApi.list({ limit: 200 }),
+        displaysApi.list({ limit: 100 }),
+        advertisementsApi.list({ limit: 100 }),
       ]);
 
       // Overview
@@ -95,6 +97,8 @@ function useAnalytics() {
           activeAds: o.activeAds,
         });
       } else {
+        setOverview(null);
+        setErrors((prev) => ({ ...prev, overview: "Overview stats could not be loaded." }));
         toast.error("Failed to load overview stats");
       }
 
@@ -122,6 +126,8 @@ function useAnalytics() {
           displays: rows,
         });
       } else {
+        setDisplaysData(null);
+        setErrors((prev) => ({ ...prev, displays: "Display analytics could not be loaded." }));
         toast.error("Failed to load displays data");
       }
 
@@ -151,6 +157,8 @@ function useAnalytics() {
           ads: rows,
         });
       } else {
+        setAdsData(null);
+        setErrors((prev) => ({ ...prev, ads: "Advertisement analytics could not be loaded." }));
         toast.error("Failed to load advertisements data");
       }
     } finally {
@@ -167,7 +175,7 @@ function useAnalytics() {
     fetchAnalytics();
   }, [router, fetchAnalytics]);
 
-  return { loading, activeTab, setActiveTab, overview, displaysData, adsData };
+  return { loading, activeTab, setActiveTab, overview, displaysData, adsData, errors };
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -201,9 +209,17 @@ function StatCard({ label, value, icon, accent = "bg-[#7E3AF0]/15" }: StatCardPr
     <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-5 flex items-start gap-4">
       <div className={`${accent} rounded-lg p-2 shrink-0`}>{icon}</div>
       <div>
-        <p className="text-white/50 text-sm mb-1">{label}</p>
-        <p className="text-2xl font-bold text-white">{value.toLocaleString()}</p>
+        <p className="text-[var(--ds-text-2)] text-sm mb-1">{label}</p>
+        <p className="text-2xl font-bold text-[var(--ds-text)]">{value.toLocaleString()}</p>
       </div>
+    </div>
+  );
+}
+
+function ErrorPanel({ message }: { message: string }) {
+  return (
+    <div className="bg-[var(--ds-card)] border border-red-500/25 rounded-xl p-5 text-sm text-red-400">
+      {message}
     </div>
   );
 }
@@ -277,15 +293,15 @@ function DisplaysPanel({ data }: { data: DisplaysSummary }) {
 
       {data.totalDisplays > 0 && (
         <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-5">
-          <p className="text-white font-semibold mb-4 text-sm">Status Distribution</p>
+          <p className="text-[var(--ds-text)] font-semibold mb-4 text-sm">Status Distribution</p>
           <div className="space-y-3">
             {[
               { label: "Online", value: data.onlineCount, color: "bg-emerald-500" },
               { label: "Offline", value: data.offlineCount, color: "bg-red-500" },
             ].map(({ label, value, color }) => (
               <div key={label} className="flex items-center gap-3">
-                <span className="text-white/50 text-xs w-14 shrink-0">{label}</span>
-                <div className="flex-1 h-2 bg-white/5 rounded-full overflow-hidden">
+                <span className="text-[var(--ds-text-2)] text-xs w-14 shrink-0">{label}</span>
+                <div className="flex-1 h-2 bg-[var(--ds-hover)] rounded-full overflow-hidden">
                   <div
                     className={`h-full ${color} rounded-full`}
                     style={{
@@ -293,7 +309,7 @@ function DisplaysPanel({ data }: { data: DisplaysSummary }) {
                     }}
                   />
                 </div>
-                <span className="text-white/40 text-xs w-6 text-right">{value}</span>
+                <span className="text-[var(--ds-text-2)] text-xs w-6 text-right">{value}</span>
               </div>
             ))}
           </div>
@@ -304,11 +320,11 @@ function DisplaysPanel({ data }: { data: DisplaysSummary }) {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="bg-white/5 border-b border-[var(--ds-border)]">
+              <tr className="bg-[var(--ds-hover)] border-b border-[var(--ds-border)]">
                 {["Display Name", "Location", "Status", "Last Seen", "Created"].map((h) => (
                   <th
                     key={h}
-                    className="text-left px-5 py-3 text-white/50 text-xs uppercase tracking-wide font-semibold"
+                    className="text-left px-5 py-3 text-[var(--ds-text-2)] text-xs uppercase tracking-wide font-semibold"
                   >
                     {h}
                   </th>
@@ -319,22 +335,22 @@ function DisplaysPanel({ data }: { data: DisplaysSummary }) {
               {data.displays.map((display) => (
                 <tr
                   key={display.id}
-                  className="border-b border-white/5 hover:bg-white/[0.03] text-white"
+                  className="border-b border-[var(--ds-border)] hover:bg-[var(--ds-hover)] text-[var(--ds-text)]"
                 >
                   <td className="px-5 py-4">
-                    <p className="font-medium text-white">{display.displayName}</p>
+                    <p className="font-medium text-[var(--ds-text)]">{display.displayName}</p>
                   </td>
                   <td className="px-5 py-4">
-                    <p className="text-white/60 text-sm">{display.location}</p>
+                    <p className="text-[var(--ds-text-2)] text-sm">{display.location}</p>
                   </td>
                   <td className="px-5 py-4">
                     <DisplayStatusBadge status={display.status} />
                   </td>
                   <td className="px-5 py-4">
-                    <p className="text-white/40 text-xs">{formatDate(display.lastSeen)}</p>
+                    <p className="text-[var(--ds-text-2)] text-xs">{formatDate(display.lastSeen)}</p>
                   </td>
                   <td className="px-5 py-4">
-                    <p className="text-white/40 text-xs">{formatDate(display.createdAt)}</p>
+                    <p className="text-[var(--ds-text-2)] text-xs">{formatDate(display.createdAt)}</p>
                   </td>
                 </tr>
               ))}
@@ -344,10 +360,10 @@ function DisplaysPanel({ data }: { data: DisplaysSummary }) {
 
         {data.displays.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16">
-            <div className="bg-white/5 rounded-xl p-4 mb-4">
-              <Monitor size={32} className="text-white/20" />
+            <div className="bg-[var(--ds-hover)] rounded-xl p-4 mb-4">
+              <Monitor size={32} className="text-[var(--ds-text-3)]" />
             </div>
-            <p className="text-white/30 text-sm">No displays found</p>
+            <p className="text-[var(--ds-text-3)] text-sm">No displays found</p>
           </div>
         )}
       </div>
@@ -382,12 +398,12 @@ function AdsPanel({ data }: { data: AdsSummary }) {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="bg-white/5 border-b border-[var(--ds-border)]">
+              <tr className="bg-[var(--ds-hover)] border-b border-[var(--ds-border)]">
                 {["Ad Name", "Type", "Status", "Duration", "Views", "Clicks", "Created"].map(
                   (h) => (
                     <th
                       key={h}
-                      className="text-left px-5 py-3 text-white/50 text-xs uppercase tracking-wide font-semibold"
+                      className="text-left px-5 py-3 text-[var(--ds-text-2)] text-xs uppercase tracking-wide font-semibold"
                     >
                       {h}
                     </th>
@@ -399,13 +415,13 @@ function AdsPanel({ data }: { data: AdsSummary }) {
               {data.ads.map((ad) => (
                 <tr
                   key={ad.id}
-                  className="border-b border-white/5 hover:bg-white/[0.03] text-white"
+                  className="border-b border-[var(--ds-border)] hover:bg-[var(--ds-hover)] text-[var(--ds-text)]"
                 >
                   <td className="px-5 py-4">
-                    <p className="font-medium text-white">{ad.adName}</p>
+                    <p className="font-medium text-[var(--ds-text)]">{ad.adName}</p>
                   </td>
                   <td className="px-5 py-4">
-                    <span className="inline-block px-2.5 py-1 rounded-full text-xs font-semibold bg-white/8 text-white/60">
+                    <span className="inline-block px-2.5 py-1 rounded-full text-xs font-semibold bg-[var(--ds-hover)] text-[var(--ds-text-2)]">
                       {capitalize(ad.mediaType)}
                     </span>
                   </td>
@@ -413,26 +429,26 @@ function AdsPanel({ data }: { data: AdsSummary }) {
                     <AdStatusBadge status={ad.status} />
                   </td>
                   <td className="px-5 py-4">
-                    <p className="text-white/60 text-sm">{ad.duration}s</p>
+                    <p className="text-[var(--ds-text-2)] text-sm">{ad.duration}s</p>
                   </td>
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-1.5">
-                      <Eye size={13} className="text-white/30" />
-                      <p className="font-semibold text-white text-sm">
+                      <Eye size={13} className="text-[var(--ds-text-3)]" />
+                      <p className="font-semibold text-[var(--ds-text)] text-sm">
                         {ad.views.toLocaleString()}
                       </p>
                     </div>
                   </td>
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-1.5">
-                      <MousePointerClick size={13} className="text-white/30" />
-                      <p className="font-semibold text-white text-sm">
+                      <MousePointerClick size={13} className="text-[var(--ds-text-3)]" />
+                      <p className="font-semibold text-[var(--ds-text)] text-sm">
                         {ad.clicks.toLocaleString()}
                       </p>
                     </div>
                   </td>
                   <td className="px-5 py-4">
-                    <p className="text-white/40 text-xs">{formatDate(ad.createdAt)}</p>
+                    <p className="text-[var(--ds-text-2)] text-xs">{formatDate(ad.createdAt)}</p>
                   </td>
                 </tr>
               ))}
@@ -442,10 +458,10 @@ function AdsPanel({ data }: { data: AdsSummary }) {
 
         {data.ads.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16">
-            <div className="bg-white/5 rounded-xl p-4 mb-4">
-              <ImageIcon size={32} className="text-white/20" />
+            <div className="bg-[var(--ds-hover)] rounded-xl p-4 mb-4">
+              <ImageIcon size={32} className="text-[var(--ds-text-3)]" />
             </div>
-            <p className="text-white/30 text-sm">No advertisements found</p>
+            <p className="text-[var(--ds-text-3)] text-sm">No advertisements found</p>
           </div>
         )}
       </div>
@@ -462,7 +478,7 @@ const TABS: { id: ActiveTab; label: string; icon: React.ReactNode }[] = [
 
 export default function AnalyticsPage() {
   const router = useRouter();
-  const { loading, activeTab, setActiveTab, overview, displaysData, adsData } = useAnalytics();
+  const { loading, activeTab, setActiveTab, overview, displaysData, adsData, errors } = useAnalytics();
 
   if (loading) {
     return (
@@ -470,7 +486,7 @@ export default function AnalyticsPage() {
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <Loader2 size={40} className="text-[#7E3AF0] animate-spin mx-auto mb-3" />
-            <p className="text-white/40 text-sm">Loading analytics...</p>
+            <p className="text-[var(--ds-text-2)] text-sm">Loading analytics...</p>
           </div>
         </div>
       </DashboardLayout>
@@ -484,18 +500,24 @@ export default function AnalyticsPage() {
         <div className="mb-8">
           <button
             onClick={() => router.push("/dashboard")}
-            className="flex items-center gap-2 text-white/40 hover:text-white/70 text-sm font-medium mb-5"
+            className="flex items-center gap-2 text-[var(--ds-text-2)] hover:text-[var(--ds-text)] text-sm font-medium mb-5"
           >
             <ArrowLeft size={16} />
             Back to Dashboard
           </button>
-          <h1 className="text-3xl font-bold text-white mb-1">Analytics</h1>
-          <p className="text-white/40 text-sm">
+          <h1 className="text-3xl font-bold text-[var(--ds-text)] mb-1">Analytics</h1>
+          <p className="text-[var(--ds-text-2)] text-sm">
             Monitor your displays and advertisements performance
           </p>
         </div>
 
         {/* Global overview cards — always visible */}
+        {errors.overview && (
+          <div className="mb-8">
+            <ErrorPanel message={errors.overview} />
+          </div>
+        )}
+
         {overview && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <StatCard
@@ -532,7 +554,7 @@ export default function AnalyticsPage() {
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold ${
                 activeTab === tab.id
                   ? "bg-[#7E3AF0] text-white"
-                  : "bg-white/8 text-white/50 hover:bg-white/12"
+                  : "bg-[var(--ds-hover)] text-[var(--ds-text-2)] hover:bg-[var(--ds-input)] hover:text-[var(--ds-text)]"
               }`}
             >
               {tab.icon}
@@ -542,9 +564,9 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Tab content */}
-        {activeTab === "displays" && displaysData && (
-          <DisplaysPanel data={displaysData} />
-        )}
+        {activeTab === "displays" && errors.displays && <ErrorPanel message={errors.displays} />}
+        {activeTab === "displays" && displaysData && <DisplaysPanel data={displaysData} />}
+        {activeTab === "ads" && errors.ads && <ErrorPanel message={errors.ads} />}
         {activeTab === "ads" && adsData && <AdsPanel data={adsData} />}
       </div>
     </DashboardLayout>

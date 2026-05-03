@@ -4,6 +4,8 @@ import {
   UpdateProfilePayloadSchema,
   UploadAvatarPayload,
   UploadAvatarPayloadSchema,
+  AvatarResponseSchema,
+  ProfileResponseSchema,
 } from "@/lib/contracts";
 
 export type { UpdateProfilePayload, UploadAvatarPayload };
@@ -16,6 +18,7 @@ export interface ProfileData {
   lastName?: string;
   role: string;
   profilePicture?: string;
+  googleId?: string;
   isActive: boolean;
   createdAt?: string;
   updatedAt?: string;
@@ -27,19 +30,29 @@ export interface ProfileResponse {
 }
 
 export const profileApi = {
-  get: () =>
-    client.get<ProfileResponse>("/api/profile"),
+  get: async () => {
+    const response = await client.get("/api/profile");
+    const parsed = ProfileResponseSchema.parse(response.data);
+    return { ...response, data: parsed };
+  },
 
   update: async (payload: UpdateProfilePayload) => {
     const parsedPayload = UpdateProfilePayloadSchema.parse(payload);
-    return client.put<ProfileResponse>("/api/profile", parsedPayload);
+    const response = await client.put("/api/profile", parsedPayload);
+    const parsed = ProfileResponseSchema.parse(response.data);
+    return { ...response, data: parsed };
   },
 
-  getAvatar: () =>
-    client.get<{ success: boolean; data: { avatarUrl?: string } }>("/api/profile/avatar"),
+  getAvatar: async () => {
+    const response = await client.get("/api/profile/avatar");
+    const parsed = AvatarResponseSchema.parse(response.data);
+    return { ...response, data: parsed };
+  },
 
   uploadAvatar: async (payload: UploadAvatarPayload) => {
     const parsedPayload = UploadAvatarPayloadSchema.parse(payload);
-    return client.post<ProfileResponse>("/api/profile/avatar", parsedPayload);
+    const response = await client.post("/api/profile/avatar", parsedPayload);
+    const parsed = ProfileResponseSchema.parse(response.data);
+    return { ...response, data: parsed };
   },
 };

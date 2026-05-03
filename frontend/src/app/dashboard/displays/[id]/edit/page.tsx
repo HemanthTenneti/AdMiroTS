@@ -155,13 +155,13 @@ function FormField({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="block text-white/70 text-sm font-medium">
+      <label className="block text-[var(--ds-text)] text-sm font-medium">
         {label}
         {required && <span className="text-[#9F67FF] ml-0.5">*</span>}
       </label>
       {children}
       {error && <p className="text-red-400 text-xs">{error}</p>}
-      {!error && hint && <p className="text-white/30 text-xs">{hint}</p>}
+      {!error && hint && <p className="text-[var(--ds-text-3)] text-xs">{hint}</p>}
     </div>
   );
 }
@@ -173,11 +173,11 @@ function FormField({
 function LoadingSkeleton() {
   return (
     <DashboardLayout>
-      <main className="min-h-screen bg-[#0a0a0a] p-8">
+      <main className="min-h-screen bg-[var(--ds-bg)] p-8">
         <div className="max-w-2xl mx-auto flex items-center justify-center h-64">
           <div className="flex flex-col items-center gap-3">
             <Loader2 size={36} className="text-[#7E3AF0] animate-spin" />
-            <p className="text-white/40 text-sm">Loading display details…</p>
+            <p className="text-[var(--ds-text-2)] text-sm">Loading display details…</p>
           </div>
         </div>
       </main>
@@ -206,21 +206,21 @@ export default function EditDisplayPage({ params }: { params: Promise<{ id: stri
   if (loading) return <LoadingSkeleton />;
 
   const inputCls = (err?: string) =>
-    `w-full bg-white/5 border ${
-      err ? "border-red-500/50" : "border-white/10"
-    } text-white placeholder:text-white/30 focus:border-[#7E3AF0] focus:outline-none rounded-lg px-3 py-2 text-sm`;
+    `w-full bg-[var(--ds-input)] border ${
+      err ? "border-red-500/50" : "border-[var(--ds-input-border)]"
+    } text-[var(--ds-text)] placeholder:text-[var(--ds-text-3)] focus:border-[#7E3AF0] focus:outline-none rounded-lg px-3 py-2 text-sm`;
 
   const readonlyCls =
-    "w-full bg-white/[0.03] border border-white/5 text-white/30 rounded-lg px-3 py-2 text-sm font-mono cursor-not-allowed";
+    "w-full bg-[var(--ds-hover)] border border-[var(--ds-border)] text-[var(--ds-text-3)] rounded-lg px-3 py-2 text-sm font-mono cursor-not-allowed";
 
   if (!display && serverError) {
     return (
       <DashboardLayout>
-        <main className="min-h-screen bg-[#0a0a0a] p-8">
+        <main className="min-h-screen bg-[var(--ds-bg)] p-8">
           <div className="max-w-2xl mx-auto">
             <Link
               href="/dashboard/displays"
-              className="inline-flex items-center gap-2 text-white/40 hover:text-white/80 text-sm font-medium mb-8 group"
+              className="inline-flex items-center gap-2 text-[var(--ds-text-2)] hover:text-[var(--ds-text)] text-sm font-medium mb-8 group"
               style={{ transition: "color 150ms ease" }}
             >
               <ArrowLeft size={15} className="group-hover:-translate-x-0.5" style={{ transition: "transform 150ms ease" }} />
@@ -228,7 +228,7 @@ export default function EditDisplayPage({ params }: { params: Promise<{ id: stri
             </Link>
             <div className="bg-[var(--ds-card)] border border-red-500/20 rounded-xl p-10 text-center">
               <p className="text-red-400 font-semibold mb-1">Error</p>
-              <p className="text-white/40 text-sm">{serverError || "Display not found."}</p>
+              <p className="text-[var(--ds-text-2)] text-sm">{serverError || "Display not found."}</p>
             </div>
           </div>
         </main>
@@ -238,13 +238,13 @@ export default function EditDisplayPage({ params }: { params: Promise<{ id: stri
 
   return (
     <DashboardLayout>
-      <main className="min-h-screen bg-[#0a0a0a] p-8">
+      <main className="min-h-screen bg-[var(--ds-bg)] p-8">
         <div className="max-w-2xl mx-auto">
 
           {/* Back nav */}
           <Link
             href={`/dashboard/displays/${id}`}
-            className="inline-flex items-center gap-2 text-white/40 hover:text-white/80 text-sm font-medium mb-8 group"
+            className="inline-flex items-center gap-2 text-[var(--ds-text-2)] hover:text-[var(--ds-text)] text-sm font-medium mb-8 group"
             style={{ transition: "color 150ms ease" }}
           >
             <ArrowLeft size={15} className="group-hover:-translate-x-0.5" style={{ transition: "transform 150ms ease" }} />
@@ -253,8 +253,8 @@ export default function EditDisplayPage({ params }: { params: Promise<{ id: stri
 
           {/* Page title */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-white tracking-tight mb-1">Edit Display</h1>
-            <p className="text-white/40 text-sm">Update display settings for <span className="text-white/60">{display?.displayName}</span>.</p>
+            <h1 className="text-3xl font-bold text-[var(--ds-text)] tracking-tight mb-1">Edit Display</h1>
+            <p className="text-[var(--ds-text-2)] text-sm">Update display settings for <span className="text-[var(--ds-text-2)]">{display?.displayName}</span>.</p>
           </div>
 
           {/* Server error */}
@@ -337,14 +337,14 @@ export default function EditDisplayPage({ params }: { params: Promise<{ id: stri
           <div className="mt-6 bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-5">
             <div className="flex items-center gap-2 mb-3">
               <Info size={15} className="text-[#9F67FF]" />
-              <span className="text-white/70 text-sm font-medium">What can you edit?</span>
+              <span className="text-[var(--ds-text)] text-sm font-medium">What can you edit?</span>
             </div>
-            <ul className="space-y-2 text-white/40 text-xs leading-relaxed">
+            <ul className="space-y-2 text-[var(--ds-text-2)] text-xs leading-relaxed">
               <li>
-                <span className="text-white/60 font-medium">Location</span> — update the physical location of the display.
+                <span className="text-[var(--ds-text-2)] font-medium">Location</span> — update the physical location of the display.
               </li>
               <li>
-                <span className="text-white/60 font-medium">Display ID, Display Name, and Resolution</span> — locked by the current backend after creation.
+                <span className="text-[var(--ds-text-2)] font-medium">Display ID, Display Name, and Resolution</span> — locked by the current backend after creation.
               </li>
             </ul>
           </div>

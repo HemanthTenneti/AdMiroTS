@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { SuccessEnvelopeSchema } from "./common";
+import { ProfileSchema } from "./profile";
 
 export const LoginPayloadSchema = z.object({
   usernameOrEmail: z.string().min(1),
@@ -20,17 +21,12 @@ export const RegisterPayloadSchema = z
     path: ["confirmPassword"],
   });
 
-export const AuthUserSchema = z.object({
-  id: z.string(),
-  username: z.string(),
-  email: z.email(),
-  firstName: z.string().optional(),
-  lastName: z.string().optional(),
-  role: z.string(),
-  profilePicture: z.string().url().optional(),
-  isActive: z.boolean(),
-  lastLogin: z.string().optional(),
-});
+export const AuthUserSchema = z.preprocess((value) => {
+  if (value && typeof value === "object" && "_doc" in value) {
+    return (value as { _doc: unknown })._doc;
+  }
+  return value;
+}, ProfileSchema.extend({ lastLogin: z.string().optional() }));
 
 export const AuthResponseSchema = z.object({
   user: AuthUserSchema,

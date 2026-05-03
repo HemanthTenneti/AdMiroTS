@@ -7,6 +7,8 @@ import ProfileService from "./profile.service";
 import { AuthenticatedRequest } from "../../types/auth.types";
 import { UnauthorizedError } from "../../utils/errors/UnauthorizedError";
 import { SuccessResponse } from "@admiro/shared";
+import { auditLog } from "../../utils/audit-log";
+import { EntityType, LogAction } from "@admiro/domain";
 
 export class ProfileController {
   private profileService: ProfileService;
@@ -54,6 +56,14 @@ export class ProfileController {
       });
 
       const safeProfile = this.profileService.getProfileWithoutPassword(updatedUser);
+      await auditLog(req, {
+        action: LogAction.UPDATE,
+        entityType: EntityType.USER,
+        entityId: user.id,
+        userId: user.id,
+        description: "Updated profile details",
+        changes: req.body,
+      });
 
       const response: SuccessResponse<any> = {
         success: true,
@@ -87,6 +97,13 @@ export class ProfileController {
 
       const updatedUser = await this.profileService.uploadAvatar(user.id, avatarUrl);
       const safeProfile = this.profileService.getProfileWithoutPassword(updatedUser);
+      await auditLog(req, {
+        action: LogAction.UPDATE,
+        entityType: EntityType.USER,
+        entityId: user.id,
+        userId: user.id,
+        description: "Updated profile picture",
+      });
 
       const response: SuccessResponse<any> = {
         success: true,

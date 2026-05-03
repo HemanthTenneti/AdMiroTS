@@ -38,8 +38,8 @@ export class AnalyticsController {
   async listAnalytics(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       this.getUser(req);
-      const page = req.query.page as string | undefined;
-      const limit = req.query.limit as string | undefined;
+      const page = Number(req.query.page ?? 1);
+      const limit = Number(req.query.limit ?? 10);
       const displayId = req.query.displayId as string | undefined;
       const adId = req.query.adId as string | undefined;
       const loopId = req.query.loopId as string | undefined;
@@ -48,7 +48,7 @@ export class AnalyticsController {
       const sortBy = req.query.sortBy as string | undefined;
       const sortOrder = req.query.sortOrder as "asc" | "desc" | undefined;
 
-      const result = await this.analyticsService.listAnalytics(Number(page) || 1, Number(limit) || 10, {
+      const result = await this.analyticsService.listAnalytics(page, limit, {
         displayId,
         adId,
         loopId,
@@ -63,10 +63,10 @@ export class AnalyticsController {
         data: {
           data: result.data,
           pagination: {
-            page: Number(page) || 1,
-            limit: Number(limit) || 10,
+            page,
+            limit,
             total: result.total,
-            hasMore: (Number(page) || 1) * (Number(limit) || 10) < result.total,
+            hasMore: page * limit < result.total,
           },
         },
       };

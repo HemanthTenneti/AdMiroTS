@@ -11,6 +11,7 @@ export interface IDisplayLoop {
   loopName: string;
   displayId: string; // Legacy primary display reference
   displayIds: string[]; // Assigned displays (many-to-many)
+  createdById?: string | undefined;
   advertisements: LoopAdvertisementEntry[]; // Ordered list of ads
   rotationType: RotationType;
   displayLayout: DisplayLayout;

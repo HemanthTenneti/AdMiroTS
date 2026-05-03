@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import { OAuth2Client } from "google-auth-library";
 import { AuthService } from "./auth.service";
 import { AuthenticatedRequest } from "../../types/auth.types";
+import { auditLog } from "../../utils/audit-log";
+import { EntityType, LogAction } from "@admiro/domain";
 
 export class AuthController {
   private authService: AuthService;
@@ -43,6 +45,13 @@ export class AuthController {
       const finalUsername = username || email.split("@")[0];
 
       const { user, token } = await this.authService.register(email, password, finalUsername, role);
+      await auditLog(req, {
+        action: LogAction.CREATE,
+        entityType: EntityType.USER,
+        entityId: user.id,
+        userId: user.id,
+        description: "Registered account",
+      });
 
       // Store firstName/lastName separately if provided — these come from the profile,
       // but we can update the user after creation if the domain supports it
@@ -98,6 +107,13 @@ export class AuthController {
       }
 
       const { user, token } = await this.authService.login(resolvedEmail, password);
+      await auditLog(req, {
+        action: LogAction.OTHER,
+        entityType: EntityType.USER,
+        entityId: user.id,
+        userId: user.id,
+        description: "Logged in",
+      });
 
       res.status(200).json({
         success: true,
@@ -143,6 +159,13 @@ export class AuthController {
         payload.name,
         payload.picture
       );
+      await auditLog(req, {
+        action: isNewUser ? LogAction.CREATE : LogAction.OTHER,
+        entityType: EntityType.USER,
+        entityId: user.id,
+        userId: user.id,
+        description: isNewUser ? "Registered with Google" : "Logged in with Google",
+      });
 
       res.status(200).json({
         success: true,
@@ -242,6 +265,13 @@ export class AuthController {
       }
 
       await this.authService.changePassword(req.user.id, currentPassword, newPassword);
+      await auditLog(req, {
+        action: LogAction.UPDATE,
+        entityType: EntityType.USER,
+        entityId: req.user.id,
+        userId: req.user.id,
+        description: "Changed password",
+      });
 
       res.status(200).json({
         success: true,
@@ -260,6 +290,16 @@ export class AuthController {
   async logout(req: Request & AuthenticatedRequest, res: Response): Promise<void> {
     // JWT logout is client-side (remove token from storage).
     // Server-side token blacklist is a future enhancement.
+    if (req.user) {
+      await auditLog(req, {
+        action: LogAction.OTHER,
+        entityType: EntityType.USER,
+        entityId: req.user.id,
+        userId: req.user.id,
+        description: "Logged out",
+      });
+    }
+
     res.status(200).json({
       success: true,
       message: "Logout successful",

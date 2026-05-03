@@ -23,24 +23,48 @@ interface AuthStore {
   hydrate: () => void;
 }
 
+function normalizeAuthUser(value: unknown): AuthUser | null {
+  if (!value || typeof value !== "object") return null;
+  const candidate = "_doc" in value ? (value as { _doc?: unknown })._doc : value;
+  if (!candidate || typeof candidate !== "object") return null;
+  const raw = candidate as Partial<AuthUser>;
+  if (!raw.id || !raw.username || !raw.email || !raw.role || raw.isActive === undefined) {
+    return null;
+  }
+  return {
+    id: raw.id,
+    username: raw.username,
+    email: raw.email,
+    firstName: raw.firstName,
+    lastName: raw.lastName,
+    role: raw.role,
+    profilePicture: raw.profilePicture,
+    isActive: raw.isActive,
+  };
+}
+
 export const useAuthStore = create<AuthStore>()((set) => ({
   user: null,
   accessToken: null,
   isAuthenticated: false,
 
   setAuth: (user, token) => {
+    const normalized = normalizeAuthUser(user);
+    if (!normalized) return;
     if (typeof window !== "undefined") {
       localStorage.setItem("accessToken", token);
-      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("user", JSON.stringify(normalized));
     }
-    set({ user, accessToken: token, isAuthenticated: true });
+    set({ user: normalized, accessToken: token, isAuthenticated: true });
   },
 
   setUser: (user) => {
+    const normalized = normalizeAuthUser(user);
+    if (!normalized) return;
     if (typeof window !== "undefined") {
-      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("user", JSON.stringify(normalized));
     }
-    set({ user });
+    set({ user: normalized });
   },
 
   logout: () => {
@@ -57,7 +81,9 @@ export const useAuthStore = create<AuthStore>()((set) => ({
     const raw = localStorage.getItem("user");
     if (token && raw) {
       try {
-        const user: AuthUser = JSON.parse(raw);
+        const user = normalizeAuthUser(JSON.parse(raw));
+        if (!user) throw new Error("Invalid stored user");
+        localStorage.setItem("user", JSON.stringify(user));
         set({ user, accessToken: token, isAuthenticated: true });
       } catch {
         localStorage.removeItem("accessToken");

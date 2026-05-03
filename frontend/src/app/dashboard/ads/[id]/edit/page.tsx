@@ -215,13 +215,13 @@ function FormField({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="block text-white/70 text-sm font-medium">
+      <label className="block text-[var(--ds-text)] text-sm font-medium">
         {label}
         {required && <span className="text-[#9F67FF] ml-0.5">*</span>}
       </label>
       {children}
       {error && <p className="text-red-400 text-xs">{error}</p>}
-      {!error && hint && <p className="text-white/30 text-xs">{hint}</p>}
+      {!error && hint && <p className="text-[var(--ds-text-3)] text-xs">{hint}</p>}
     </div>
   );
 }
@@ -233,11 +233,11 @@ function FormField({
 function LoadingSkeleton() {
   return (
     <DashboardLayout>
-      <main className="min-h-screen bg-[#0a0a0a] p-8">
+      <main className="min-h-screen bg-[var(--ds-bg)] p-8">
         <div className="max-w-2xl mx-auto flex items-center justify-center h-64">
           <div className="flex flex-col items-center gap-3">
             <Loader2 size={36} className="text-[#7E3AF0] animate-spin" />
-            <p className="text-white/40 text-sm">Loading advertisement…</p>
+            <p className="text-[var(--ds-text-2)] text-sm">Loading advertisement…</p>
           </div>
         </div>
       </main>
@@ -270,21 +270,21 @@ export default function EditAdvertisementPage({
   if (loading) return <LoadingSkeleton />;
 
   const inputCls = (err?: string) =>
-    `bg-white/5 border ${
-      err ? "border-red-500/50" : "border-white/10"
-    } text-white placeholder:text-white/30 focus:border-[#7E3AF0] focus:outline-none rounded-lg px-3 py-2.5 w-full text-sm`;
+    `bg-[var(--ds-input)] border ${
+      err ? "border-red-500/50" : "border-[var(--ds-input-border)]"
+    } text-[var(--ds-text)] placeholder:text-[var(--ds-text-3)] focus:border-[#7E3AF0] focus:outline-none rounded-lg px-3 py-2.5 w-full text-sm`;
 
   const selectCls =
-    "bg-[var(--ds-card)] border border-white/10 text-white focus:border-[#7E3AF0] focus:outline-none rounded-lg px-3 py-2.5 w-full text-sm";
+    "bg-[var(--ds-card)] border border-[var(--ds-input-border)] text-[var(--ds-text)] focus:border-[#7E3AF0] focus:outline-none rounded-lg px-3 py-2.5 w-full text-sm";
 
   if (!ad && serverError) {
     return (
       <DashboardLayout>
-        <main className="min-h-screen bg-[#0a0a0a] p-8">
+        <main className="min-h-screen bg-[var(--ds-bg)] p-8">
           <div className="max-w-2xl mx-auto">
             <Link
               href="/dashboard/ads"
-              className="inline-flex items-center gap-1.5 text-white/50 hover:text-white text-sm mb-8"
+              className="inline-flex items-center gap-1.5 text-[var(--ds-text-2)] hover:text-[var(--ds-text)] text-sm mb-8"
               style={{ transition: "color 150ms ease" }}
             >
               <ArrowLeft size={15} />
@@ -292,7 +292,7 @@ export default function EditAdvertisementPage({
             </Link>
             <div className="bg-[var(--ds-card)] border border-red-500/20 rounded-xl p-10 text-center">
               <p className="text-red-400 font-semibold mb-1">Error</p>
-              <p className="text-white/40 text-sm">
+              <p className="text-[var(--ds-text-2)] text-sm">
                 {serverError || "Advertisement not found."}
               </p>
             </div>
@@ -304,13 +304,13 @@ export default function EditAdvertisementPage({
 
   return (
     <DashboardLayout>
-      <main className="min-h-screen bg-[#0a0a0a] p-6 lg:p-8">
+      <main className="min-h-screen bg-[var(--ds-bg)] p-6 lg:p-8">
         <div className="max-w-2xl mx-auto">
 
           {/* Back nav */}
           <Link
             href={`/dashboard/ads/${id}`}
-            className="inline-flex items-center gap-1.5 text-white/50 hover:text-white text-sm mb-8"
+            className="inline-flex items-center gap-1.5 text-[var(--ds-text-2)] hover:text-[var(--ds-text)] text-sm mb-8"
             style={{ transition: "color 150ms ease" }}
           >
             <ArrowLeft size={15} />
@@ -319,12 +319,12 @@ export default function EditAdvertisementPage({
 
           {/* Page title */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-white tracking-tight mb-1">
+            <h1 className="text-3xl font-bold text-[var(--ds-text)] tracking-tight mb-1">
               Edit Advertisement
             </h1>
-            <p className="text-white/40 text-sm">
+            <p className="text-[var(--ds-text-2)] text-sm">
               Update details for{" "}
-              <span className="text-white/60">{ad?.adName}</span>.
+              <span className="text-[var(--ds-text-2)]">{ad?.adName}</span>.
             </p>
           </div>
 
@@ -337,7 +337,7 @@ export default function EditAdvertisementPage({
 
           {/* Form card */}
           <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-6">
-            <h2 className="text-white font-semibold text-lg mb-6">
+            <h2 className="text-[var(--ds-text)] font-semibold text-lg mb-6">
               Advertisement Details
             </h2>
 
@@ -455,9 +455,9 @@ export default function EditAdvertisementPage({
 
               {/* Scheduling */}
               <div className="border-t border-[var(--ds-border)] pt-5">
-                <p className="text-white/70 text-sm font-medium mb-4">
+                <p className="text-[var(--ds-text)] text-sm font-medium mb-4">
                   Scheduling{" "}
-                  <span className="text-white/30 font-normal">(optional)</span>
+                  <span className="text-[var(--ds-text-3)] font-normal">(optional)</span>
                 </p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -489,7 +489,7 @@ export default function EditAdvertisementPage({
                   </FormField>
                 </div>
 
-                <p className="text-white/30 text-xs mt-3">
+                <p className="text-[var(--ds-text-3)] text-xs mt-3">
                   Leave blank to use current status immediately.
                 </p>
               </div>
@@ -500,7 +500,7 @@ export default function EditAdvertisementPage({
                   type="button"
                   onClick={() => window.history.back()}
                   disabled={submitting}
-                  className="flex-1 bg-white/[0.06] hover:bg-white/[0.10] disabled:opacity-50 text-white/70 text-sm font-medium rounded-lg px-5 py-2.5"
+                  className="flex-1 bg-[var(--ds-input)] hover:bg-[var(--ds-input)] disabled:opacity-50 text-[var(--ds-text)] text-sm font-medium rounded-lg px-5 py-2.5"
                   style={{ transition: "background-color 150ms ease" }}
                 >
                   Cancel
@@ -523,20 +523,20 @@ export default function EditAdvertisementPage({
           <div className="mt-6 bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-5">
             <div className="flex items-center gap-2 mb-3">
               <Info size={15} className="text-[#9F67FF]" />
-              <span className="text-white/70 text-sm font-medium">Tips</span>
+              <span className="text-[var(--ds-text)] text-sm font-medium">Tips</span>
             </div>
-            <ul className="space-y-2 text-white/40 text-xs leading-relaxed">
+            <ul className="space-y-2 text-[var(--ds-text-2)] text-xs leading-relaxed">
               <li>
-                <span className="text-white/60 font-medium">Duration</span> —
+                <span className="text-[var(--ds-text-2)] font-medium">Duration</span> —
                 how long the ad plays on displays (1–300 seconds).
               </li>
               <li>
-                <span className="text-white/60 font-medium">Status</span> —
+                <span className="text-[var(--ds-text-2)] font-medium">Status</span> —
                 Draft (unpublished), Scheduled (future), Active (live), or
                 Paused.
               </li>
               <li>
-                <span className="text-white/60 font-medium">Scheduling</span> —
+                <span className="text-[var(--ds-text-2)] font-medium">Scheduling</span> —
                 set dates to automatically start/stop your campaign. Leave blank
                 to apply status immediately.
               </li>

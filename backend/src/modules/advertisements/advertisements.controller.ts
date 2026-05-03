@@ -9,6 +9,8 @@ import { AuthenticatedRequest } from "../../types/auth.types";
 import { UnauthorizedError } from "../../utils/errors/UnauthorizedError";
 import { SuccessResponse } from "@admiro/shared";
 import { BulkUploadResponse } from "./advertisements.types";
+import { auditLog } from "../../utils/audit-log";
+import { EntityType, LogAction } from "@admiro/domain";
 
 export class AdvertisementController {
   private adService: AdvertisementService;
@@ -68,6 +70,14 @@ export class AdvertisementController {
         fileSize,
         mediaObjectKey,
       });
+      await auditLog(req, {
+        action: LogAction.CREATE,
+        entityType: EntityType.ADVERTISEMENT,
+        entityId: ad.id,
+        userId: user.id,
+        description: `Created advertisement ${ad.adName}`,
+        metadata: { adName: ad.adName, mediaType: ad.mediaType },
+      });
 
       const response: SuccessResponse<any> = {
         success: true,
@@ -94,6 +104,14 @@ export class AdvertisementController {
         mimeType,
         fileName,
         fileSize,
+      });
+      await auditLog(req, {
+        action: LogAction.OTHER,
+        entityType: EntityType.ADVERTISEMENT,
+        entityId: upload.objectKey,
+        userId: user.id,
+        description: `Generated upload URL for ${fileName}`,
+        metadata: { mediaType, mimeType, fileName, fileSize },
       });
 
       const response: SuccessResponse<any> = {
@@ -199,6 +217,14 @@ export class AdvertisementController {
       const user = this.getUser(req);
       const id = req.params.id as string;
       const ad = await this.adService.updateAdvertisement(id, user.id, req.body);
+      await auditLog(req, {
+        action: LogAction.UPDATE,
+        entityType: EntityType.ADVERTISEMENT,
+        entityId: ad.id,
+        userId: user.id,
+        description: `Updated advertisement ${ad.adName}`,
+        changes: req.body,
+      });
 
       const response: SuccessResponse<any> = {
         success: true,
@@ -224,6 +250,13 @@ export class AdvertisementController {
       const user = this.getUser(req);
       const id = req.params.id as string;
       await this.adService.deleteAdvertisement(id, user.id);
+      await auditLog(req, {
+        action: LogAction.DELETE,
+        entityType: EntityType.ADVERTISEMENT,
+        entityId: id,
+        userId: user.id,
+        description: `Deleted advertisement ${id}`,
+      });
 
       const response: SuccessResponse<{ message: string }> = {
         success: true,
@@ -249,6 +282,14 @@ export class AdvertisementController {
       const user = this.getUser(req);
       const id = req.params.id as string;
       const ad = await this.adService.activateAdvertisement(id, user.id);
+      await auditLog(req, {
+        action: LogAction.STATUS_CHANGE,
+        entityType: EntityType.ADVERTISEMENT,
+        entityId: ad.id,
+        userId: user.id,
+        description: `Activated advertisement ${ad.adName}`,
+        metadata: { status: ad.status },
+      });
 
       const response: SuccessResponse<any> = {
         success: true,
@@ -274,6 +315,14 @@ export class AdvertisementController {
       const user = this.getUser(req);
       const id = req.params.id as string;
       const ad = await this.adService.deactivateAdvertisement(id, user.id);
+      await auditLog(req, {
+        action: LogAction.STATUS_CHANGE,
+        entityType: EntityType.ADVERTISEMENT,
+        entityId: ad.id,
+        userId: user.id,
+        description: `Deactivated advertisement ${ad.adName}`,
+        metadata: { status: ad.status },
+      });
 
       const response: SuccessResponse<any> = {
         success: true,
@@ -348,6 +397,14 @@ export class AdvertisementController {
       const { advertisements } = req.body;
 
       const created = await this.adService.bulkCreateAdvertisements(user.id, advertisements);
+      await auditLog(req, {
+        action: LogAction.CREATE,
+        entityType: EntityType.ADVERTISEMENT,
+        entityId: "bulk-upload",
+        userId: user.id,
+        description: `Bulk uploaded ${created.length} advertisements`,
+        metadata: { count: created.length, advertisementIds: created.map((ad: any) => ad.id) },
+      });
 
       const response: SuccessResponse<BulkUploadResponse> = {
         success: true,

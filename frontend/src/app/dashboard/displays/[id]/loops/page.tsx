@@ -159,15 +159,15 @@ export default function DisplayLoopsPage({
           {/* Header */}
           <div className="mb-8 flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-white tracking-tight">
+              <h1 className="text-3xl font-bold text-[var(--ds-text)] tracking-tight">
                 Playlists
                 {displayName && (
-                  <span className="text-white/40 font-normal ml-2 text-xl">
+                  <span className="text-[var(--ds-text-2)] font-normal ml-2 text-xl">
                     for {displayName}
                   </span>
                 )}
               </h1>
-              <p className="text-white/40 text-sm mt-1">
+              <p className="text-[var(--ds-text-2)] text-sm mt-1">
                 Manage advertisement playlists for this display
               </p>
             </div>
@@ -190,11 +190,11 @@ export default function DisplayLoopsPage({
           ) : loops.length === 0 ? (
             /* Empty State */
             <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-16 text-center">
-              <ListChecks size={40} className="mx-auto text-white/20 mb-4" />
-              <h3 className="text-lg font-semibold text-white/70 mb-2">
+              <ListChecks size={40} className="mx-auto text-[var(--ds-text-3)] mb-4" />
+              <h3 className="text-lg font-semibold text-[var(--ds-text)] mb-2">
                 No playlists yet
               </h3>
-              <p className="text-white/30 text-sm mb-6">
+              <p className="text-[var(--ds-text-3)] text-sm mb-6">
                 Create your first playlist to assign ads to this display
               </p>
               <button
@@ -213,15 +213,15 @@ export default function DisplayLoopsPage({
               {loops.map(loop => (
                 <div
                   key={loop.id}
-                  className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-6 hover:border-white/15"
+                  className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-6 hover:border-[var(--ds-border)]"
                 >
                   <div className="flex items-start justify-between gap-4 mb-5">
                     <div className="min-w-0">
-                      <h3 className="text-base font-semibold text-white truncate">
+                      <h3 className="text-base font-semibold text-[var(--ds-text)] truncate">
                         {loop.loopName}
                       </h3>
                       {loop.description && (
-                        <p className="text-white/40 text-sm mt-0.5 line-clamp-1">
+                        <p className="text-[var(--ds-text-2)] text-sm mt-0.5 line-clamp-1">
                           {loop.description}
                         </p>
                       )}
@@ -233,7 +233,7 @@ export default function DisplayLoopsPage({
                             `/dashboard/displays/${displayId}/loops/${loop.id}/edit`
                           )
                         }
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-white/60 hover:text-white hover:bg-white/5 rounded-lg text-sm font-medium"
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-[var(--ds-text-2)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-input)] rounded-lg text-sm font-medium"
                       >
                         <Pencil size={14} />
                         Edit
@@ -250,23 +250,23 @@ export default function DisplayLoopsPage({
 
                   {/* Stats Row */}
                   <div className="grid grid-cols-3 gap-4 mb-4">
-                    <div className="bg-white/3 rounded-lg p-3">
-                      <p className="text-white/40 text-xs mb-1">Advertisements</p>
-                      <p className="text-white font-semibold text-lg">
+                    <div className="bg-[var(--ds-hover)] rounded-lg p-3">
+                      <p className="text-[var(--ds-text-2)] text-xs mb-1">Advertisements</p>
+                      <p className="text-[var(--ds-text)] font-semibold text-lg">
                         {loop.advertisements?.length ?? 0}
                       </p>
                     </div>
-                    <div className="bg-white/3 rounded-lg p-3">
-                      <p className="text-white/40 text-xs mb-1">Total Duration</p>
-                      <p className="text-white font-semibold text-lg">
+                    <div className="bg-[var(--ds-hover)] rounded-lg p-3">
+                      <p className="text-[var(--ds-text-2)] text-xs mb-1">Total Duration</p>
+                      <p className="text-[var(--ds-text)] font-semibold text-lg">
                         {formatDuration(
                           loop.advertisements?.reduce((sum, ad) => sum + ad.duration, 0) ?? 0
                         )}
                       </p>
                     </div>
-                    <div className="bg-white/3 rounded-lg p-3">
-                      <p className="text-white/40 text-xs mb-1">Rotation</p>
-                      <p className="text-white font-semibold text-lg capitalize">
+                    <div className="bg-[var(--ds-hover)] rounded-lg p-3">
+                      <p className="text-[var(--ds-text-2)] text-xs mb-1">Rotation</p>
+                      <p className="text-[var(--ds-text)] font-semibold text-lg capitalize">
                         {loop.rotationType}
                       </p>
                     </div>
@@ -274,15 +274,15 @@ export default function DisplayLoopsPage({
 
                   {/* Ad Tags */}
                   {loop.advertisements && loop.advertisements.length > 0 && (
-                    <div className="pt-4 border-t border-white/5">
-                      <p className="text-white/30 text-xs mb-2 uppercase tracking-wider">
+                    <div className="pt-4 border-t border-[var(--ds-border)]">
+                      <p className="text-[var(--ds-text-3)] text-xs mb-2 uppercase tracking-wider">
                         Ads in order
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {loop.advertisements.map((item, idx) => (
                           <span
                             key={idx}
-                            className="px-2.5 py-1 bg-white/5 border border-[var(--ds-border)] text-white/60 text-xs rounded-full"
+                            className="px-2.5 py-1 bg-[var(--ds-input)] border border-[var(--ds-border)] text-[var(--ds-text-2)] text-xs rounded-full"
                           >
                             {idx + 1}. {getAdName(item)}
                           </span>
@@ -301,7 +301,7 @@ export default function DisplayLoopsPage({
               <button
                 onClick={() => setPage(Math.max(1, page - 1))}
                 disabled={page === 1}
-                className="p-2 rounded-lg text-white/40 hover:text-white hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed"
+                className="p-2 rounded-lg text-[var(--ds-text-2)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-input)] disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <ChevronLeft size={18} />
               </button>
@@ -313,7 +313,7 @@ export default function DisplayLoopsPage({
                     className={`w-9 h-9 rounded-lg text-sm font-medium ${
                       page === p
                         ? "bg-[#7E3AF0] text-white"
-                        : "text-white/40 hover:text-white hover:bg-white/5"
+                        : "text-[var(--ds-text-2)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-input)]"
                     }`}
                   >
                     {p}
@@ -323,7 +323,7 @@ export default function DisplayLoopsPage({
               <button
                 onClick={() => setPage(Math.min(totalPages, page + 1))}
                 disabled={page === totalPages}
-                className="p-2 rounded-lg text-white/40 hover:text-white hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed"
+                className="p-2 rounded-lg text-[var(--ds-text-2)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-input)] disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <ChevronRight size={18} />
               </button>
@@ -335,11 +335,11 @@ export default function DisplayLoopsPage({
       {/* Delete Modal */}
       {deleteConfirm && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-[var(--ds-card)] border border-white/10 rounded-xl p-6 max-w-sm w-full">
-            <h3 className="text-lg font-bold text-white mb-2">
+          <div className="bg-[var(--ds-card)] border border-[var(--ds-input-border)] rounded-xl p-6 max-w-sm w-full">
+            <h3 className="text-lg font-bold text-[var(--ds-text)] mb-2">
               Delete Playlist?
             </h3>
-            <p className="text-white/40 text-sm mb-6">
+            <p className="text-[var(--ds-text-2)] text-sm mb-6">
               This action cannot be undone. All associations with advertisements
               will be removed.
             </p>
@@ -347,7 +347,7 @@ export default function DisplayLoopsPage({
               <button
                 onClick={() => setDeleteConfirm(null)}
                 disabled={deleting}
-                className="flex-1 px-4 py-2 border border-white/10 rounded-lg text-white/60 hover:text-white hover:bg-white/5 text-sm font-medium disabled:opacity-50"
+                className="flex-1 px-4 py-2 border border-[var(--ds-input-border)] rounded-lg text-[var(--ds-text-2)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-input)] text-sm font-medium disabled:opacity-50"
               >
                 Cancel
               </button>

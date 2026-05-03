@@ -146,13 +146,13 @@ function FormField({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="block text-white/70 text-sm font-medium">
+      <label className="block text-[var(--ds-text)] text-sm font-medium">
         {label}
         {required && <span className="text-[#9F67FF] ml-0.5">*</span>}
       </label>
       {children}
       {error && <p className="text-red-400 text-xs">{error}</p>}
-      {!error && hint && <p className="text-white/30 text-xs">{hint}</p>}
+      {!error && hint && <p className="text-[var(--ds-text-3)] text-xs">{hint}</p>}
     </div>
   );
 }
@@ -165,19 +165,19 @@ export default function NewDisplayPage() {
   const { form, fieldErrors, submitting, serverError, setField, handleSubmit } = useCreateDisplay();
 
   const inputCls = (err?: string) =>
-    `w-full bg-white/5 border ${
-      err ? "border-red-500/50" : "border-white/10"
-    } text-white placeholder:text-white/30 focus:border-[#7E3AF0] focus:outline-none rounded-lg px-3 py-2 text-sm`;
+    `w-full bg-[var(--ds-input)] border ${
+      err ? "border-red-500/50" : "border-[var(--ds-input-border)]"
+    } text-[var(--ds-text)] placeholder:text-[var(--ds-text-3)] focus:border-[#7E3AF0] focus:outline-none rounded-lg px-3 py-2 text-sm`;
 
   return (
     <DashboardLayout>
-      <main className="min-h-screen bg-[#0a0a0a] p-8">
+      <main className="min-h-screen bg-[var(--ds-bg)] p-8">
         <div className="max-w-2xl mx-auto">
 
           {/* Back nav */}
           <Link
             href="/dashboard/displays"
-            className="inline-flex items-center gap-2 text-white/40 hover:text-white/80 text-sm font-medium mb-8 group"
+            className="inline-flex items-center gap-2 text-[var(--ds-text-2)] hover:text-[var(--ds-text)] text-sm font-medium mb-8 group"
             style={{ transition: "color 150ms ease" }}
           >
             <ArrowLeft
@@ -190,8 +190,8 @@ export default function NewDisplayPage() {
 
           {/* Page title */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-white tracking-tight mb-1">Create New Display</h1>
-            <p className="text-white/40 text-sm">Set up a new display device for your network.</p>
+            <h1 className="text-3xl font-bold text-[var(--ds-text)] tracking-tight mb-1">Create New Display</h1>
+            <p className="text-[var(--ds-text-2)] text-sm">Set up a new display device for your network.</p>
           </div>
 
           {/* Server error */}
@@ -277,7 +277,7 @@ export default function NewDisplayPage() {
 
               {/* Resolution */}
               <div className="space-y-1.5">
-                <label className="block text-white/70 text-sm font-medium">Resolution</label>
+                <label className="block text-[var(--ds-text)] text-sm font-medium">Resolution</label>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <input
@@ -308,7 +308,7 @@ export default function NewDisplayPage() {
                     )}
                   </div>
                 </div>
-                <p className="text-white/30 text-xs">Pre-filled from your browser — adjust if needed.</p>
+                <p className="text-[var(--ds-text-3)] text-xs">Pre-filled from your browser — adjust if needed.</p>
               </div>
 
               {/* Divider */}
@@ -330,23 +330,23 @@ export default function NewDisplayPage() {
           <div className="mt-6 bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-5">
             <div className="flex items-center gap-2 mb-3">
               <Info size={15} className="text-[#9F67FF]" />
-              <span className="text-white/70 text-sm font-medium">Setup tips</span>
+              <span className="text-[var(--ds-text)] text-sm font-medium">Setup tips</span>
             </div>
-            <ul className="space-y-2 text-white/40 text-xs leading-relaxed">
+            <ul className="space-y-2 text-[var(--ds-text-2)] text-xs leading-relaxed">
               <li>
-                <span className="text-white/60 font-medium">Display ID</span> — create a unique identifier for easy searching (e.g. LOBBY-1, STORE-MAIN).
+                <span className="text-[var(--ds-text-2)] font-medium">Display ID</span> — create a unique identifier for easy searching (e.g. LOBBY-1, STORE-MAIN).
               </li>
               <li>
-                <span className="text-white/60 font-medium">Display Name</span> — descriptive name for quick identification in lists.
+                <span className="text-[var(--ds-text-2)] font-medium">Display Name</span> — descriptive name for quick identification in lists.
               </li>
               <li>
-                <span className="text-white/60 font-medium">Location</span> — physical location of the display device.
+                <span className="text-[var(--ds-text-2)] font-medium">Location</span> — physical location of the display device.
               </li>
               <li>
-                <span className="text-white/60 font-medium">Password</span> — optional. Enables Display ID + password login instead of connection tokens.
+                <span className="text-[var(--ds-text-2)] font-medium">Password</span> — optional. Enables Display ID + password login instead of connection tokens.
               </li>
               <li>
-                <span className="text-white/60 font-medium">Resolution</span> — auto-detected from your browser; adjust to match the target device.
+                <span className="text-[var(--ds-text-2)] font-medium">Resolution</span> — auto-detected from your browser; adjust to match the target device.
               </li>
             </ul>
           </div>

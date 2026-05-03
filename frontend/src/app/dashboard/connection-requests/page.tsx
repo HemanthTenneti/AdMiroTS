@@ -73,7 +73,7 @@ export default function ConnectionRequestsPage() {
   };
 
   if (!authReady) {
-    return <div className="p-6 text-sm text-white/50">Checking session...</div>;
+    return <div className="p-6 text-sm text-[var(--ds-text-2)]">Checking session...</div>;
   }
 
   return (
@@ -102,35 +102,35 @@ export default function ConnectionRequestsPage() {
       <Panel>
         {error ? <p className="mb-4 text-sm text-red-400">{error}</p> : null}
         {loading ? (
-          <div className="rounded-xl border border-dashed border-[var(--color-border)] bg-white/5 p-8 text-center text-sm text-white/40">
+          <div className="rounded-xl border border-dashed border-[var(--color-border)] bg-[var(--ds-input)] p-8 text-center text-sm text-[var(--ds-text-2)]">
             Loading requests...
           </div>
         ) : requests.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-[var(--color-border)] bg-white/5 p-8 text-center text-sm text-white/40">
+          <div className="rounded-xl border border-dashed border-[var(--color-border)] bg-[var(--ds-input)] p-8 text-center text-sm text-[var(--ds-text-2)]">
             No requests found for selected status.
           </div>
         ) : (
           <DataTable headers={["Request", "Display", "Location", "Status", "Requested", "Actions"]}>
             {requests.map((request) => (
-              <tr key={request.requestId} className="align-top hover:bg-white/[0.03]">
-                <td className="px-4 py-3 font-mono text-xs text-white/40">{request.requestId}</td>
+              <tr key={request.requestId} className="align-top hover:bg-[var(--ds-hover)]">
+                <td className="px-4 py-3 font-mono text-xs text-[var(--ds-text-2)]">{request.requestId}</td>
                 <td className="px-4 py-3">
                   <div className="font-medium">{request.displayId}</div>
-                  <div className="text-xs text-white/40">{request.displayName ?? "Unknown display"}</div>
+                  <div className="text-xs text-[var(--ds-text-2)]">{request.displayName ?? "Unknown display"}</div>
                 </td>
-                <td className="px-4 py-3 text-white/50">{request.location ?? "-"}</td>
+                <td className="px-4 py-3 text-[var(--ds-text-2)]">{request.location ?? "-"}</td>
                 <td className="px-4 py-3">
                   <StatusPill
                     label={request.status}
                     tone={request.status === "approved" ? "success" : request.status === "rejected" ? "danger" : "warning"}
                   />
                 </td>
-                <td className="px-4 py-3 text-white/40">
+                <td className="px-4 py-3 text-[var(--ds-text-2)]">
                   {request.requestedAt ? formatDateTime(request.requestedAt) : "-"}
                 </td>
                 <td className="px-4 py-3">
                   {request.status !== "pending" ? (
-                    <span className="text-xs text-white/40">No action</span>
+                    <span className="text-xs text-[var(--ds-text-2)]">No action</span>
                   ) : (
                     <div className="space-y-2">
                       <TextInput

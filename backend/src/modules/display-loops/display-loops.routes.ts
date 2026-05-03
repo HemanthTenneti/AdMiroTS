@@ -15,12 +15,9 @@ export function createDisplayLoopRoutes(jwtSecret: string): Router {
   const jwtAuth = new JWTAuthMiddleware(jwtSecret);
   const authMiddleware = jwtAuth.authenticate();
 
-  /**
-   * PUBLIC ROUTES
-   */
-  
   router.get(
     "/",
+    authMiddleware,
     publicDataRateLimiter,
     validateQuery(DisplayLoopValidationSchemas.list),
     (req: Request, res: Response, next: NextFunction) => {
@@ -28,13 +25,9 @@ export function createDisplayLoopRoutes(jwtSecret: string): Router {
     }
   );
 
-  router.get("/:id", (req: Request, res: Response, next: NextFunction) => {
+  router.get("/:id", authMiddleware, (req: Request, res: Response, next: NextFunction) => {
     loopController.getLoop(req, res, next).catch(next);
   });
-
-  /**
-   * PROTECTED ROUTES
-   */
 
   router.post(
     "/",

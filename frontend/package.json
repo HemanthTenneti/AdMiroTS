@@ -7,7 +7,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "typecheck": "rm -rf .next/types .next/dev/types && rm -f tsconfig.tsbuildinfo && tsc --noEmit",
-    "test:contracts": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"Node16\",\"moduleResolution\":\"Node16\",\"ignoreDeprecations\":\"5.0\"}' node -r ts-node/register/transpile-only scripts/contracts-smoke.ts"
+    "test:contracts": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"Node16\",\"moduleResolution\":\"Node16\",\"rootDir\":\".\",\"ignoreDeprecations\":\"6.0\"}' node -r ts-node/register/transpile-only scripts/contracts-smoke.ts"
   },
   "dependencies": {
     "axios": "^1.13.2",

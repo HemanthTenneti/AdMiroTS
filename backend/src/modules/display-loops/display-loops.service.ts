@@ -7,6 +7,7 @@ import { DisplayLoopRepository } from "../../services/repositories/DisplayLoopRe
 import { DisplayRepository } from "../../services/repositories/DisplayRepository";
 import { NotFoundError } from "../../utils/errors/NotFoundError";
 import { ValidationError } from "../../utils/errors/ValidationError";
+import { ForbiddenError } from "../../utils/errors/ForbiddenError";
 import { Logger } from "../../utils/logger";
 import { IdGenerator } from "../../utils/id-generator";
 import {
@@ -59,6 +60,7 @@ export class DisplayLoopService {
       loopName: data.loopName,
       displayId: displayIds[0] ?? "",
       displayIds,
+      createdById: data.createdById,
       advertisements: [],
       rotationType: data.rotationType,
       displayLayout: data.displayLayout,
@@ -85,15 +87,30 @@ export class DisplayLoopService {
     return loop;
   }
 
+  async getLoopForUser(id: string, userId: string): Promise<DisplayLoop> {
+    const loop = await this.getLoop(id);
+    if (loop.createdById !== userId) {
+      throw new ForbiddenError("You do not have permission to access this display loop");
+    }
+    return loop;
+  }
+
   /**
    * List display loops with pagination
    */
   async listLoops(
     page: number,
     limit: number,
-    filters?: { displayId?: string; isActive?: boolean; sortBy?: string; sortOrder?: "asc" | "desc" }
+    filters?: {
+      displayId?: string;
+      isActive?: boolean;
+      createdById?: string;
+      sortBy?: string;
+      sortOrder?: "asc" | "desc";
+    }
   ): Promise<{ data: DisplayLoop[]; total: number }> {
     const filterObj: Record<string, any> = {};
+    if (filters?.createdById) filterObj.createdById = filters.createdById;
     if (filters?.displayId) {
       filterObj.$or = [{ displayIds: filters.displayId }, { displayId: filters.displayId }];
     }
@@ -116,8 +133,8 @@ export class DisplayLoopService {
   /**
    * Update display loop
    */
-  async updateLoop(id: string, data: UpdateDisplayLoopInput): Promise<DisplayLoop> {
-    const loop = await this.getLoop(id);
+  async updateLoop(id: string, userId: string, data: UpdateDisplayLoopInput): Promise<DisplayLoop> {
+    await this.getLoopForUser(id, userId);
 
     const updateData: Record<string, any> = {
       updatedAt: new Date(),
@@ -141,8 +158,8 @@ export class DisplayLoopService {
   /**
    * Delete display loop
    */
-  async deleteLoop(id: string): Promise<void> {
-    await this.getLoop(id);
+  async deleteLoop(id: string, userId: string): Promise<void> {
+    await this.getLoopForUser(id, userId);
     await this.loopRepository.deleteById(id);
     Logger.info(`Display loop deleted: ${id}`);
   }
@@ -150,8 +167,8 @@ export class DisplayLoopService {
   /**
    * Assign loop to an additional display
    */
-  async addDisplay(loopId: string, data: AddDisplayToLoopInput): Promise<DisplayLoop> {
-    const loop = await this.getLoop(loopId);
+  async addDisplay(loopId: string, userId: string, data: AddDisplayToLoopInput): Promise<DisplayLoop> {
+    const loop = await this.getLoopForUser(loopId, userId);
     const display = await this.displayRepository.findById(data.displayId);
     if (!display) {
       throw new ValidationError(`Display with ID ${data.displayId} not found`);
@@ -177,8 +194,8 @@ export class DisplayLoopService {
   /**
    * Add advertisement to loop
    */
-  async addAdvertisement(loopId: string, data: AddAdvertisementToLoopInput): Promise<DisplayLoop> {
-    const loop = await this.getLoop(loopId);
+  async addAdvertisement(loopId: string, userId: string, data: AddAdvertisementToLoopInput): Promise<DisplayLoop> {
+    const loop = await this.getLoopForUser(loopId, userId);
     
     // In a real app, we'd verify the advertisement exists here
     
@@ -208,8 +225,8 @@ export class DisplayLoopService {
   /**
    * Remove advertisement from loop
    */
-  async removeAdvertisement(loopId: string, advertisementId: string): Promise<DisplayLoop> {
-    const loop = await this.getLoop(loopId);
+  async removeAdvertisement(loopId: string, userId: string, advertisementId: string): Promise<DisplayLoop> {
+    const loop = await this.getLoopForUser(loopId, userId);
     
     loop.removeAdvertisement(advertisementId);
 
@@ -232,10 +249,11 @@ export class DisplayLoopService {
    */
   async updateAdvertisementOrder(
     loopId: string,
+    userId: string,
     advertisementId: string,
     newOrder: number
   ): Promise<DisplayLoop> {
-    const loop = await this.getLoop(loopId);
+    const loop = await this.getLoopForUser(loopId, userId);
     
     try {
       loop.updateAdvertisementOrder(advertisementId, newOrder);

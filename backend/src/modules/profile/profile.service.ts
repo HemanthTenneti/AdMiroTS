@@ -66,9 +66,7 @@ export class ProfileService {
   }
 
   getProfileWithoutPassword(user: User): any {
-    const userObj = user as any;
-    const { password, ...safeUser } = userObj;
-    return safeUser;
+    return user.toSafeObject();
   }
 }
 

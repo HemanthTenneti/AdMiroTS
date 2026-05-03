@@ -4,6 +4,10 @@
  */
 import { z } from "zod";
 
+const DateStringSchema = z.string().refine((value) => !Number.isNaN(Date.parse(value)), {
+  message: "Invalid date",
+});
+
 export const RecordAnalyticsSchema = z.object({
   displayId: z.string().min(1, "Display ID is required"),
   adId: z.string().min(1, "Advertisement ID is required"),
@@ -31,8 +35,8 @@ export const ListAnalyticsQuerySchema = z.object({
   displayId: z.string().optional(),
   adId: z.string().optional(),
   loopId: z.string().optional(),
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
+  startDate: DateStringSchema.optional(),
+  endDate: DateStringSchema.optional(),
   sortBy: z.string().default("timestamp"),
   sortOrder: z.enum(["asc", "desc"]).default("desc"),
 });

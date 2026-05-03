@@ -28,6 +28,7 @@ interface CreateDisplayInput {
   resolution: { width: number; height: number };
   configuration?: unknown;
   serialNumber?: string;
+  assignedAdminId?: string;
 }
 
 interface UpdateDisplayInput {
@@ -93,6 +94,7 @@ export class DisplayService {
       isConnected: false,
       firmwareVersion: "1.0.0",
       connectionToken: `token-${id}`,
+      assignedAdminId: data.assignedAdminId,
       needsRefresh: false,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -227,12 +229,16 @@ export class DisplayService {
     };
   }
 
-  async updateDisplayConfig(id: string, config: unknown): Promise<Display> {
+  async updateDisplayConfig(id: string, adminId: string, config: unknown): Promise<Display> {
     if (!id) {
       throw new NotFoundError("Display ID is required");
     }
 
-    await this.getDisplay(id);
+    const display = await this.getDisplay(id);
+
+    if (display.assignedAdminId && display.assignedAdminId !== adminId) {
+      throw new ForbiddenError("You do not have permission to update this display");
+    }
 
     const updated = await this.displayRepository.updateById(id, {
       configuration: config,

@@ -30,6 +30,8 @@ interface UserProfile {
   lastName?: string | undefined;
   profilePicture?: string | undefined;
   googleId?: string | undefined;
+  role: string;
+  isActive: boolean;
 }
 
 type ProfileTab = "profile" | "email" | "password" | "picture";
@@ -73,23 +75,39 @@ function useProfile() {
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
-  const fetchUserProfile = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await profileApi.get();
-      const data = response.data.data;
+  const syncProfile = useCallback(
+    (data: UserProfile) => {
       setLocalUser(data);
       setFirstName(data.firstName ?? "");
       setLastName(data.lastName ?? "");
       setNewEmail(data.email ?? "");
       setProfilePicture(data.profilePicture ?? null);
-      setIsGoogleOAuth(false);
+      setIsGoogleOAuth(Boolean(data.googleId));
+      setUser({
+        id: data.id,
+        username: data.username,
+        email: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        role: data.role,
+        profilePicture: data.profilePicture,
+        isActive: data.isActive,
+      });
+    },
+    [setUser]
+  );
+
+  const fetchUserProfile = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await profileApi.get();
+      syncProfile(response.data.data);
     } catch {
       toast.error("Failed to load profile");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [syncProfile]);
 
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
@@ -109,17 +127,11 @@ function useProfile() {
       }
       try {
         setSaving(true);
-        await profileApi.update({
+        const response = await profileApi.update({
           firstName: firstName.trim(),
           lastName: lastName.trim(),
         });
-
-        // Sync authStore
-        const raw = localStorage.getItem("user");
-        if (raw) {
-          const stored = JSON.parse(raw);
-          setUser({ ...stored, firstName: firstName.trim(), lastName: lastName.trim() });
-        }
+        syncProfile(response.data.data);
 
         toast.success("Profile updated successfully");
       } catch (err: unknown) {
@@ -129,7 +141,7 @@ function useProfile() {
         setSaving(false);
       }
     },
-    [firstName, lastName, setUser]
+    [firstName, lastName, syncProfile]
   );
 
   const handleUpdateEmail = useCallback(
@@ -195,8 +207,8 @@ function useProfile() {
           reader.onerror = () => reject(reader.error);
           reader.readAsDataURL(file);
         });
-        await client.post("/api/profile/avatar", { avatarUrl });
-        setProfilePicture(avatarUrl);
+        const response = await profileApi.uploadAvatar({ avatarUrl });
+        syncProfile(response.data.data);
         toast.success("Profile picture updated successfully");
       } catch (err: unknown) {
         const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
@@ -205,7 +217,7 @@ function useProfile() {
         setUploading(false);
       }
     },
-    []
+    [syncProfile]
   );
 
   const togglePassword = useCallback((field: keyof ShowPasswords) => {
@@ -246,16 +258,16 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 function FormInput({ label, hint, ...props }: InputProps) {
   return (
     <div>
-      <label className="block text-white/50 text-xs uppercase tracking-wide mb-1.5 font-medium">
+      <label className="block text-[var(--ds-text-2)] text-xs uppercase tracking-wide mb-1.5 font-medium">
         {label}
       </label>
       <input
         {...props}
-        className={`bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:border-[#7E3AF0] focus:outline-none rounded-lg px-3 py-2 w-full text-sm ${
+        className={`bg-[var(--ds-input)] border border-[var(--ds-input-border)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-3)] focus:border-[#7E3AF0] focus:outline-none rounded-lg px-3 py-2 w-full text-sm ${
           props.disabled ? "opacity-40 cursor-not-allowed" : ""
         } ${props.className ?? ""}`}
       />
-      {hint && <p className="text-white/30 text-xs mt-1">{hint}</p>}
+      {hint && <p className="text-[var(--ds-text-3)] text-xs mt-1">{hint}</p>}
     </div>
   );
 }
@@ -272,7 +284,7 @@ interface PasswordInputProps {
 function PasswordInput({ label, value, onChange, placeholder, show, onToggle }: PasswordInputProps) {
   return (
     <div>
-      <label className="block text-white/50 text-xs uppercase tracking-wide mb-1.5 font-medium">
+      <label className="block text-[var(--ds-text-2)] text-xs uppercase tracking-wide mb-1.5 font-medium">
         {label}
       </label>
       <div className="relative">
@@ -281,12 +293,12 @@ function PasswordInput({ label, value, onChange, placeholder, show, onToggle }: 
           value={value}
           onChange={onChange}
           placeholder={placeholder}
-          className="bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:border-[#7E3AF0] focus:outline-none rounded-lg px-3 py-2 w-full text-sm pr-10"
+          className="bg-[var(--ds-input)] border border-[var(--ds-input-border)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-3)] focus:border-[#7E3AF0] focus:outline-none rounded-lg px-3 py-2 w-full text-sm pr-10"
         />
         <button
           type="button"
           onClick={onToggle}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--ds-text-3)] hover:text-[var(--ds-text-2)]"
         >
           {show ? <EyeOff size={16} /> : <Eye size={16} />}
         </button>
@@ -339,7 +351,7 @@ function ProfileInfoPanel({
 }) {
   return (
     <form onSubmit={onSubmit} className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-6 space-y-5">
-      <h2 className="text-white font-semibold mb-4">Personal Information</h2>
+      <h2 className="text-[var(--ds-text)] font-semibold mb-4">Personal Information</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormInput
           label="First Name"
@@ -378,7 +390,7 @@ function EmailPanel({
 }) {
   return (
     <form onSubmit={onSubmit} className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-6 space-y-5">
-      <h2 className="text-white font-semibold mb-4">Email Address</h2>
+      <h2 className="text-[var(--ds-text)] font-semibold mb-4">Email Address</h2>
       <FormInput
         label="New Email Address"
         type="email"
@@ -427,7 +439,7 @@ function PasswordPanel({
       )}
 
       <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-6 space-y-5">
-        <h2 className="text-white font-semibold mb-4">Change Password</h2>
+        <h2 className="text-[var(--ds-text)] font-semibold mb-4">Change Password</h2>
 
         {!isGoogleOAuth && (
           <PasswordInput
@@ -462,7 +474,7 @@ function PasswordPanel({
       {/* Danger zone */}
       <div className="bg-[var(--ds-card)] border border-red-500/20 rounded-xl p-6">
         <h3 className="text-red-400 font-semibold text-sm mb-1">Danger Zone</h3>
-        <p className="text-white/30 text-xs">
+        <p className="text-[var(--ds-text-3)] text-xs">
           Password changes are irreversible. Make sure you save your new password in a secure place.
         </p>
       </div>
@@ -488,7 +500,7 @@ function PicturePanel({
 
   return (
     <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-6">
-      <h2 className="text-white font-semibold mb-6">Profile Picture</h2>
+      <h2 className="text-[var(--ds-text)] font-semibold mb-6">Profile Picture</h2>
       <div className="flex flex-col items-center gap-6">
         <div className="relative group">
           {profilePicture ? (
@@ -499,11 +511,11 @@ function PicturePanel({
             />
           ) : (
             <div className="w-32 h-32 rounded-full bg-gradient-to-br from-[#7E3AF0] to-[#9F67FF] flex items-center justify-center border-2 border-[#7E3AF0]/40">
-              <span className="text-white text-4xl font-bold">{initials}</span>
+              <span className="text-[var(--ds-text)] text-4xl font-bold">{initials}</span>
             </div>
           )}
           <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center">
-            <Camera size={24} className="text-white" />
+            <Camera size={24} className="text-[var(--ds-text)]" />
           </div>
         </div>
 
@@ -519,7 +531,7 @@ function PicturePanel({
           />
         </label>
 
-        <p className="text-white/30 text-xs text-center">
+        <p className="text-[var(--ds-text-3)] text-xs text-center">
           Accepted formats: JPG, PNG, GIF, WEBP — max 5MB
         </p>
       </div>
@@ -565,7 +577,7 @@ export default function ProfilePage() {
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <Loader2 size={40} className="text-[#7E3AF0] animate-spin mx-auto mb-3" />
-            <p className="text-white/40 text-sm">Loading your profile...</p>
+            <p className="text-[var(--ds-text-2)] text-sm">Loading your profile...</p>
           </div>
         </div>
       </DashboardLayout>
@@ -579,13 +591,13 @@ export default function ProfilePage() {
         <div className="mb-8">
           <button
             onClick={() => router.push("/dashboard")}
-            className="flex items-center gap-2 text-white/40 hover:text-white/70 text-sm font-medium mb-5"
+            className="flex items-center gap-2 text-[var(--ds-text-2)] hover:text-[var(--ds-text)] text-sm font-medium mb-5"
           >
             <ArrowLeft size={16} />
             Back to Dashboard
           </button>
-          <h1 className="text-3xl font-bold text-white mb-1">Profile Settings</h1>
-          <p className="text-white/40 text-sm">Manage your account information</p>
+          <h1 className="text-3xl font-bold text-[var(--ds-text)] mb-1">Profile Settings</h1>
+          <p className="text-[var(--ds-text-2)] text-sm">Manage your account information</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -601,25 +613,39 @@ export default function ProfilePage() {
                   />
                 ) : (
                   <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#7E3AF0] to-[#9F67FF] flex items-center justify-center border-2 border-[#7E3AF0]/40">
-                    <span className="text-white text-2xl font-bold">
+                    <span className="text-[var(--ds-text)] text-2xl font-bold">
                       {user?.firstName?.charAt(0).toUpperCase() ??
                         user?.username?.charAt(0).toUpperCase() ??
                         "U"}
                     </span>
                   </div>
                 )}
-                <div>
-                  <p className="text-white font-semibold text-sm">
+                <div className="w-full min-w-0">
+                  <p
+                    className="truncate text-[var(--ds-text)] font-semibold text-sm"
+                    title={
+                      user?.firstName && user?.lastName
+                        ? `${user.firstName} ${user.lastName}`
+                        : user?.username
+                    }
+                  >
                     {user?.firstName && user?.lastName
                       ? `${user.firstName} ${user.lastName}`
                       : user?.username}
                   </p>
-                  <p className="text-white/30 text-xs mt-0.5">{user?.email}</p>
+                  <p
+                    className="mt-0.5 max-w-full truncate text-xs text-[var(--ds-text-3)]"
+                    title={user?.email}
+                  >
+                    {user?.email}
+                  </p>
                 </div>
                 <div className="w-full pt-3 border-t border-[var(--ds-border)]">
-                  <p className="text-white/30 text-xs uppercase tracking-wide mb-1">Username</p>
-                  <p className="text-white text-sm font-medium">@{user?.username}</p>
-                  <p className="text-white/20 text-xs mt-0.5">Cannot be changed</p>
+                  <p className="text-[var(--ds-text-3)] text-xs uppercase tracking-wide mb-1">Username</p>
+                  <p className="truncate text-[var(--ds-text)] text-sm font-medium" title={user?.username}>
+                    @{user?.username}
+                  </p>
+                  <p className="text-[var(--ds-text-3)] text-xs mt-0.5">Cannot be changed</p>
                 </div>
               </div>
             </div>
@@ -636,7 +662,7 @@ export default function ProfilePage() {
                   className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold ${
                     activeTab === tab.id
                       ? "bg-[#7E3AF0] text-white"
-                      : "bg-white/8 text-white/50 hover:bg-white/12"
+                      : "bg-[var(--ds-hover)] text-[var(--ds-text-2)] hover:text-[var(--ds-text)]"
                   }`}
                 >
                   {tab.icon}

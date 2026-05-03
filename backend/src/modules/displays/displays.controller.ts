@@ -7,7 +7,8 @@ import DisplayService from "./displays.service";
 import { AuthenticatedRequest } from "../../types/auth.types";
 import { UnauthorizedError, ValidationError } from "../../utils/errors/index";
 import { SuccessResponse } from "@admiro/shared";
-import { ConnectionRequestStatus } from "@admiro/domain";
+import { ConnectionRequestStatus, EntityType, LogAction } from "@admiro/domain";
+import { auditLog } from "../../utils/audit-log";
 
 export class DisplayController {
   private readonly displayService: DisplayService;
@@ -25,6 +26,7 @@ export class DisplayController {
   }
 
   async createDisplay(req: Request, res: Response): Promise<void> {
+    const user = this.getUser(req);
     const { displayId, location, layout, resolution, configuration, serialNumber } = req.body;
 
     const display = await this.displayService.createDisplay({
@@ -34,6 +36,15 @@ export class DisplayController {
       resolution,
       configuration,
       serialNumber,
+      assignedAdminId: user.id,
+    });
+    await auditLog(req, {
+      action: LogAction.CREATE,
+      entityType: EntityType.DISPLAY,
+      entityId: display.id,
+      userId: user.id,
+      description: `Created display ${display.displayName ?? display.displayId}`,
+      metadata: { displayId: display.displayId, location: display.location },
     });
 
     const response: SuccessResponse<any> = {
@@ -99,6 +110,14 @@ export class DisplayController {
     }
 
     const display = await this.displayService.updateDisplay(id, user.id, req.body);
+    await auditLog(req, {
+      action: LogAction.UPDATE,
+      entityType: EntityType.DISPLAY,
+      entityId: display.id,
+      userId: user.id,
+      description: `Updated display ${display.displayName ?? display.displayId}`,
+      changes: req.body,
+    });
 
     const response: SuccessResponse<any> = {
       success: true,
@@ -115,6 +134,13 @@ export class DisplayController {
     }
 
     await this.displayService.deleteDisplay(id, user.id);
+    await auditLog(req, {
+      action: LogAction.DELETE,
+      entityType: EntityType.DISPLAY,
+      entityId: id,
+      userId: user.id,
+      description: `Deleted display ${id}`,
+    });
 
     const response: SuccessResponse<any> = {
       success: true,
@@ -180,12 +206,21 @@ export class DisplayController {
   }
 
   async updateDisplayConfig(req: Request, res: Response): Promise<void> {
+    const user = this.getUser(req);
     const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     if (!id) {
       throw new ValidationError("Display ID is required");
     }
 
-    const display = await this.displayService.updateDisplayConfig(id, req.body);
+    const display = await this.displayService.updateDisplayConfig(id, user.id, req.body);
+    await auditLog(req, {
+      action: LogAction.UPDATE,
+      entityType: EntityType.DISPLAY,
+      entityId: display.id,
+      userId: user.id,
+      description: `Updated display configuration ${display.displayName ?? display.displayId}`,
+      changes: req.body,
+    });
 
     const response: SuccessResponse<any> = {
       success: true,
@@ -335,6 +370,14 @@ export class DisplayController {
     }
 
     const result = await this.displayService.approveConnectionRequest(requestId, user.id);
+    await auditLog(req, {
+      action: LogAction.APPROVE,
+      entityType: EntityType.DISPLAY,
+      entityId: result.display.id,
+      userId: user.id,
+      description: `Approved display connection request ${requestId}`,
+      metadata: { requestId, displayId: result.display.displayId },
+    });
 
     res.status(200).json({
       success: true,
@@ -357,6 +400,14 @@ export class DisplayController {
       user.id,
       rejectionReason
     );
+    await auditLog(req, {
+      action: LogAction.REJECT,
+      entityType: EntityType.DISPLAY,
+      entityId: result.displayId,
+      userId: user.id,
+      description: `Rejected display connection request ${requestId}`,
+      metadata: { requestId, displayId: result.displayId, rejectionReason },
+    });
 
     res.status(200).json({
       success: true,

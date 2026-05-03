@@ -121,7 +121,7 @@ function useDashboardData(): DashboardData {
 function SkeletonBlock({ className }: { className?: string }) {
   return (
     <div
-      className={`animate-pulse bg-white/8 rounded-xl ${className ?? ""}`}
+      className={`animate-pulse bg-[var(--ds-hover)] rounded-xl ${className ?? ""}`}
     />
   );
 }
@@ -139,7 +139,7 @@ function StatusBadge({ status }: StatusBadgeProps) {
   } else if (upper === "PENDING") {
     cls += "bg-yellow-500/15 text-yellow-400";
   } else {
-    cls += "bg-white/8 text-white/40";
+    cls += "bg-[var(--ds-hover)] text-[var(--ds-text-2)]";
   }
 
   return <span className={cls}>{upper}</span>;
@@ -173,11 +173,11 @@ function MetricCard({ label, value, loading, Icon }: MetricCardProps) {
         </div>
       </div>
       <div>
-        <p className="text-white/50 text-sm mb-1">{label}</p>
+        <p className="text-[var(--ds-text-2)] text-sm mb-1">{label}</p>
         {loading ? (
           <SkeletonBlock className="h-8 w-20" />
         ) : (
-          <p className="text-2xl font-bold text-white">
+          <p className="text-2xl font-bold text-[var(--ds-text)]">
             {value.toLocaleString()}
           </p>
         )}
@@ -209,7 +209,7 @@ export default function DashboardPage() {
 
   if (!authReady) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#0a0a0a]">
+      <div className="flex items-center justify-center min-h-screen bg-[var(--ds-bg)]">
         <div className="w-10 h-10 rounded-full border-2 border-[#7E3AF0] border-t-transparent animate-spin" />
       </div>
     );
@@ -228,7 +228,7 @@ function DashboardInner() {
 
   return (
     <DashboardLayout>
-      <div className="min-h-screen bg-[#0a0a0a]">
+      <div className="min-h-screen bg-[var(--ds-bg)]">
         <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
 
           {/* ----------------------------------------------------------------
@@ -236,8 +236,8 @@ function DashboardInner() {
           ---------------------------------------------------------------- */}
           <div className="flex items-end justify-between">
             <div>
-              <p className="text-white/50 text-sm mb-1">Dashboard Overview</p>
-              <h1 className="text-3xl font-bold text-white">
+              <p className="text-[var(--ds-text-2)] text-sm mb-1">Dashboard Overview</p>
+              <h1 className="text-3xl font-bold text-[var(--ds-text)]">
                 Welcome back, {firstName}
               </h1>
             </div>
@@ -298,12 +298,12 @@ function DashboardInner() {
             {/* Recent Displays */}
             <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-5">
               <div className="flex items-center justify-between mb-5">
-                <h2 className="text-white font-semibold text-lg">
+                <h2 className="text-[var(--ds-text)] font-semibold text-lg">
                   Recent Displays
                 </h2>
                 <Link
                   href="/dashboard/displays"
-                  className="text-white/50 hover:text-white text-sm flex items-center gap-1"
+                  className="text-[var(--ds-text-2)] hover:text-[var(--ds-text)] text-sm flex items-center gap-1"
                 >
                   View all
                   <ArrowRight size={13} />
@@ -319,9 +319,9 @@ function DashboardInner() {
               ) : recentDisplays.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 gap-3">
                   <div className="bg-[#7E3AF0]/10 rounded-full p-3">
-                    <Monitor size={22} className="text-white/30" />
+                    <Monitor size={22} className="text-[var(--ds-text-3)]" />
                   </div>
-                  <p className="text-white/50 text-sm">No displays yet</p>
+                  <p className="text-[var(--ds-text-2)] text-sm">No displays yet</p>
                   <Link
                     href="/dashboard/displays/new"
                     className="bg-[#7E3AF0] hover:bg-[#9F67FF] text-white rounded-lg px-4 py-2 text-sm font-medium"
@@ -340,13 +340,13 @@ function DashboardInner() {
                         <div className="bg-[#7E3AF0]/15 rounded-lg p-1.5 shrink-0">
                           <Monitor size={14} className="text-[#9F67FF]" />
                         </div>
-                        <span className="text-white text-sm font-medium truncate">
+                        <span className="text-[var(--ds-text)] text-sm font-medium truncate">
                           {display.displayName}
                         </span>
                       </div>
                       <div className="flex items-center gap-3 shrink-0">
                         <StatusBadge status={display.status} />
-                        <span className="text-white/40 text-xs flex items-center gap-1">
+                        <span className="text-[var(--ds-text-2)] text-xs flex items-center gap-1">
                           <CalendarDays size={11} />
                           {display.createdAt ? formatDate(display.createdAt) : "—"}
                         </span>
@@ -360,12 +360,12 @@ function DashboardInner() {
             {/* Recent Ads */}
             <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-5">
               <div className="flex items-center justify-between mb-5">
-                <h2 className="text-white font-semibold text-lg">
+                <h2 className="text-[var(--ds-text)] font-semibold text-lg">
                   Recent Ads
                 </h2>
                 <Link
                   href="/dashboard/ads"
-                  className="text-white/50 hover:text-white text-sm flex items-center gap-1"
+                  className="text-[var(--ds-text-2)] hover:text-[var(--ds-text)] text-sm flex items-center gap-1"
                 >
                   View all
                   <ArrowRight size={13} />
@@ -381,9 +381,9 @@ function DashboardInner() {
               ) : recentAds.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 gap-3">
                   <div className="bg-[#7E3AF0]/10 rounded-full p-3">
-                    <FileImage size={22} className="text-white/30" />
+                    <FileImage size={22} className="text-[var(--ds-text-3)]" />
                   </div>
-                  <p className="text-white/50 text-sm">No ads yet</p>
+                  <p className="text-[var(--ds-text-2)] text-sm">No ads yet</p>
                   <Link
                     href="/dashboard/ads/new"
                     className="bg-[#7E3AF0] hover:bg-[#9F67FF] text-white rounded-lg px-4 py-2 text-sm font-medium"
@@ -402,12 +402,12 @@ function DashboardInner() {
                         <div className="bg-[#7E3AF0]/15 rounded-lg p-1.5 shrink-0">
                           <FileImage size={14} className="text-[#9F67FF]" />
                         </div>
-                        <span className="text-white text-sm font-medium truncate">
+                        <span className="text-[var(--ds-text)] text-sm font-medium truncate">
                           {ad.adName}
                         </span>
                       </div>
                       <div className="flex items-center gap-3 shrink-0">
-                        <span className="text-white/40 text-xs font-mono bg-white/5 px-1.5 py-0.5 rounded">
+                        <span className="text-[var(--ds-text-2)] text-xs font-mono bg-[var(--ds-input)] px-1.5 py-0.5 rounded">
                           {ad.mediaType}
                         </span>
                         <StatusBadge status={ad.status} />
@@ -423,7 +423,7 @@ function DashboardInner() {
               Quick actions
           ---------------------------------------------------------------- */}
           <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-5">
-            <h2 className="text-white font-semibold text-lg mb-4">
+            <h2 className="text-[var(--ds-text)] font-semibold text-lg mb-4">
               Quick Actions
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -447,19 +447,19 @@ function DashboardInner() {
                 <Link
                   key={label}
                   href={href}
-                  className="flex items-center justify-between bg-white/4 hover:bg-white/7 border border-[var(--ds-border)] rounded-xl px-4 py-3 group"
+                  className="flex items-center justify-between bg-[var(--ds-hover)] hover:bg-[var(--ds-hover)] border border-[var(--ds-border)] rounded-xl px-4 py-3 group"
                 >
                   <div className="flex items-center gap-3">
                     <div className="bg-[#7E3AF0]/15 rounded-lg p-2">
                       <Icon size={16} className="text-[#9F67FF]" />
                     </div>
-                    <span className="text-white text-sm font-medium">
+                    <span className="text-[var(--ds-text)] text-sm font-medium">
                       {label}
                     </span>
                   </div>
                   <ArrowRight
                     size={14}
-                    className="text-white/30 group-hover:text-white/60"
+                    className="text-[var(--ds-text-3)] group-hover:text-[var(--ds-text-2)]"
                   />
                 </Link>
               ))}

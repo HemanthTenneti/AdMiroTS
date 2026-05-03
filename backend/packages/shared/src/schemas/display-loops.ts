@@ -14,6 +14,7 @@ export const DisplayLoopRecordSchema = z.object({
   loopName: z.string(),
   displayId: z.string(),
   displayIds: z.array(z.string()).default([]),
+  createdById: z.string().optional(),
   rotationType: z.string(),
   displayLayout: z.string(),
   isActive: z.boolean(),

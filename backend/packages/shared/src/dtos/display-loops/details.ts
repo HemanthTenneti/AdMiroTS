@@ -12,6 +12,7 @@ export interface GetLoopResponse extends Timestamps {
   loopName: string;
   displayId: string;
   displayIds: string[];
+  createdById?: string | undefined;
   advertisements: LoopAdvertisement[];
   rotationType: RotationType;
   displayLayout: DisplayLayout;

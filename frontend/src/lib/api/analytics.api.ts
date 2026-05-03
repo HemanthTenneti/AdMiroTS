@@ -22,6 +22,8 @@ export const analyticsApi = {
     loopId?: string;
     startDate?: string;
     endDate?: string;
+    sortBy?: string;
+    sortOrder?: "asc" | "desc";
   }) => {
     const response = await client.get("/api/analytics", { params });
     const parsed = AnalyticsListResponseSchema.parse(response.data);

@@ -5,6 +5,10 @@
 import { z } from "zod";
 import { LogAction, EntityType } from "@admiro/domain";
 
+const DateStringSchema = z.string().refine((value) => !Number.isNaN(Date.parse(value)), {
+  message: "Invalid date",
+});
+
 export const ListSystemLogQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(10),
@@ -12,8 +16,8 @@ export const ListSystemLogQuerySchema = z.object({
   entityType: z.nativeEnum(EntityType).optional(),
   entityId: z.string().optional(),
   userId: z.string().optional(),
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
+  startDate: DateStringSchema.optional(),
+  endDate: DateStringSchema.optional(),
   sortBy: z.string().default("createdAt"),
   sortOrder: z.enum(["asc", "desc"]).default("desc"),
 });

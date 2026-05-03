@@ -16,6 +16,8 @@ export const systemLogsApi = {
     entityType?: string;
     entityId?: string;
     userId?: string;
+    startDate?: string;
+    endDate?: string;
     sortBy?: string;
     sortOrder?: "asc" | "desc";
   }) => {

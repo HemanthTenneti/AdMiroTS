@@ -29,6 +29,7 @@ export interface DisplayLoopResponse extends Timestamps {
   loopName: string;
   displayId: string; // Legacy primary display reference
   displayIds: string[]; // Assigned displays
+  createdById?: string | undefined;
   displayName?: string | undefined; // Populated from display relationship
   advertisements: LoopAdvertisementEntryDTO[];
   rotationType: RotationType;

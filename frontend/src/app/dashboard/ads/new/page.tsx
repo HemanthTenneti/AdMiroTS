@@ -328,27 +328,27 @@ export default function NewAdvertisementPage() {
   } = useNewAd();
 
   const inputCls = (hasError?: string) =>
-    `bg-white/5 border ${
-      hasError ? "border-red-500/60" : "border-white/10"
-    } text-white placeholder:text-white/30 focus:border-[#7E3AF0] focus:outline-none rounded-lg px-3 py-2 w-full text-sm transition-colors`;
+    `bg-[var(--ds-input)] border ${
+      hasError ? "border-red-500/60" : "border-[var(--ds-input-border)]"
+    } text-[var(--ds-text)] placeholder:text-[var(--ds-text-3)] focus:border-[#7E3AF0] focus:outline-none rounded-lg px-3 py-2 w-full text-sm transition-colors`;
 
   return (
     <DashboardLayout>
-      <main className="min-h-screen bg-[#0A0A0F] p-6 lg:p-8">
+      <main className="min-h-screen bg-[var(--ds-bg)] p-6 lg:p-8">
         <div className="max-w-2xl mx-auto">
           {/* Header */}
           <div className="flex items-center gap-3 mb-8">
             <Link
               href="/dashboard/ads"
-              className="p-2 rounded-lg text-white/40 hover:text-white hover:bg-white/[0.06] transition-colors"
+              className="p-2 rounded-lg text-[var(--ds-text-2)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-input)] transition-colors"
             >
               <ArrowLeft size={20} />
             </Link>
             <div>
-              <h1 className="text-xl font-bold text-white">
+              <h1 className="text-xl font-bold text-[var(--ds-text)]">
                 Create Advertisement
               </h1>
-              <p className="text-white/40 text-sm">
+              <p className="text-[var(--ds-text-2)] text-sm">
                 Add images or videos to display
               </p>
             </div>
@@ -357,7 +357,7 @@ export default function NewAdvertisementPage() {
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Ad Name */}
             <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-5">
-              <label className="block text-white/60 text-xs font-medium mb-2 uppercase tracking-wide">
+              <label className="block text-[var(--ds-text-2)] text-xs font-medium mb-2 uppercase tracking-wide">
                 Advertisement Name{" "}
                 <span className="text-red-400 normal-case">*</span>
               </label>
@@ -376,7 +376,7 @@ export default function NewAdvertisementPage() {
                 ) : (
                   <span />
                 )}
-                <p className="text-white/20 text-xs ml-auto">
+                <p className="text-[var(--ds-text-3)] text-xs ml-auto">
                   {formData.adName.length}/100
                 </p>
               </div>
@@ -384,9 +384,9 @@ export default function NewAdvertisementPage() {
 
             {/* Description */}
             <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-5">
-              <label className="block text-white/60 text-xs font-medium mb-2 uppercase tracking-wide">
+              <label className="block text-[var(--ds-text-2)] text-xs font-medium mb-2 uppercase tracking-wide">
                 Description{" "}
-                <span className="text-white/30 normal-case text-xs font-normal">
+                <span className="text-[var(--ds-text-3)] normal-case text-xs font-normal">
                   (optional)
                 </span>
               </label>
@@ -399,14 +399,14 @@ export default function NewAdvertisementPage() {
                 rows={3}
                 className={`${inputCls()} resize-none`}
               />
-              <p className="text-white/20 text-xs mt-1 text-right">
+              <p className="text-[var(--ds-text-3)] text-xs mt-1 text-right">
                 {formData.description.length}/500
               </p>
             </div>
 
             {/* Media */}
             <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-5">
-              <label className="block text-white/60 text-xs font-medium mb-3 uppercase tracking-wide">
+              <label className="block text-[var(--ds-text-2)] text-xs font-medium mb-3 uppercase tracking-wide">
                 Media <span className="text-red-400 normal-case">*</span>
               </label>
 
@@ -418,7 +418,7 @@ export default function NewAdvertisementPage() {
                   className={`flex-1 flex items-center justify-center gap-2 text-sm font-medium rounded-lg px-3 py-2 transition-colors ${
                     mediaInputMode === "file"
                       ? "bg-[#7E3AF0] text-white"
-                      : "bg-white/[0.06] text-white/50 hover:bg-white/[0.10]"
+                      : "bg-[var(--ds-input)] text-[var(--ds-text-2)] hover:bg-[var(--ds-input)]"
                   }`}
                 >
                   <Upload size={14} />
@@ -430,7 +430,7 @@ export default function NewAdvertisementPage() {
                   className={`flex-1 flex items-center justify-center gap-2 text-sm font-medium rounded-lg px-3 py-2 transition-colors ${
                     mediaInputMode === "link"
                       ? "bg-[#7E3AF0] text-white"
-                      : "bg-white/[0.06] text-white/50 hover:bg-white/[0.10]"
+                      : "bg-[var(--ds-input)] text-[var(--ds-text-2)] hover:bg-[var(--ds-input)]"
                   }`}
                 >
                   <LinkIcon size={14} />
@@ -456,19 +456,19 @@ export default function NewAdvertisementPage() {
                           : "border-[var(--ds-border)] hover:border-[#7E3AF0]/40"
                       }`}
                     >
-                      <div className="w-10 h-10 bg-white/[0.04] rounded-xl flex items-center justify-center mx-auto mb-3">
-                        <Upload size={18} className="text-white/30" />
+                      <div className="w-10 h-10 bg-[var(--ds-hover)] rounded-xl flex items-center justify-center mx-auto mb-3">
+                        <Upload size={18} className="text-[var(--ds-text-3)]" />
                       </div>
-                      <p className="text-white/60 text-sm font-medium mb-1">
+                      <p className="text-[var(--ds-text-2)] text-sm font-medium mb-1">
                         Drag and drop or click to browse
                       </p>
-                      <p className="text-white/30 text-xs">
+                      <p className="text-[var(--ds-text-3)] text-xs">
                         JPG, PNG, GIF, WebP (max 10 MB) · MP4, MOV, WebM (max 250 MB)
                       </p>
                     </div>
                   ) : (
                     <div className="border border-[var(--ds-border)] rounded-lg overflow-hidden">
-                      <div className="bg-white/[0.03] aspect-video flex items-center justify-center relative">
+                      <div className="bg-[var(--ds-hover)] aspect-video flex items-center justify-center relative">
                         {mediaPreview.type === "image" ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
@@ -486,28 +486,28 @@ export default function NewAdvertisementPage() {
                         <button
                           type="button"
                           onClick={removeFile}
-                          className="absolute top-2 right-2 w-7 h-7 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center text-white/60 hover:text-white transition-colors"
+                          className="absolute top-2 right-2 w-7 h-7 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center text-[var(--ds-text-2)] hover:text-[var(--ds-text)] transition-colors"
                         >
                           <X size={14} />
                         </button>
                       </div>
                       <div className="px-4 py-2.5 flex items-center gap-2">
                         {mediaPreview.type === "video" ? (
-                          <Video size={14} className="text-white/30" />
+                          <Video size={14} className="text-[var(--ds-text-3)]" />
                         ) : (
-                          <ImageIcon size={14} className="text-white/30" />
+                          <ImageIcon size={14} className="text-[var(--ds-text-3)]" />
                         )}
-                        <p className="text-white/60 text-xs truncate flex-1">
+                        <p className="text-[var(--ds-text-2)] text-xs truncate flex-1">
                           {mediaPreview.name}
                         </p>
-                        <p className="text-white/30 text-xs shrink-0">
+                        <p className="text-[var(--ds-text-3)] text-xs shrink-0">
                           {mediaPreview.sizeMb} MB
                         </p>
                       </div>
                     </div>
                   )}
 
-                  <p className="text-white/20 text-xs mt-2">
+                  <p className="text-[var(--ds-text-3)] text-xs mt-2">
                     Tip: paste images directly with Ctrl+V / Cmd+V
                   </p>
                 </>
@@ -522,8 +522,8 @@ export default function NewAdvertisementPage() {
                     className={inputCls(errors.media)}
                   />
                   {mediaLink && (
-                    <div className="mt-3 bg-white/[0.03] border border-white/[0.06] rounded-lg p-3">
-                      <p className="text-white/40 text-xs mb-2">Preview</p>
+                    <div className="mt-3 bg-[var(--ds-hover)] border border-[var(--ds-border)] rounded-lg p-3">
+                      <p className="text-[var(--ds-text-2)] text-xs mb-2">Preview</p>
                       {formData.mediaType === "image" ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -543,7 +543,7 @@ export default function NewAdvertisementPage() {
                       )}
                     </div>
                   )}
-                  <p className="text-white/20 text-xs mt-2">
+                  <p className="text-[var(--ds-text-3)] text-xs mt-2">
                     Paste a direct link to an image or video file
                   </p>
                 </div>
@@ -556,7 +556,7 @@ export default function NewAdvertisementPage() {
 
             {/* Duration */}
             <div className="bg-[var(--ds-card)] border border-[var(--ds-border)] rounded-xl p-5">
-              <label className="block text-white/60 text-xs font-medium mb-2 uppercase tracking-wide">
+              <label className="block text-[var(--ds-text-2)] text-xs font-medium mb-2 uppercase tracking-wide">
                 Display Duration (seconds){" "}
                 <span className="text-red-400 normal-case">*</span>
               </label>
@@ -572,7 +572,7 @@ export default function NewAdvertisementPage() {
               {errors.duration && (
                 <p className="text-red-400 text-xs mt-1.5">{errors.duration}</p>
               )}
-              <p className="text-white/20 text-xs mt-1.5">
+              <p className="text-[var(--ds-text-3)] text-xs mt-1.5">
                 How long this ad displays (1–300 seconds)
               </p>
             </div>
@@ -595,7 +595,7 @@ export default function NewAdvertisementPage() {
               </button>
               <Link
                 href="/dashboard/ads"
-                className="flex items-center justify-center bg-white/[0.06] hover:bg-white/[0.10] text-white/60 text-sm font-medium rounded-lg px-4 py-2.5 transition-colors"
+                className="flex items-center justify-center bg-[var(--ds-input)] hover:bg-[var(--ds-input)] text-[var(--ds-text-2)] text-sm font-medium rounded-lg px-4 py-2.5 transition-colors"
               >
                 Cancel
               </Link>

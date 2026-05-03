@@ -24,6 +24,7 @@ export interface DisplayLoopListResponse {
  */
 export interface CreateDisplayLoopInput {
   loopName: string;
+  createdById?: string | undefined;
   displayId?: string | undefined;
   displayIds?: string[] | undefined;
   rotationType: RotationType;
