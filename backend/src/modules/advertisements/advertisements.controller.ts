@@ -121,9 +121,15 @@ export class AdvertisementController {
       const limit = req.query.limit as string | undefined;
       const status = req.query.status as string | undefined;
       const mediaType = req.query.mediaType as string | undefined;
-      const advertiserId = req.query.advertiserId as string | undefined;
       const sortBy = req.query.sortBy as string | undefined;
       const sortOrder = req.query.sortOrder as "asc" | "desc" | undefined;
+
+      // Auto-scope to the authenticated user's ads if a JWT is present.
+      // Dashboard users only see their own advertisements; unauthenticated
+      // callers (e.g., display clients) see everything unless a specific
+      // advertiserId filter is explicitly provided.
+      const authReq = req as Request & AuthenticatedRequest;
+      const advertiserId = authReq.user?.id ?? (req.query.advertiserId as string | undefined);
 
       const result = await this.adService.listAdvertisements(
         Number(page) || 1,

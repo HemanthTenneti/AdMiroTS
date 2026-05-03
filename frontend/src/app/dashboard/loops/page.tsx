@@ -48,6 +48,7 @@ export default function LoopsPage() {
     duration: "15",
     order: "0",
   });
+  const [displayAssignment, setDisplayAssignment] = useState<Record<string, string>>({});
 
   const loadData = async () => {
     setLoading(true);
@@ -80,7 +81,7 @@ export default function LoopsPage() {
 
     const parsed = CreateDisplayLoopPayloadSchema.safeParse({
       loopName: loopForm.loopName,
-      displayId: loopForm.displayId,
+      displayId: loopForm.displayId || undefined,
       rotationType: loopForm.rotationType,
       displayLayout: loopForm.displayLayout,
       description: loopForm.description || undefined,
@@ -151,6 +152,26 @@ export default function LoopsPage() {
     }
   };
 
+  const addLoopToDisplay = async (loopId: string) => {
+    const displayId = displayAssignment[loopId];
+    if (!displayId) {
+      setError("Please select a display to assign.");
+      return;
+    }
+
+    setSubmitting(true);
+    setError(null);
+    try {
+      await displayLoopsApi.addDisplay(loopId, { displayId });
+      setDisplayAssignment((prev) => ({ ...prev, [loopId]: "" }));
+      await loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to assign display");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   if (!authReady) {
     return <div className="p-6 text-sm text-white/50">Checking session...</div>;
   }
@@ -181,7 +202,7 @@ export default function LoopsPage() {
               value={loopForm.displayId}
               onChange={(e) => setLoopForm((prev) => ({ ...prev, displayId: e.target.value }))}
             >
-              <option value="">Select display</option>
+              <option value="">Initial display (optional)</option>
               {displays.map((display) => (
                 <option key={display.id} value={display.id}>
                   {display.displayId} - {display.location}
@@ -278,14 +299,60 @@ export default function LoopsPage() {
             No loops found.
           </div>
         ) : (
-          <DataTable headers={["Loop", "Display", "Rotation", "Layout", "Ads", "Updated", "Actions"]}>
-            {loops.map((loop) => (
+          <DataTable headers={["Loop", "Displays", "Rotation", "Layout", "Ads", "Updated", "Actions"]}>
+            {loops.map((loop) => {
+              const assignedDisplayIds =
+                (loop.displayIds?.length ?? 0) > 0
+                  ? loop.displayIds
+                  : loop.displayId
+                    ? [loop.displayId]
+                    : [];
+
+              return (
               <tr key={loop.id} className="hover:bg-white/[0.03]">
                 <td className="px-4 py-3">
                   <div className="font-medium">{loop.loopName}</div>
                   <div className="text-xs text-white/40">{loop.loopId}</div>
                 </td>
-                <td className="px-4 py-3 font-mono text-xs">{loop.displayId}</td>
+                <td className="px-4 py-3">
+                  <div className="space-y-2">
+                    <div className="text-xs text-white/60">
+                      {assignedDisplayIds.length > 0
+                        ? `${assignedDisplayIds.length} assigned`
+                        : "Unassigned"}
+                    </div>
+                    <div className="max-h-16 overflow-auto space-y-1">
+                      {assignedDisplayIds.map((id: string) => (
+                        <div key={id} className="font-mono text-[11px] text-white/40">
+                          {id}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <SelectInput
+                        value={displayAssignment[loop.id] ?? ""}
+                        onChange={(e) =>
+                          setDisplayAssignment((prev) => ({
+                            ...prev,
+                            [loop.id]: e.target.value,
+                          }))
+                        }
+                      >
+                        <option value="">Add to display</option>
+                        {displays
+                          .filter((display) => !assignedDisplayIds.includes(display.id))
+                          .map((display) => (
+                            <option key={display.id} value={display.id}>
+                              {display.displayId} - {display.location}
+                            </option>
+                          ))}
+                      </SelectInput>
+                      <SecondaryButton onClick={() => void addLoopToDisplay(loop.id)} disabled={submitting}>
+                        Add
+                      </SecondaryButton>
+                    </div>
+                  </div>
+                </td>
                 <td className="px-4 py-3 capitalize text-white/50">{loop.rotationType}</td>
                 <td className="px-4 py-3">
                   <StatusPill label={loop.displayLayout} tone="info" />
@@ -301,7 +368,8 @@ export default function LoopsPage() {
                   </SecondaryButton>
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </DataTable>
         )}
       </Panel>

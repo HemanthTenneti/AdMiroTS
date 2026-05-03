@@ -14,7 +14,8 @@ export interface LoopAdvertisement {
 
 export interface CreateLoopRequest {
   loopName: string;
-  displayId: string;
+  displayId?: string | undefined;
+  displayIds?: string[] | undefined;
   advertisements: LoopAdvertisement[];
   rotationType: RotationType;
   displayLayout: DisplayLayout;
@@ -26,6 +27,7 @@ export interface CreateLoopResponse extends Timestamps {
   loopId: string;
   loopName: string;
   displayId: string;
+  displayIds: string[];
   advertisements: LoopAdvertisement[];
   rotationType: RotationType;
   displayLayout: DisplayLayout;

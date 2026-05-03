@@ -71,7 +71,7 @@ export const RegisterSelfSchema = z.object({
 
 export const DisplayLoginSchema = z.object({
   displayId: z.string().min(1, "Display ID is required"),
-  password: z.string().min(1, "Password is required"),
+  password: z.string().optional(),
 });
 
 export const ReportDisplayStatusSchema = z.object({

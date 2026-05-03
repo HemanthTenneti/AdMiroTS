@@ -81,7 +81,6 @@ export default function DisplayLoginPage() {
 
     if (loginMethod === "password") {
       if (!passwordFormData.displayId.trim()) errs.displayId = "Display ID is required.";
-      if (!passwordFormData.password.trim()) errs.password = "Password is required.";
     } else {
       if (!tokenFormData.connectionToken.trim()) {
         errs.connectionToken = "Connection token is required.";
@@ -106,7 +105,7 @@ export default function DisplayLoginPage() {
   const handlePasswordLogin = async () => {
     const response = await displaysApi.loginDisplay({
       displayId: passwordFormData.displayId.trim(),
-      password: passwordFormData.password.trim(),
+      password: passwordFormData.password.trim() || undefined,
     });
 
     if (!response.data.data.displayId || !response.data.data.connectionToken) {
@@ -265,7 +264,9 @@ export default function DisplayLoginPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs uppercase tracking-wider text-white/50 mb-1.5">Password</label>
+                  <label className="block text-xs uppercase tracking-wider text-white/50 mb-1.5">
+                    Password (optional for passwordless displays)
+                  </label>
                   <input
                     type="password"
                     value={passwordFormData.password}
@@ -274,7 +275,7 @@ export default function DisplayLoginPage() {
                       setFieldErrors((prev) => ({ ...prev, password: "" }));
                       setError("");
                     }}
-                    placeholder="Enter your password"
+                    placeholder="Enter password if this display has one"
                     className={`${inputClass}${fieldErrors.password ? " border-red-500/60" : ""}`}
                   />
                   {fieldErrors.password && <p className="text-xs text-red-400 mt-1">{fieldErrors.password}</p>}

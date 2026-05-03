@@ -11,6 +11,7 @@ export class DisplayLoop implements IDisplayLoop {
   loopId: string;
   loopName: string;
   displayId: string;
+  displayIds: string[];
   advertisements: LoopAdvertisementEntry[];
   rotationType: RotationType;
   displayLayout: DisplayLayout;
@@ -24,7 +25,14 @@ export class DisplayLoop implements IDisplayLoop {
     this.id = data.id;
     this.loopId = data.loopId;
     this.loopName = data.loopName;
-    this.displayId = data.displayId;
+    this.displayIds =
+      Array.isArray((data as Partial<IDisplayLoop>).displayIds) &&
+      (data as Partial<IDisplayLoop>).displayIds!.length > 0
+        ? Array.from(new Set((data as Partial<IDisplayLoop>).displayIds!.filter(Boolean)))
+        : data.displayId
+          ? [data.displayId]
+          : [];
+    this.displayId = this.displayIds[0] ?? data.displayId ?? "";
     this.advertisements = data.advertisements.map(
       (ad: any) =>
         new LoopAdvertisementEntry(
@@ -41,6 +49,22 @@ export class DisplayLoop implements IDisplayLoop {
     this.description = data.description ?? undefined;
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
+  }
+
+  assignDisplay(displayId: string): void {
+    if (!displayId) return;
+    if (!this.displayIds.includes(displayId)) {
+      this.displayIds.push(displayId);
+      this.displayId = this.displayIds[0] ?? displayId;
+      this.updatedAt = new Date();
+    }
+  }
+
+  unassignDisplay(displayId: string): void {
+    const next = this.displayIds.filter((id) => id !== displayId);
+    this.displayIds = next;
+    this.displayId = next[0] ?? "";
+    this.updatedAt = new Date();
   }
 
   /**

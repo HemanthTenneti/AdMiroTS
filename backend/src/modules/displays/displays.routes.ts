@@ -14,6 +14,7 @@ export function createDisplayRoutes(jwtSecret: string): Router {
   const jwtAuth = new JWTAuthMiddleware(jwtSecret);
 
   const authMiddleware = jwtAuth.authenticate();
+  const optionalAuth = jwtAuth.optionalAuthenticate();
 
   // Device/public endpoints
   router.post(
@@ -84,10 +85,12 @@ export function createDisplayRoutes(jwtSecret: string): Router {
     }
   );
 
-  // Existing API endpoints
+  // GET /api/displays - List all displays with pagination
+  // When JWT is present, results are auto-scoped to that admin's displays
   router.get(
     "/",
     publicDataRateLimiter,
+    optionalAuth,
     validateQuery(DisplayValidationSchemas.filterQuery),
     (req: Request, res: Response, next: NextFunction) => {
       displayController.listDisplays(req, res).catch(next);

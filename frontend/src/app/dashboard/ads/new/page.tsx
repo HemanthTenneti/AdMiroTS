@@ -204,14 +204,25 @@ function useNewAd() {
       const description = formData.description.trim();
 
       if (mediaInputMode === "file" && selectedFile) {
-        const uploadMeta = await advertisementsApi.createUploadUrl({
-          mediaType: selectedFile.type.startsWith("image/") ? "image" : "video",
-          mimeType: selectedFile.type,
-          fileName: selectedFile.name,
-          fileSize: selectedFile.size,
-        });
+        // Step 1: Get presigned upload URL from backend
+        let uploadMeta;
+        try {
+          uploadMeta = await advertisementsApi.createUploadUrl({
+            mediaType: selectedFile.type.startsWith("image/") ? "image" : "video",
+            mimeType: selectedFile.type,
+            fileName: selectedFile.name,
+            fileSize: selectedFile.size,
+          });
+        } catch (err: unknown) {
+          const message =
+            (err as { response?: { data?: { message?: string } } })?.response?.data
+              ?.message ?? "Failed to generate upload URL. Check that R2 is configured.";
+          throw new Error(message);
+        }
 
         const { uploadUrl, publicUrl, objectKey } = uploadMeta.data.data;
+
+        // Step 2: Upload the file directly to R2 using the presigned URL
         const uploadResponse = await fetch(uploadUrl, {
           method: "PUT",
           headers: { "Content-Type": selectedFile.type },
@@ -219,7 +230,11 @@ function useNewAd() {
         });
 
         if (!uploadResponse.ok) {
-          throw new Error("Failed to upload media file to storage.");
+          const statusText = uploadResponse.statusText || "Unknown error";
+          throw new Error(
+            `File upload failed (${uploadResponse.status}: ${statusText}). ` +
+            "This may be a CORS issue — ensure your Cloudflare R2 bucket allows PUT requests from this origin."
+          );
         }
 
         await advertisementsApi.create({

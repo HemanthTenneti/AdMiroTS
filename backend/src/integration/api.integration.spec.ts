@@ -24,6 +24,7 @@ describe("API Integration", function () {
   let rejectedDisplayRequestId = "";
   let passwordlessDisplayToken = "";
   let passwordlessDisplayPublicId = "";
+  let passwordlessDisplayRequestId = "";
 
   let manualDisplayDbId = "";
   let manualDisplayPublicId = "";
@@ -262,6 +263,7 @@ describe("API Integration", function () {
       expect(response.status).to.equal(200);
       expect(response.body.data.connectionRequestStatus).to.equal("pending");
       expect(response.body.data.connectionRequestId).to.be.a("string");
+      passwordlessDisplayRequestId = response.body.data.connectionRequestId;
       expect(response.body.data.rejectionReason).to.equal(null);
     });
 
@@ -275,7 +277,7 @@ describe("API Integration", function () {
       expect(response.body.data.connectionToken).to.equal(approvedDisplayToken);
     });
 
-    it("POST /api/displays/login-display rejects password login for passwordless displays", async () => {
+    it("POST /api/displays/login-display rejects passwordless display while approval is pending", async () => {
       const response = await api.post("/api/displays/login-display").send({
         displayId: passwordlessDisplayPublicId,
         password: "some-password",
@@ -283,7 +285,7 @@ describe("API Integration", function () {
 
       expect(response.status).to.equal(400);
       expect(response.body.error.code).to.equal("VALIDATION_ERROR");
-      expect(response.body.error.message).to.include("connection token");
+      expect(response.body.error.message.toLowerCase()).to.include("pending");
     });
 
     it("POST /api/displays/login alias authenticates device", async () => {
@@ -333,6 +335,25 @@ describe("API Integration", function () {
         .send({});
 
       expect([200, 404]).to.include(response.status);
+    });
+
+    it("POST /api/displays/connection-requests/:id/approve approves passwordless request", async () => {
+      const requestId = passwordlessDisplayRequestId || "REQ-NOT-FOUND";
+      const response = await api
+        .post(`/api/displays/connection-requests/${requestId}/approve`)
+        .set(authHeader())
+        .send({});
+
+      expect([200, 404]).to.include(response.status);
+    });
+
+    it("POST /api/displays/login-display authenticates approved passwordless display without password", async () => {
+      const response = await api.post("/api/displays/login-display").send({
+        displayId: passwordlessDisplayPublicId,
+      });
+
+      expect(response.status).to.equal(200);
+      expect(response.body.data.connectionToken).to.equal(passwordlessDisplayToken);
     });
 
     it("GET /api/displays/by-token reflects approved request", async () => {
@@ -598,6 +619,18 @@ describe("API Integration", function () {
         });
 
       expect(response.status).to.equal(200);
+    });
+
+    it("POST /api/display-loops/:id/displays assigns loop to another display", async () => {
+      const response = await api
+        .post(`/api/display-loops/${loopId}/displays`)
+        .set(authHeader())
+        .send({
+          displayId: manualDisplayDbId,
+        });
+
+      expect(response.status).to.equal(200);
+      expect(response.body.data.displayIds).to.include(manualDisplayDbId);
     });
 
     it("PUT /api/display-loops/:id/advertisements/:adId/order updates order", async () => {

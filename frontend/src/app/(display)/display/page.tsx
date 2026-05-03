@@ -265,7 +265,7 @@ export default function DisplayPage() {
       if (loginMethod === "password") {
         const response = await displaysApi.loginDisplay({
           displayId: passwordLoginData.displayId.trim(),
-          password: passwordLoginData.password.trim(),
+          password: passwordLoginData.password.trim() || undefined,
         });
         resolvedDisplayId = response.data.data.displayId;
         resolvedConnectionToken = response.data.data.connectionToken;
@@ -481,16 +481,17 @@ export default function DisplayPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Password (optional for passwordless displays)
+                  </label>
                   <input
                     type="password"
                     value={passwordLoginData.password}
                     onChange={(e) =>
                       setPasswordLoginData({ ...passwordLoginData, password: e.target.value })
                     }
-                    placeholder="Enter your display password"
+                    placeholder="Enter password if this display has one"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8b6f47] focus:border-transparent"
-                    required
                   />
                 </div>
               </>

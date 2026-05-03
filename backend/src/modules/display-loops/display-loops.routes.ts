@@ -68,6 +68,15 @@ export function createDisplayLoopRoutes(jwtSecret: string): Router {
     }
   );
 
+  router.post(
+    "/:id/displays",
+    authMiddleware,
+    validateRequest(DisplayLoopValidationSchemas.addDisplay),
+    (req: Request, res: Response, next: NextFunction) => {
+      loopController.addDisplay(req, res, next).catch(next);
+    }
+  );
+
   router.delete(
     "/:id/advertisements/:adId",
     authMiddleware,

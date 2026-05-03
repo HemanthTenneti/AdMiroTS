@@ -71,6 +71,49 @@ export class JWTAuthMiddleware {
       }
     };
   }
+
+  /**
+   * Optional authentication middleware
+   * Tries to extract and verify JWT if present, but does NOT fail if absent.
+   * Used for list endpoints that should auto-scope to the logged-in user
+   * while remaining accessible to unauthenticated callers (e.g., display clients).
+   */
+  optionalAuthenticate() {
+    return async (
+      req: Request & AuthenticatedRequest,
+      _res: Response,
+      next: ExpressNextFunction
+    ): Promise<void> => {
+      try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader) {
+          // No token — proceed as anonymous
+          next();
+          return;
+        }
+
+        const parts = authHeader.split(" ");
+        if (parts.length !== 2 || parts[0] !== "Bearer") {
+          // Malformed header — proceed as anonymous rather than rejecting
+          next();
+          return;
+        }
+
+        const token = parts[1]!;
+        const decoded = jwt.verify(token, this.jwtSecret) as unknown as JWTPayload;
+        req.jwtPayload = decoded;
+
+        const user = await this.userRepository.findById(decoded.sub);
+        if (user && user.isActive) {
+          req.user = user;
+        }
+      } catch {
+        // Token invalid or expired — proceed as anonymous
+      }
+
+      next();
+    };
+  }
 }
 
 export default JWTAuthMiddleware;

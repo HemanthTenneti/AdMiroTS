@@ -46,12 +46,19 @@ export class DisplayController {
   async listDisplays(req: Request, res: Response): Promise<void> {
     const { page, limit, status, location, layout, sortBy, sortOrder } = req.query;
 
+    // Auto-scope to the authenticated admin's displays if a JWT is present.
+    // Dashboard users only see displays assigned to them; unauthenticated
+    // callers (e.g., display clients) see everything.
+    const authReq = req as Request & AuthenticatedRequest;
+    const assignedAdminId = authReq.user?.id ?? undefined;
+
     const result = await this.displayService.listDisplays(Number(page) || 1, Number(limit) || 10, {
       status: typeof status === "string" ? status : undefined,
       location: typeof location === "string" ? location : undefined,
       layout: typeof layout === "string" ? layout : undefined,
       sortBy: typeof sortBy === "string" ? sortBy : undefined,
       sortOrder: (sortOrder as "asc" | "desc") || undefined,
+      assignedAdminId,
     });
 
     const response: SuccessResponse<any> = {
@@ -254,8 +261,8 @@ export class DisplayController {
   async loginDisplay(req: Request, res: Response): Promise<void> {
     const { displayId, password } = req.body;
 
-    if (!displayId || !password) {
-      throw new ValidationError("Display ID and password are required.");
+    if (!displayId) {
+      throw new ValidationError("Display ID is required.");
     }
 
     const display = await this.displayService.loginDisplay({ displayId, password });

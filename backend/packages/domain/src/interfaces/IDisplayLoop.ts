@@ -9,7 +9,8 @@ export interface IDisplayLoop {
   id: string;
   loopId: string; // Auto-generated unique ID
   loopName: string;
-  displayId: string; // FK to Display
+  displayId: string; // Legacy primary display reference
+  displayIds: string[]; // Assigned displays (many-to-many)
   advertisements: LoopAdvertisementEntry[]; // Ordered list of ads
   rotationType: RotationType;
   displayLayout: DisplayLayout;

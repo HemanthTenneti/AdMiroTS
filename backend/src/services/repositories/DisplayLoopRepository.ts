@@ -18,7 +18,7 @@ export class DisplayLoopRepository extends BaseRepository<DisplayLoop> {
   }
 
   async findWithDisplays(): Promise<DisplayLoop[]> {
-    const docs = await this.model.find().populate("displayId");
+    const docs = await this.model.find().populate("displayIds");
     return docs.map((doc: any) => new DisplayLoop(doc.toObject() as IDisplayLoop));
   }
 
@@ -33,7 +33,12 @@ export class DisplayLoopRepository extends BaseRepository<DisplayLoop> {
   }
 
   async findByDisplayId(displayId: string): Promise<DisplayLoop | null> {
-    const doc = await this.model.findOne({ displayId, isActive: true }).sort({ updatedAt: -1 });
+    const doc = await this.model
+      .findOne({
+        $or: [{ displayIds: displayId }, { displayId }],
+        isActive: true,
+      })
+      .sort({ updatedAt: -1 });
     if (!doc) return null;
     return new DisplayLoop(doc.toObject() as IDisplayLoop);
   }

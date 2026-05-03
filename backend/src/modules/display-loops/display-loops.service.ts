@@ -4,19 +4,45 @@
  */
 import { DisplayLoop, RotationType, DisplayLayout, LoopAdvertisementEntry } from "@admiro/domain";
 import { DisplayLoopRepository } from "../../services/repositories/DisplayLoopRepository";
+import { DisplayRepository } from "../../services/repositories/DisplayRepository";
 import { NotFoundError } from "../../utils/errors/NotFoundError";
 import { ValidationError } from "../../utils/errors/ValidationError";
 import { Logger } from "../../utils/logger";
 import { IdGenerator } from "../../utils/id-generator";
-import { CreateDisplayLoopInput, UpdateDisplayLoopInput, AddAdvertisementToLoopInput } from "./display-loops.types";
+import {
+  CreateDisplayLoopInput,
+  UpdateDisplayLoopInput,
+  AddAdvertisementToLoopInput,
+  AddDisplayToLoopInput,
+} from "./display-loops.types";
 
 const ALLOWED_SORT_FIELDS = ["createdAt", "updatedAt", "loopName", "totalDuration"] as const;
 
 export class DisplayLoopService {
   private loopRepository: DisplayLoopRepository;
+  private displayRepository: DisplayRepository;
 
   constructor() {
     this.loopRepository = new DisplayLoopRepository();
+    this.displayRepository = new DisplayRepository();
+  }
+
+  private normalizeDisplayIds(data: Pick<CreateDisplayLoopInput, "displayId" | "displayIds">): string[] {
+    const fromArray = Array.isArray(data.displayIds) ? data.displayIds : [];
+    const merged = [...fromArray, data.displayId ?? ""]
+      .map((value) => value.trim())
+      .filter((value) => value.length > 0);
+    return Array.from(new Set(merged));
+  }
+
+  private async validateDisplayIds(displayIds: string[]): Promise<void> {
+    if (displayIds.length === 0) return;
+    const displays = await this.displayRepository.findByDisplayIds(displayIds);
+    const existingIds = new Set(displays.map((display) => display.id));
+    const missingIds = displayIds.filter((id) => !existingIds.has(id));
+    if (missingIds.length > 0) {
+      throw new ValidationError(`Invalid display IDs: ${missingIds.join(", ")}`);
+    }
   }
 
   /**
@@ -24,12 +50,15 @@ export class DisplayLoopService {
    */
   async createLoop(data: CreateDisplayLoopInput): Promise<DisplayLoop> {
     const id = IdGenerator.loopId();
+    const displayIds = this.normalizeDisplayIds(data);
+    await this.validateDisplayIds(displayIds);
 
     const loop = new DisplayLoop({
       id,
       loopId: id,
       loopName: data.loopName,
-      displayId: data.displayId,
+      displayId: displayIds[0] ?? "",
+      displayIds,
       advertisements: [],
       rotationType: data.rotationType,
       displayLayout: data.displayLayout,
@@ -41,7 +70,7 @@ export class DisplayLoopService {
     });
 
     const created = await this.loopRepository.create(loop as any);
-    Logger.info(`Display loop created: ${id}`, { displayId: data.displayId });
+    Logger.info(`Display loop created: ${id}`, { displayIds });
     return created;
   }
 
@@ -65,7 +94,9 @@ export class DisplayLoopService {
     filters?: { displayId?: string; isActive?: boolean; sortBy?: string; sortOrder?: "asc" | "desc" }
   ): Promise<{ data: DisplayLoop[]; total: number }> {
     const filterObj: Record<string, any> = {};
-    if (filters?.displayId) filterObj.displayId = filters.displayId;
+    if (filters?.displayId) {
+      filterObj.$or = [{ displayIds: filters.displayId }, { displayId: filters.displayId }];
+    }
     if (filters?.isActive !== undefined) filterObj.isActive = filters.isActive;
 
     let sortBy = "createdAt";
@@ -114,6 +145,33 @@ export class DisplayLoopService {
     await this.getLoop(id);
     await this.loopRepository.deleteById(id);
     Logger.info(`Display loop deleted: ${id}`);
+  }
+
+  /**
+   * Assign loop to an additional display
+   */
+  async addDisplay(loopId: string, data: AddDisplayToLoopInput): Promise<DisplayLoop> {
+    const loop = await this.getLoop(loopId);
+    const display = await this.displayRepository.findById(data.displayId);
+    if (!display) {
+      throw new ValidationError(`Display with ID ${data.displayId} not found`);
+    }
+    const nextDisplayIds = Array.from(
+      new Set([...(Array.isArray(loop.displayIds) ? loop.displayIds : []), data.displayId])
+    );
+
+    const updated = await this.loopRepository.updateById(loopId, {
+      displayIds: nextDisplayIds,
+      displayId: nextDisplayIds[0] ?? "",
+      updatedAt: new Date(),
+    });
+
+    if (!updated) {
+      throw new NotFoundError(`Display loop with ID ${loopId} not found`);
+    }
+
+    Logger.info(`Display ${data.displayId} assigned to loop ${loopId}`);
+    return updated;
   }
 
   /**

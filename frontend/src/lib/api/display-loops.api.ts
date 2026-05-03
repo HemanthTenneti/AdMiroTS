@@ -1,5 +1,7 @@
 import client from "./client";
 import {
+  AddDisplayToLoopPayload,
+  AddDisplayToLoopPayloadSchema,
   AddLoopAdvertisementPayload,
   AddLoopAdvertisementPayloadSchema,
   CreateDisplayLoopPayload,
@@ -17,6 +19,7 @@ export type {
   UpdateDisplayLoopPayload,
   AddLoopAdvertisementPayload,
   UpdateLoopOrderPayload,
+  AddDisplayToLoopPayload,
 };
 
 export const displayLoopsApi = {
@@ -61,6 +64,13 @@ export const displayLoopsApi = {
   addAdvertisement: async (id: string, payload: AddLoopAdvertisementPayload) => {
     const parsedPayload = AddLoopAdvertisementPayloadSchema.parse(payload);
     const response = await client.post(`/api/display-loops/${id}/advertisements`, parsedPayload);
+    const parsed = DisplayLoopResponseSchema.parse(response.data);
+    return { ...response, data: parsed };
+  },
+
+  addDisplay: async (id: string, payload: AddDisplayToLoopPayload) => {
+    const parsedPayload = AddDisplayToLoopPayloadSchema.parse(payload);
+    const response = await client.post(`/api/display-loops/${id}/displays`, parsedPayload);
     const parsed = DisplayLoopResponseSchema.parse(response.data);
     return { ...response, data: parsed };
   },

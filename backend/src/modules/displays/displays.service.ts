@@ -41,6 +41,7 @@ interface ListFilters {
   layout?: string;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
+  assignedAdminId?: string;
 }
 
 interface ListConnectionRequestFilters {
@@ -121,6 +122,7 @@ export class DisplayService {
     if (filters?.status) filterObj.status = filters.status;
     if (filters?.location) filterObj.location = filters.location;
     if (filters?.layout) filterObj.layout = filters.layout;
+    if (filters?.assignedAdminId) filterObj.assignedAdminId = filters.assignedAdminId;
 
     let validSortBy: AllowedSortField = "createdAt";
     if (filters?.sortBy && ALLOWED_SORT_FIELDS.includes(filters.sortBy as AllowedSortField)) {
@@ -385,21 +387,43 @@ export class DisplayService {
     });
   }
 
-  async loginDisplay(data: { displayId: string; password: string }): Promise<Display> {
+  async loginDisplay(data: { displayId: string; password?: string | undefined }): Promise<Display> {
     const display = await this.displayRepository.findByDisplayId(data.displayId);
     if (!display) {
       throw new NotFoundError("Display not found. Invalid Display ID.");
     }
 
-    if (!display.password) {
+    // Password-enabled displays continue to require password auth.
+    if (display.password) {
+      if (!data.password || data.password.trim().length === 0) {
+        throw new ValidationError("Password is required for this display.");
+      }
+
+      const isPasswordValid = await bcrypt.compare(data.password, display.password);
+      if (!isPasswordValid) {
+        throw new ForbiddenError("Invalid password.");
+      }
+      return display;
+    }
+
+    // Passwordless displays can log in by display ID only once approved.
+    const connectionRequest = await this.connectionRequestRepository.findByDisplayId(display.id);
+    const status =
+      connectionRequest?.status ??
+      (display.assignedAdminId ? ConnectionRequestStatus.APPROVED : ConnectionRequestStatus.PENDING);
+
+    if (status === ConnectionRequestStatus.REJECTED) {
       throw new ValidationError(
-        "This display does not have password authentication enabled. Please use your connection token instead."
+        `This display registration was rejected${
+          connectionRequest?.rejectionReason ? `: ${connectionRequest.rejectionReason}` : "."
+        }`
       );
     }
 
-    const isPasswordValid = await bcrypt.compare(data.password, display.password);
-    if (!isPasswordValid) {
-      throw new ForbiddenError("Invalid password.");
+    if (status !== ConnectionRequestStatus.APPROVED) {
+      throw new ValidationError(
+        "This display is still pending admin approval. Approve it from Connection Requests before logging in."
+      );
     }
 
     return display;

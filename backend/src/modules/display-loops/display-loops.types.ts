@@ -24,7 +24,8 @@ export interface DisplayLoopListResponse {
  */
 export interface CreateDisplayLoopInput {
   loopName: string;
-  displayId: string;
+  displayId?: string | undefined;
+  displayIds?: string[] | undefined;
   rotationType: RotationType;
   displayLayout: DisplayLayout;
   description?: string;
@@ -49,4 +50,8 @@ export interface AddAdvertisementToLoopInput {
   duration: number;
   order: number;
   weight?: number;
+}
+
+export interface AddDisplayToLoopInput {
+  displayId: string;
 }

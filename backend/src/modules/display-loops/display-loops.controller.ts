@@ -142,6 +142,21 @@ export class DisplayLoopController {
     }
   }
 
+  async addDisplay(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      this.getUser(req);
+      const loopId = req.params.id as string;
+      const loop = await this.loopService.addDisplay(loopId, req.body);
+      const response: SuccessResponse<any> = {
+        success: true,
+        data: loop,
+      };
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async removeAdvertisement(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       this.getUser(req);

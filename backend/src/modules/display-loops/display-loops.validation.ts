@@ -7,7 +7,8 @@ import { RotationType, DisplayLayout } from "@admiro/domain";
 
 export const CreateDisplayLoopSchema = z.object({
   loopName: z.string().min(3, "Loop name must be at least 3 characters").max(255, "Loop name cannot exceed 255 characters"),
-  displayId: z.string().min(1, "Display ID is required"),
+  displayId: z.string().min(1, "Display ID is required").optional(),
+  displayIds: z.array(z.string().min(1, "Display ID is required")).optional(),
   rotationType: z.nativeEnum(RotationType).default(RotationType.SEQUENTIAL),
   displayLayout: z.nativeEnum(DisplayLayout).default(DisplayLayout.FULLSCREEN),
   description: z.string().max(1000, "Description cannot exceed 1000 characters").optional(),
@@ -37,6 +38,10 @@ export const AddAdvertisementToLoopSchema = z.object({
   weight: z.number().int().min(1).default(1).optional(),
 });
 
+export const AddDisplayToLoopSchema = z.object({
+  displayId: z.string().min(1, "Display ID is required"),
+});
+
 export const UpdateAdvertisementOrderSchema = z.object({
   newOrder: z.number().int().min(0, "Order must be non-negative"),
 });
@@ -46,5 +51,6 @@ export const DisplayLoopValidationSchemas = {
   update: UpdateDisplayLoopSchema,
   list: ListDisplayLoopQuerySchema,
   addAdvertisement: AddAdvertisementToLoopSchema,
+  addDisplay: AddDisplayToLoopSchema,
   updateOrder: UpdateAdvertisementOrderSchema,
 };

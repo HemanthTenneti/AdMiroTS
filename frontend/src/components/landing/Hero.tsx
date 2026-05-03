@@ -177,7 +177,7 @@ export function Hero() {
             <div ref={ctaRef} className="flex flex-wrap gap-4 items-center mb-12">
               {/* Primary button */}
               <Link
-                href="/signup"
+                href="/login"
                 className="group inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full font-bold text-white text-base bg-[#7E3AF0] hover:bg-[#6D28D9] hover:scale-[1.03] transition-[background-color,transform] duration-200"
               >
                 Start free today

@@ -17,6 +17,8 @@ export function createAdvertisementRoutes(jwtSecret: string): Router {
 
   // Auth middleware for protected routes
   const authMiddleware = jwtAuth.authenticate();
+  // Optional auth: attaches user if JWT present, but does not reject anonymous callers
+  const optionalAuth = jwtAuth.optionalAuthenticate();
 
   /**
    * PUBLIC ROUTES (no authentication required)
@@ -26,9 +28,11 @@ export function createAdvertisementRoutes(jwtSecret: string): Router {
   // GET /api/advertisements - List all advertisements with pagination
   // Query params: page, limit, status, mediaType, advertiserId, sortBy, sortOrder
   // Rate limited to prevent data scraping
+  // When JWT is present, results are auto-scoped to that user's ads
   router.get(
     "/",
     publicDataRateLimiter,
+    optionalAuth,
     validateQuery(AdvertisementValidationSchemas.listQuery),
     (req: Request, res: Response, next: NextFunction) => {
       adController.listAdvertisements(req, res, next).catch(next);

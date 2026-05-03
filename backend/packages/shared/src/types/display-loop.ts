@@ -27,7 +27,8 @@ export interface DisplayLoopResponse extends Timestamps {
   id: string;
   loopId: string; // Auto-generated unique ID
   loopName: string;
-  displayId: string; // FK to Display
+  displayId: string; // Legacy primary display reference
+  displayIds: string[]; // Assigned displays
   displayName?: string | undefined; // Populated from display relationship
   advertisements: LoopAdvertisementEntryDTO[];
   rotationType: RotationType;
@@ -44,7 +45,8 @@ export interface DisplayLoopResponse extends Timestamps {
  */
 export interface CreateDisplayLoopRequest {
   loopName: string;
-  displayId: string; // Must reference existing display
+  displayId?: string | undefined; // Legacy single assignment
+  displayIds?: string[] | undefined; // Optional multi-assignment
   rotationType: RotationType;
   displayLayout: DisplayLayout;
   description?: string | undefined;

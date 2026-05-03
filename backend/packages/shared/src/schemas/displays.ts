@@ -17,7 +17,7 @@ export const RegisterSelfPayloadSchema = z.object({
 
 export const DisplayLoginPayloadSchema = z.object({
   displayId: z.string().min(1),
-  password: z.string().min(1),
+  password: z.string().optional(),
 });
 
 export const DisplayRecordSchema = z.object({

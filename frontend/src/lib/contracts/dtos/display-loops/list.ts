@@ -17,6 +17,7 @@ export interface LoopListItem extends Timestamps {
   loopId: string;
   loopName: string;
   displayId: string;
+  displayIds: string[];
   advertisementCount: number;
   rotationType: RotationType;
   displayLayout: DisplayLayout;
