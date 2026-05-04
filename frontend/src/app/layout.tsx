@@ -15,7 +15,9 @@ export const metadata: Metadata = {
   title: "AdMiro — Digital Ad Management",
   description: "Manage digital advertisements across multiple displays in real-time",
   icons: {
-    icon: "/favicon.svg",
+    icon: "/favicon.png",
+    shortcut: "/favicon.png",
+    apple: "/favicon.png",
   },
 };
 

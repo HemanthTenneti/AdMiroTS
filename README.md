@@ -190,43 +190,7 @@ Frontend uses Next.js App Router with feature-first organization:
 - Node.js 20+
 - npm 10+
 
-### Install dependencies (root wrappers)
-
-```bash
-npm install
-```
-
-### Run both apps locally
-
-```bash
-npm run dev
-```
-
-### Build both apps
-
-```bash
-npm run build
-```
-
-### Type-check both apps
-
-```bash
-npm run typecheck
-```
-
-### API Tests (Mocha + Chai)
-
-```bash
-npm run test:backend
-```
-
-### Frontend Contract Smoke Tests
-
-```bash
-npm run test:frontend-contracts
-```
-
-### Standalone backend
+### Backend
 
 ```bash
 cd backend
@@ -237,7 +201,7 @@ npm run typecheck
 npm run test
 ```
 
-### Standalone frontend
+### Frontend
 
 ```bash
 cd frontend
@@ -264,7 +228,6 @@ npm run test:contracts
 
 - Deploy `frontend` as a Vercel Next.js project (root directory: `frontend`).
 - Deploy `backend` as a separate Vercel project (root directory: `backend`) using [`backend/vercel.json`](backend/vercel.json).
-- Root `.env` is a convenience template only; runtime apps read `backend/.env` and `frontend/.env.local`.
 - Frontend env file: `frontend/.env.local`
   - `NEXT_PUBLIC_API_BASE_URL`
   - `NEXT_PUBLIC_GOOGLE_CLIENT_ID`
